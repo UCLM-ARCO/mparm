@@ -18,4 +18,4 @@ DEB_MAKE_INVOKE := $(DEB_MAKE_ENVVARS) make -C build
 
 build/mpsim::
 	install -d -m 755 $(CURDIR)/debian/mpsim/usr/bin
-	install -m 755 bin/*.x $(CURDIR)/debian/mpsim/usr/bin
+	install -m 755 bin/*.x $(CURDIR)/debian/mpsim/usr/bin/mpsim
