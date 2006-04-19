@@ -1,0 +1,33 @@
+# added for LX
+AST_ISS_CHIP     = __st220__
+ARCHITECTURE     = ARCH_LINUX386
+OPERATING_SYSTEM = OS_LINUX
+
+INCDIR	   +=   -I$(AST_ISS_WRAPPER)/include \
+                -I$(AST_ISS_WRAPPER)/src/wrapper \
+                -I$(AST_ISS_WRAPPER)/src/wrapper_tgen \
+                -I$(OCCN)/include
+
+CPPSRCS   += ast_iss_wrapper.cpp ast_iss_if.cpp ast_iss_config.cpp ast_iss_shifter.cpp irq_port.cpp
+#added for traffic generator
+CPPSRCS   +=  ast_iss_tgen_wrapper.cpp 
+
+PLATFLAGS += -D$(ARCHITECTURE)=1 -D$(OPERATING_SYSTEM)=1 -D$(AST_ISS_CHIP) -DLXBUILD
+
+LIBDIR    += -L$(LX_LIB) -L$(OCCN)/lib-linux 
+#-L$(OCCN_AMBA)/lib-linux
+             
+LIBS      +=  -lcc-utils -lc-utils -lelfr -ldll-support -ldl -loccn
+#-lbfd -liberty -larm_bus -lopcodes -lnsl -lm 
+
+# end LX 
+
+#Path dei sorgenti -> fondamentale!
+VPATH     += $(AST_ISS_WRAPPER)/src/wrapper $(AST_ISS_WRAPPER)/src/ahbbus \
+              $(AST_ISS_WRAPPER)/src/wrapper_tgen
+# $(SWARMDIR)/lx_wrapper/src/wrapper_tgen
+
+#String to print during build process
+MSGSTRING += "LX    "
+
+lx: printmessage $(EXE)

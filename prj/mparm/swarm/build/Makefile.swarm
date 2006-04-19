@@ -1,0 +1,19 @@
+DEBUGOPTS += -DDEBUGGER
+PLATFLAGS += -DSWARMBUILD
+INCDIR    += -I$(SWARMDIR)/swarm
+CPPSRCS   += alu.cpp armproc.cpp associative.cpp booth.cpp cache.cpp copro.cpp \
+             core.cpp direct.cpp disarm.cpp intctrl.cpp lcdctrl.cpp \
+             ostimer.cpp setassoc.cpp swarm.cpp swarm_ocp_master_wrapper.cpp \
+             swi.cpp syscopro.cpp uartctrl.cpp user_swi.cpp wrapper.cpp
+VPATH     += $(SWARMDIR)/swarm
+#String to print during build process
+MSGSTRING += "SWARM ISS    "
+
+# Currently the write back policy is experimental and disabled for default 
+# build.
+# To enable it, add WRITE_BACK=1 to the make command line.
+ifdef WRITE_BACK
+  CFLAGS += -DWB_CACHE
+endif
+
+swarmiss: printmessage $(EXE)

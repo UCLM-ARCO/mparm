@@ -1,0 +1,6 @@
+
+To build:
+
+arm-linux-gcc -c -O3 -fomit-frame-pointer *.c
+arm-linux-gcc -c entry.S
+arm-linux-ld entry.o d*.o ext*.o f*.o s*.o -Ttext 0xd0000000 -o nwfpe.bin -L<gcc spec dir> -lgcc

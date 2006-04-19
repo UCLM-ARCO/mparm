@@ -1,0 +1,93 @@
+############## Target architecture
+SYSC_TARGET_ARCH ?= linux
+
+############## Variables that point to installation paths
+SYSTEMC          ?= /home/system_C/systemc-2.0.1
+#SystemC
+#SYSTEMC_STBUS    ?= /home/mpsim/stbus
+#STPOWER_BASEDIR  ?= /home/mpsim/stbus-power
+#FIXME
+SYSTEMC_ST_NODE  ?= /home/mpsim/stbus1
+STNODEPOWER_BASEDIR ?= /home/mpsim/stbus-power1
+#STBus (only required for STBus interconnect)
+OCCN             ?= /home/mpsim/occn/occn_1.0.1
+OCCN_AMBA        ?= /home/mpsim/occn/amba_1.0.2
+#OCCN AMBA library (only required for AMBA AHB (OCCN model) interconnect)
+SYNOPSYS_SIM     ?= /home/synopsys/sim
+#Synopsys base directory (only required for AMBA AHB/AXI (Synopsys model) interconnect)
+SYN_SYSTEMC      ?= $(SYNOPSYS_SIM)/$(SYSC_TARGET_ARCH)/ccss/ccss_systemc
+
+############## Base name of output executable file
+MODULE = bin/mpsim
+
+############## Default compiler and possible option sets
+CC            = g++
+#DEFAULTFLAGS: see globals.cpp for more details
+DEFAULTFLAGS  = -DMAKEFILE_DEFAULT_CURRENT_ISS=SWARM -DMAKEFILE_DEFAULT_CURRENT_INTERC=AMBAAHB \
+                -DMAKEFILE_DEFAULT_N_CORES=4 -DMAKEFILE_DEFAULT_SHARED_CACHE=false \
+                -DMAKEFILE_DEFAULT_NSIMCYCLES=-1 -DMAKEFILE_DEFAULT_ACCTRACE=false \
+                -DMAKEFILE_DEFAULT_VCD=false -DMAKEFILE_DEFAULT_AUTOSTARTMEASURING=false \
+                -DMAKEFILE_DEFAULT_SPCHECK=false -DMAKEFILE_DEFAULT_SHOWPROMPT=false \
+                -DMAKEFILE_DEFAULT_FREQSCALING=false -DMAKEFILE_DEFAULT_FREQSCALINGDEVICE=false \
+                -DMAKEFILE_DEFAULT_CORESLAVE=false -DMAKEFILE_DEFAULT_INT_WS=1 \
+                -DMAKEFILE_DEFAULT_MEM_IN_WS=1 -DMAKEFILE_DEFAULT_MEM_BB_WS=1 \
+                -DMAKEFILE_DEFAULT_STATS=true -DMAKEFILE_DEFAULT_DMA=false \
+                -DMAKEFILE_DEFAULT_SCRATCH=false -DMAKEFILE_DEFAULT_N_PRIVATE=MAKEFILE_DEFAULT_N_CORES \
+                -DMAKEFILE_DEFAULT_N_SHARED=1 -DMAKEFILE_DEFAULT_N_SEMAPHORE=1 \
+                -DMAKEFILE_DEFAULT_N_INTERRUPT=1 -DMAKEFILE_DEFAULT_N_STORAGE=0 \
+                -DMAKEFILE_DEFAULT_N_BUSES=1 -DMAKEFILE_DEFAULT_N_BRIDGES=0 \
+                -DMAKEFILE_DEFAULT_N_IP_TG=0 -DMAKEFILE_DEFAULT_N_FREQ_DEVICE=4 -DMAKEFILE_DEFAULT_DRAM=false \
+                -DMAKEFILE_DEFAULT_SMARTMEM=false -DMAKEFILE_DEFAULT_UCACHESIZE=8192 \
+                -DMAKEFILE_DEFAULT_UCACHETYPE=SETASSOC -DMAKEFILE_DEFAULT_UCACHEWAYS=4 \
+                -DMAKEFILE_DEFAULT_DCACHESIZE=4096 -DMAKEFILE_DEFAULT_ICACHESIZE=8192 \
+                -DMAKEFILE_DEFAULT_DCACHETYPE=SETASSOC -DMAKEFILE_DEFAULT_ICACHETYPE=DIRECT \
+                -DMAKEFILE_DEFAULT_DCACHEWAYS=4 -DMAKEFILE_DEFAULT_ICACHEWAYS=0 \
+                -DMAKEFILE_DEFAULT_POWERSTATS=false -DMAKEFILE_DEFAULT_DCACHE_WS=0 \
+                -DMAKEFILE_DEFAULT_ICACHE_WS=0 -DMAKEFILE_DEFAULT_UCACHE_WS=0 \
+                -DMAKEFILE_DEFAULT_SCRATCH_WS=0 -DMAKEFILE_DEFAULT_TG_TRACE_COLLECTION=false \
+                -DMAKEFILE_DEFAULT_ISCRATCH=false -DMAKEFILE_DEFAULT_ISCRATCHSIZE=4096 \
+                -DMAKEFILE_DEFAULT_N_FFT=0 -DMAKEFILE_DEFAULT_USING_OCP=false \
+                -DMAKEFILE_DEFAULT_STATSFILENAME='"stats.txt"' -DMAKEFILE_DEFAULT_CFGFILENAME='""' \
+                -DMAKEFILE_DEFAULT_SCRATCH_SIZE=4096 -DMAKEFILE_DEFAULT_QUEUE_SIZE=16384 \
+                -DMAKEFILE_DEFAULT_N_LX_PRIVATE=0
+
+DEFAULTFLAGS  += -DRAM_COUNTER_WORKAROUND
+
+OPT           = -Wall -Wno-deprecated -fexceptions -O3 -g -DQUIET -DTRACELEVEL=0 #-pg
+############## Enable -pg for executable profiling
+
+
+  # To activate just the debug output (TRACE and TRACEX) from the command 
+  # line: 
+  #    make <targets> <other_options>  DEBUGOUT=1
+ifdef DEBUGOUT
+OPT += -DOUTDEBUG
+endif
+
+
+DEBUGOPTS     = -Wall -fexceptions -O0 -g -DSCRATCHPRINTDEBUG -DTRACELEVEL=12 -DPRINTDEBUG -DWITH_TIME_COUNTER \
+                -DDMAPRINTDEBUG -DDMAPRINTDEBUG1 -DDMAPRINTDEBUG2 -DMEMORYDEBUG #-DNOCORE
+OPTIONSET     = QUIET
+#OPTIONSET     = VERBOSE
+
+############## Please notice: the CC compiler will be started with the DEFAULTFLAGS and
+############## one among the OPT and DEBUGOPTS feature sets. The choice between OPT and
+############## DEBUGOPTS sets is made by setting OPTIONSET to either the QUIET or VERBOSE
+############## values. QUIET will be tuned for speed (default), while VERBOSE will print
+############## lots of debug information and turn on an integrated step-by-step debugger.
+############## Additional platform-specific configurable options may be found in
+############## related Makefiles.
+
+BUILDOPTIONS  = QUIET
+#BUILDOPTIONS  = VERBOSE
+
+############## This switch is for build control purposes only. With QUIET, compilation command
+############## lines will be suppressed and will get replaced by compact messages; with
+############## VERBOSE, full output will be printed. Color associations for the compact style
+############## can be chosen below for optimal readability (DEFAULTCOLOR, RED, GREEN,
+############## YELLOW, BLUE, VIOLET, CYAN, WHITE).
+
+############## Association of colors to building steps
+LINK       = $(RED)
+COMPILE    = $(BLUE)
+DEPENDENCY = $(VIOLET)

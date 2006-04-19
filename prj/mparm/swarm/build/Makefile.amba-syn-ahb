@@ -1,0 +1,12 @@
+DEBUGOPTS +=
+PLATFLAGS += -DAMBAAHBSYNBUILD -DWITHOUT_OCP
+INCDIR    += -I$(SWARMDIR)/amba-ahb-syn #-I$(SWARMDIR)/amba-ahb-syn/dw_amba_ahb_aux
+CPPSRCS   += ahb_shared.cpp Master_ahb_syn.cpp Slave_ahb.cpp amba_ahb_syn_dma.cpp
+LIBDIR    += -L$(SYNOPSYS_SIM)/linux/ccss/lib -L$(SYNOPSYS_SIM)/linux/ccss/dw_amba_sc/lib/
+LIBS      += -ldw_amba_ahb-g -ltcl-O -lvirvpd-O -ldl -lcstubrh9 -lclm-O -lruntimelib-O
+VPATH     += $(SWARMDIR)/amba-ahb-syn $(SWARMDIR)/amba-ahb-syn/dw_amba_ahb_aux
+#String to print during build process
+MSGSTRING += "AMBA AHB (Synopsys model)   "
+SYSTEMC   := $(SYN_SYSTEMC)
+ 
+amba-syn-ahb: printmessage $(EXE)

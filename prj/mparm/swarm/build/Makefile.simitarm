@@ -1,0 +1,11 @@
+DEBUGOPTS += 
+PLATFLAGS += -DCOUNT_INST -D__COMPILE_SIMULATOR_ -DSIMITARMBUILD
+INCDIR    += -I${SWARMDIR}/simitarm/simulator -I${SWARMDIR}/simitarm/emulator -I${SWARMDIR}/simitarm/libosm
+CPPSRCS   += define.cpp machines.cpp armsim.cpp more_managers.cpp emumem.cpp emu_device.cpp \
+             ext_func.cpp fetch_oper_dec.cpp syscall.cpp loadfpe.cpp loader.cpp nwfpe.cpp util.cpp \
+             external_dev_stub.cpp simitarm_wrapper.cpp sa_cache.cpp
+VPATH     += ${SWARMDIR}/simitarm/simulator ${SWARMDIR}/simitarm/emulator
+#String to print during build process
+MSGSTRING += "SimIt-ARM ISS    "
+
+simitarm: printmessage $(EXE)

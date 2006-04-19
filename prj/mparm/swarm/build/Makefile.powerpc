@@ -1,0 +1,21 @@
+DEBUGOPTS += 
+PLATFLAGS += -DPOWERPCBUILD
+INCDIR    += -I${SWARMDIR}/powerpc/powerpc/include -I${SWARMDIR}/powerpc/powerpc/src \
+             -I${SWARMDIR}/powerpc/ppcemul/include -I${SWARMDIR}/powerpc/ppcemul/src
+CPPSRCS   += BHT.cpp DCache.cpp LoadStoreUnit.cpp BranchPredictionUnit.cpp DispatchUnit.cpp \
+             PowerPC.cpp BranchRS.cpp FetchUnit.cpp RegisterFile.cpp BranchUnit.cpp \
+             FloatingPointRS.cpp RegistersBinding.cpp BTIC.cpp FloatingPointUnit.cpp \
+             ReorderBuffer.cpp BusInterfaceUnit.cpp ICache.cpp StoreQueue.cpp Cache.cpp \
+             InstructionQueue.cpp SystemRegisterRS.cpp ppc_common.cpp IntegerRS.cpp \
+             SystemRegisterUnit.cpp CompletionUnit.cpp IntegerUnit.cpp XERRegister.cpp \
+             ConditionRegister.cpp LinkRegister.cpp CountRegister.cpp LoadStoreRS.cpp \
+             trace.cpp
+CSRCS     += decode.c ppc_memory.c ppc_loader.c ppc_syscall.c \
+             branch.c loadstore.c ppcemul.c floatingpoint.c systemregisters.c ppc_debug.c \
+             registers.c integer.c fetch.c xmlize.c
+
+VPATH     += ${SWARMDIR}/powerpc/powerpc/src ${SWARMDIR}/powerpc/ppcemul/src
+#String to print during build process
+MSGSTRING += "PowerPC ISS    "
+
+powerpc: printmessage $(EXE)
