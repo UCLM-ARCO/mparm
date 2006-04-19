@@ -1,0 +1,20 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
+TARGETS=swarmiss amba-sig amba-ahb
+
+include /usr/share/cdbs/1/rules/debhelper.mk
+include /usr/share/cdbs/1/rules/simple-patchsys.mk
+include /usr/share/cdbs/1/class/makefile.mk
+
+DEB_MAKE_CLEAN_TARGET := clean
+DEB_MAKE_BUILD_TARGET := $(TARGETS)
+DEB_MAKE_INSTALL_TARGET := $(TARGETS)
+DEB_MAKE_CHECK_TARGET :=
+DEB_BUILD_OPTIONS := nocheck
+
+DEB_MAKE_INVOKE := $(DEB_MAKE_ENVVARS) make -C build
+
+build/mpsim::
+	install -d -m 755 $(CURDIR)/debian/mpsim/usr/bin
+	install -m 755 bin/*.x $(CURDIR)/debian/mpsim/usr/bin
