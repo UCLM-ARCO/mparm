@@ -33,6 +33,17 @@ struct request
   }
 };
 
+// Needed for print/dump in SystemC 2.0.x and up
+inline ostream& operator << (ostream& os, const request& v)
+{
+  os << v.hwrite << ","
+     << v.hburst << ","
+     << v.htrans << ","
+     << v.hsize
+     << endl;
+  return os;
+};
+
 inline void sc_trace(sc_trace_file *tf, const request& v, const sc_string& NAME)
 {
   sc_trace(tf,v.hwrite, NAME + ".hwrite");

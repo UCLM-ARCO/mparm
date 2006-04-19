@@ -40,7 +40,24 @@ typedef struct POTAG
 	rhs.fiq == fiq && rhs.irq == irq  && rhs.rw == rw && rhs.benable == benable &&
 	rhs.bw == bw && rhs.burst == burst);
       }
+
 } PINOUT;
+
+// Needed for dump/print in systemc 2.0.x and up
+inline  ostream& operator << (ostream& os, const PINOUT& v)
+{
+  os << v.nreset << ","
+     << v.address << ","
+     << v.data << ","
+     << v.rw << ","
+     << v.fiq << ","
+     << v.irq << ","
+     << v.benable << ","
+     << v.bw << ","
+     << v.burst << ","
+     << endl;
+  return os;
+}
 
 inline void sc_trace(sc_trace_file *tf, const POTAG& v, const sc_string& NAME)
 {
@@ -96,6 +113,21 @@ typedef struct DMA_CONT1
        return (rhs.work == work && rhs.num_obj == num_obj );
       }
 } DMA_CONT_REG1; 
+
+// Needed for dump/print in systemc 2.0.x and up
+inline  ostream& operator << (ostream& os, const DMA_CONT_REG1& v)
+{
+  os << v.work.size << ","
+     << v.work.numberofrow << ","
+     << v.work.rowlengthl1 << ","
+     << v.work.rowlengthl2 << ","
+     << v.work.l1 << ","
+     << v.work.l2 << ","
+     << v.work.state << ","
+     << v.num_obj << ","
+     << endl;
+  return os;
+}
 
 inline void sc_trace(sc_trace_file *tf, const DMA_CONT1& v, const sc_string& NAME)
 {
