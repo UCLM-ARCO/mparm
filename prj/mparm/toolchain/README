@@ -1,0 +1,22 @@
+This directory contains the building infrastructure for MPARM toolchain
+and operating systems.  The building process should be completely
+automatic using these scripts:
+
+download.sh
+	Downloads source files from their distribution sites.
+
+extract.sh
+	Extracts a given source file (all source files by default).
+
+debgen.sh
+	Builds unsigned Debian packages from extracted sources.
+
+Subdirectories binutils/ gcc/ and rtems/ contain the Debian packaging
+information.
+
+Please, note that building gcc requires previous installation of binutils
+and building rtems requires previous installation of both, gcc and binutils.
+Therefore you need root privileges to compile the whole toolchain. If you
+want to complete the building process as a user take a look at UML (User
+Mode Linux).
+

@@ -1,0 +1,17 @@
+Source: rtems4.7
+Section: electronics
+Priority: optional
+Maintainer: Francisco Moya <francisco.moya@uclm.es>
+Build-Depends: autoconf (>= 2.13), bison, flex, gettext, texinfo, debhelper (>= 3), tar (>= 1.13.18), bzip2, dbs
+Standards-Version: 3.6.2
+
+Package: arm-rtems4.7
+Architecture: any
+Section: electronics
+Depends: ${shlibs:Depends}
+Description: RTEMS/ARM with MPARM patches
+ RTEMS is the Real-Time Operating System for Multiprocessor Systems. 
+ It is a full featured RTOS that supports a variety of open API and 
+ interface standards. This package includes patches and BSP for MPARM
+ from micrel.unibo.it
+

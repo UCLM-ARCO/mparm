@@ -1,0 +1,78 @@
+#!/usr/bin/make -f
+# Sample debian/rules that uses debhelper.
+# GNU copyright 1997 to 1999 by Joey Hess.
+
+PACKAGE=arm-rtems4.7
+BSP="edb7310 gba"
+
+ifeq (,$(DEB_BUILD_GNU_TYPE))
+  include /usr/share/dbs/dpkg-arch.mk
+endif
+
+CONFARGS =  --enable-cxx --target=$(PACKAGE) --prefix=/usr/lib/rtems4.7 \
+            --enable-rtemsbsp="$(BSP)"
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+# This is the debhelper compatability version to use.
+export DH_COMPAT=4
+
+TAR_DIR=rtems-*
+include /usr/share/dbs/dbs-build.mk
+
+
+configure: configure-stamp
+configure-stamp: $(patched)
+	dh_testdir
+	cd $(BUILD_TREE) && ./bootstrap
+	mkdir objdir
+	cd objdir && ../$(BUILD_TREE)/configure $(CONFARGS) 
+	touch configure-stamp
+
+build: configure-stamp build-stamp
+build-stamp: $(patched)
+	dh_testdir
+	cd objdir && $(MAKE)
+	touch build-stamp
+
+clean:
+	dh_testdir
+	dh_testroot
+	rm -f build-stamp configure-stamp a.out
+	rm -rf $(STAMP_DIR) $(SOURCE_DIR) objdir
+	dh_clean
+
+install: build
+	dh_testdir
+	dh_testroot
+	dh_clean -k
+	dh_installdirs
+	# cfg.P got lost after build!
+	for i in objdir/$(PACKAGE)/c/*/.deps ; do touch $$i/cfg.P ; done
+	cd objdir && $(MAKE) install DESTDIR=$(CURDIR)/debian/$(PACKAGE)/
+
+# Build architecture-independent files here.
+binary-indep: build install
+# We have nothing to do by default.
+
+# Build architecture-dependent files here.
+binary-arch: build install
+	dh_testdir
+	dh_testroot
+	dh_installdocs -n
+	dh_installman
+	dh_undocumented
+	dh_installchangelogs 
+	dh_link
+	dh_strip
+	dh_compress
+	dh_fixperms
+	dh_installdeb
+	dh_shlibdeps
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+
+binary: binary-indep binary-arch
+.PHONY: build clean binary-indep binary-arch binary install configure
