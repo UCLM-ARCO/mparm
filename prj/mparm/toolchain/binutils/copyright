@@ -1,0 +1,13 @@
+This is a debian pakcage of the GNU assembler, linker, and binary 
+utilities compiled for cross development for the ARM processor on
+RTEMS.
+
+It is created from a cvs snapshot downloaded from:
+
+  ftp://ftp.funet.fi/pub/gnu/prep/binutils/
+
+
+Copyright: GNU General Public License
+
+On Debian GNU/Linux systems, the complete text of the GNU General
+Public License can be found in `/usr/share/common-licenses/GPL'.
