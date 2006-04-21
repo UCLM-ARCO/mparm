@@ -1,0 +1,15 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
+include /usr/share/cdbs/1/rules/debhelper.mk
+include /usr/share/cdbs/1/rules/simple-patchsys.mk
+include /usr/share/cdbs/1/class/makefile.mk
+
+DEB_MAKE_CLEAN_TARGET := clean
+DEB_MAKE_BUILD_TARGET := all prefix=/usr
+DEB_MAKE_INSTALL_TARGET := install DESTDIR=$(CURDIR)/debian/skyeye
+DEB_MAKE_CHECK_TARGET :=
+DEB_BUILD_OPTIONS := nocheck
+
+DEB_MAKE_INVOKE := $(DEB_MAKE_ENVVARS) make
+
