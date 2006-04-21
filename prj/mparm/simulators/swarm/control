@@ -1,0 +1,17 @@
+Source: swarm
+Section: electronics
+Priority: optional
+Maintainer: Francisco Moya <francisco.moya@uclm.es>
+Build-Depends: cdbs (>= 0.4.27-1), debhelper (>= 4.2.0)
+Standards-Version: 3.6.2
+
+Package: swarm
+Architecture: any
+Section: electronics
+Depends: ${shlibs:Depends}
+Description: SWARM ARM simulator
+ SWARM - SoftWare ARM. It is a modular simulation of an ARM 7
+ processor written in C++. It is cycle accurate, and models the
+ datapath at the bus level. It is sufficiently complete that it will
+ run microcontroller linux.
+
