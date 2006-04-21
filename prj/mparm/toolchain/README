@@ -17,6 +17,5 @@ information.
 Please, note that building gcc requires previous installation of binutils
 and building rtems requires previous installation of both, gcc and binutils.
 Therefore you need root privileges to compile the whole toolchain. If you
-want to complete the building process as a user take a look at UML (User
-Mode Linux).
+want to be able to build them as a user take a look at UML (User Mode Linux).
 
