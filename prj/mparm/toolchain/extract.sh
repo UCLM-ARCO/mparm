@@ -32,10 +32,10 @@ pkg_extract() {
     DIR=$(basename $(tar tjf $1 | head -1 ) )
 
     cat <<EOF
-PKG  = $PKG
-VER  = $VER
-DEST = $DEST ($DIR -> $DEST)
-ORIG = $ORIG
+	PKG  = $PKG
+	VER  = $VER
+	DEST = $DEST ($DIR -> $DEST)
+	ORIG = $ORIG
 EOF
 
     $EXTRACT $1
@@ -50,7 +50,7 @@ pkg_copy() {
     if test ! -e $1 ; then return ; fi
     echo "Copying $1 ... "
     
-    BASE=$(echo "$1" \
+    BASE=$(basename "$1" \
 	| sed -e 's|\.tar\.bz2||' -e 's|\.tar\.gz||'  -e 's|\.tbz||'  -e 's|\.tgz||' )
     PKG=$(echo $BASE | sed -e 's/\([A-Z_a-z-]*\)-\([0-9][0-9.]*\)[-A-Z0-9]*/\1/g' )
     DEST=$(echo $BASE | sed -e "s/\\([A-Z_a-z-]*\\)-\\([0-9][0-9.]*\\)[-A-Z0-9]*/\\1$ARCH-\\2/g" )
@@ -58,10 +58,10 @@ pkg_copy() {
     ORIG=$(echo $DEST | sed -e 's/-\([0-9][0-9.]*\)/_\1.orig.tar.gz/g' )
 
     cat <<EOF
-PKG  = $PKG
-VER  = $VER
-DEST = $DEST
-ORIG = $ORIG
+	PKG  = $PKG
+	VER  = $VER
+	DEST = $DEST
+	ORIG = $ORIG
 EOF
 
     mkdir -p $DEST
@@ -82,11 +82,11 @@ pkg_copy_gcc() {
     ORIG=$(echo "$PKG" | sed -e 's/-\([0-9][0-9.]*\)/_\1.orig.tar.gz/g' )
 
     cat <<EOF
-PKG        = $PKG
-CORE       = $COR
-CPLUSPLUS  = $CPP
-NEWLIB     = $NEWLIB
-ORIG       = $ORIG
+	PKG        = $PKG
+	CORE       = $COR
+	CPLUSPLUS  = $CPP
+	NEWLIB     = $NEWLIB
+	ORIG       = $ORIG
 EOF
 
     mkdir -p $PKG

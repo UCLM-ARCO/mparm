@@ -1,10 +1,10 @@
 #!/bin/sh
 
 # Package versions
-BINUTILS_VER = 1.16.1
-GCC_VER      = 4.1.0
-NEWLIB_VER   = 1.14.0
-RTEMS_VER    = 4.6.99
+BINUTILS_VER=2.16.1
+GCC_VER=4.1.0
+NEWLIB_VER=1.14.0
+RTEMS_VER=4.6.99
 
 # Note that RTEMS version is always CVS HEAD.  The user specified
 # version number only affects the generated compressed archive.
@@ -26,7 +26,7 @@ FILES="$BU $GCC_CORE $GCC_CXX $NEWLIB"
 mkdir -p orig
 cd orig && (
     for i in $FILES ; do
-	if [ -e $(basename $i) ] ; then
+	if [ -e $(basename $i ) ] ; then
 	    echo "Skipping $i"
 	else
 	    echo "Getting $i"
@@ -37,8 +37,9 @@ cd orig && (
 	echo "Updating $RTEMS"
 	( cd $RTEMS && cvs -Q -z9 update )
     else
-	echo "Checking out $RTEMS"
-	cvs -Q -z9 -d $RTEMS_CVS co -d $RTEMS co rtems
+	echo "Checking out $RTEMS_CVS/rtems in $RTEMS"
+	cvs -Q -z9 -d $RTEMS_CVS co -d $RTEMS rtems
     fi
+    echo "Packaging $RTEMS"
     tar cjf $RTEMS.tar.bz2  $RTEMS
 )
