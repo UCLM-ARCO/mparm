@@ -7,26 +7,30 @@ pkg_extract() {
 	*.tar.bz2) 
 		BASE=$(basename $1 .tar.bz2 )
 		EXTRACT="tar xjf"
+		INSPECT="tar tjf"
 		;;
 	*.tbz) 
 		BASE=$(basename $1 .tbz )
 		EXTRACT="tar xjf"
+		INSPECT="tar tjf"
 		;;
 	*.tar.gz)
 		BASE=$(basename $1 .tar.gz ) 
 		EXTRACT="tar xzf"
+		INSPECT="tar tzf"
 		;;
 	*.tgz)
 		BASE=$(basename $1 .tgz ) 
 		EXTRACT="tar xzf"
+		INSPECT="tar tzf"
 		;;
     esac
 
     PKG=$(echo $BASE | sed -e 's/\([A-Z_a-z-]*\)-\([0-9][0-9.]*\)[-A-Z0-9]*/\1/g' )
-    DEST=$(echo $BASE | sed -e 's/\([A-Z_a-z-]*\)\([0-9][0-9.]*\)[-A-Z0-9]*/\1\2/g' )
+    DEST=$(echo $BASE | sed -e 's/\([A-Z_a-z-]*\)\([0-9][0-9.]*\)[-A-Z0-9]*/\1\2.0/g' )
     VER=$(echo $BASE | sed -e 's/\([A-Z_a-z-]*\)\([0-9][0-9.]*\)[-A-Z0-9]*/\2/g' )
     ORIG=$(echo $DEST | sed -e 's/-\([0-9][0-9.]*\)/_\1.orig.tar.gz/g' )
-    DIR=$(basename $(tar tjf $1 | head -1 ) )
+    DIR=$(basename $($INSPECT $1 | head -1 ) )
 
     cat <<EOF
 	PKG  = $PKG
@@ -39,7 +43,7 @@ EOF
     if [ $DIR != $DEST ] ; then
         mv $DIR $DEST
     fi
-    ln -f $1 $ORIG
+    tar czf $ORIG $DEST
     rsync -aq --exclude=.svn $(dirname $0)/$PKG/ $DEST/debian
 }
 
