@@ -29,8 +29,12 @@ cd orig && (
 	if [ -e $(basename $i ) ] ; then
 	    echo "Skipping $i"
 	else
-	    echo "Getting $i"
-	    wget -q $i
+	    echo -n "Getting $i ... "
+	    if wget "$i" ; then
+		echo Done.
+	    else
+		echo Failed.
+	    fi
 	fi
     done
     if [ -d $RTEMS ] ; then
