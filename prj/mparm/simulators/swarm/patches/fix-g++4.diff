@@ -1,0 +1,291 @@
+diff -r -u swarm/src/core.cpp swarm-0.61.0/src/core.cpp
+--- swarm/src/core.cpp	2001-09-27 11:31:53.000000000 +0200
++++ swarm-0.61.0/src/core.cpp	2006-04-15 02:44:00.000000000 +0200
+@@ -26,7 +26,8 @@
+ #include "core.h"
+ #include "isa.h"
+ #include <string.h>
+-#include <iostream.h>
++#include <iostream>
++#include <iomanip>
+ #include "disarm.h"
+ #ifndef ARM6
+ #include "booth.h"
+@@ -34,6 +35,8 @@
+ 
+ #include "memory.cpp"
+ 
++using namespace std;
++
+ static const char* mode_str[16] = {"reset", "fiq", "irq", "svc", 
+ 				   NULL, NULL, NULL, "abort", 
+ 				   NULL, NULL, NULL, "undef", 
+@@ -716,25 +719,65 @@
+ 	if ((m_regsWorking[m_ctrlListCur[m_nCtrlCur]->rd] !=
+ 	     m_nativeResult))
+ 	  {
+-	    cout.form("Result not the same. Real = 0x%08X  SWARM = 0x%08X\n", 
+-		      m_nativeResult, 
+-		      m_regsWorking[m_ctrlListCur[m_nCtrlCur]->rd]);	
+-	    cout.form("Had converted 0x%08x to 0x%08x\n", 
+-		      m_ctrlListCur[m_nCtrlCur]->i.raw, 
+-		      m_nativeFn[3]);
+-	    cout.form("Real=0x%08X\tCPSR=0x%08X\told rn= 0x%08x\n", m_nativeResult, m_nativeCpsr, m_regsTemp[0]);
++	    cout << "Result not the same. Real = 0x"
++		 << hex << uppercase << setw(8) << setfill('0')
++		 << m_nativeResult
++		 << "  SWARM = 0x"
++		 << hex << uppercase << setw(8) << setfill('0')
++		 << m_regsWorking[m_ctrlListCur[m_nCtrlCur]->rd]
++		 << "\n";
++
++	    cout << "Had converted 0x"
++		 << hex << uppercase << setw(8) << setfill('0')
++		 << m_ctrlListCur[m_nCtrlCur]->i.raw
++		 << " to 0x"
++		 << hex << uppercase << setw(8) << setfill('0')
++		 << m_nativeFn[3]
++		 << "\n";
++		      
++	    cout << "Real=0x"
++		 << hex << uppercase << setw(8) << setfill('0')
++		 << m_nativeResult
++		 << "\tCPSR=0x"
++		 << hex << uppercase << setw(8) << setfill('0')
++		 << m_nativeCpsr
++		 << "\told rn= 0x"
++		 << hex << uppercase << setw(8) << setfill('0')
++		 << m_regsTemp[0]
++		 << "\n";
++
+ 	    DebugDump();  
+ 	    exit(0);
+ 	  }	
+       if (m_regsWorking[16] != m_nativeCpsr)
+ 	{
+-	  cout.form("CPSR not the same. Real = 0x%08X  SWARM = 0x%08X\n", 
+-		    m_nativeCpsr, 
+-		    m_regsWorking[16]);	  	
+-	    cout.form("Had converted 0x%08x to 0x%08x\n", 
+-		      m_ctrlListCur[m_nCtrlCur]->i.raw, 
+-		      m_nativeFn[3]);
+-	  cout.form("Real=0x%08X\tCPSR=0x%08X\told rn= 0x%08x\n", m_nativeResult, m_nativeCpsr, m_regsTemp[0]);
++	  cout << "CPSR not the same. Real = 0x"
++	       << hex << uppercase << setw(8) << setfill('0')
++	       << m_nativeCpsr
++	       << "  SWARM = 0x"
++	       << hex << uppercase << setw(8) << setfill('0')
++	       << m_regsWorking[16]
++	       << "\n";
++	  
++	  cout << "Had converted 0x"
++	       << hex << uppercase << setw(8) << setfill('0')
++	       << m_ctrlListCur[m_nCtrlCur]->i.raw
++	       << " to 0x"
++	       << hex << uppercase << setw(8) << setfill('0')
++	       << m_nativeFn[3]
++	       << "\n"; 
++	  
++	  cout << "Real=0x"
++	       << hex << uppercase << setw(8) << setfill('0')
++	       << m_nativeResult
++	       << "\tCPSR=0x"
++	       << hex << uppercase << setw(8) << setfill('0')
++	       << m_nativeCpsr
++	       << "\told rn= 0x"
++	       << hex << uppercase << setw(8) << setfill('0')
++	       << m_regsTemp[0]
++	       << "\n";
++
+ 	  DebugDump();
+ 	  exit(0);
+ 	}	
+@@ -4031,22 +4074,28 @@
+ {
+   char str[80];
+ 
+-  cout.form("-------------------------------------------------------------------------------\n");
+-  cout.form("SWARM Core debug dump\n\n");
++  cout << "-------------------------------------------------------------------------------\n";
++  cout << "SWARM Core debug dump\n\n";
+ 
+-  cout.form("Registers:");
++  cout << "Registers:";
+   for (int j = 0; j < 4; j++)
+     {
+-      for (int i = 0; i < 4; i++)
+-	cout.form("   0x%08X", m_regsWorking[i + (j * 4)]);
+-      cout.form("\n\t  ");
++      for (int i = 0; i < 4; i++) {
++        cout << "   0x" << hex << uppercase << setw(8) << setfill('0')
++	     << m_regsWorking[i + (j * 4)];
++      }
++      cout << "\n\t  ";
+     }
+-  cout.form("   0x%08X", m_regsWorking[16]);
++  cout << "   0x" << hex << uppercase << setw(8) << setfill('0')
++       << m_regsWorking[16];
+ 
+   if (m_mode == M_FIQ)
+-    cout.form("\tSPSR_%s[0x%08x]\n\n", mode_str[m_mode & 0xF], m_regsFiq[7]);
++    cout << "\tSPSR_" << mode_str[m_mode & 0xF]
++	 << "[0x" << hex << uppercase << setw(8) << setfill('0')
++	 << m_regsFiq[7]
++	 << "]\n\n";
+   else if ((m_mode == M_USER) || (m_mode == M_SYSTEM))
+-    cout.form("\n\n");
++    cout << "\n\n";
+   else
+     {
+       uint32_t* temp;
+@@ -4061,30 +4110,43 @@
+ 	}
+            
+       if (temp != NULL)
+-	cout.form("\tSPSR_%s[0x%08x]\n\n", mode_str[m_mode & 0xF], temp[2]);
++	cout << "\tSPSR_"
++	     << mode_str[m_mode & 0xF]
++	     << "[0x" << hex << uppercase << setw(8) << setfill('0')
++	     << temp[2]
++	     << "]\n\n";
+     }
+ 
+-  cout.form("Instruction Pipe (top is current instruction):\n");
++  cout << "Instruction Pipe (top is current instruction):\n";
+   for (int i = 2; i > 0; i--)
+     {
+-      cout.form("\t0x%08X - ", m_iPipe[i]);
++      cout << "\t0x" << hex << uppercase << setw(8) << setfill('0')
++	   << m_iPipe[i]
++	   << " - ";
+       memset(str, 0, 80);
+       CDisarm::Decode(m_iPipe[i], str);
+-      cout.form("%s\n", str);
++      cout << str << "\n";
+     }
+   if (m_busCurrent != NULL)
+     {
+-      cout.form("\t0x%08X - ", m_busCurrent->Din);
++      cout << "\t0x" << hex << uppercase << setw(8) << setfill('0')
++	   << m_busCurrent->Din
++	   << " - ";
+       memset(str, 0, 80);
+       CDisarm::Decode(m_busCurrent->Din, str);
+-      cout.form("%s (suspect if bad address error)\n", str);
++      cout << str << " (suspect if bad address error)\n";
+     }
+-  cout.form("Instruction Stage last executed - %d\n\n", m_nCtrlCur);
++  cout << "Instruction Stage last executed - " << m_nCtrlCur << "\n\n";
+   
+-  cout.form("DIn reg = 0x%08X    DOut reg = 0x%08X   Addr reg = 0x%08X\n",
+-	    m_regDataIn, m_regDataOut, m_regAddr);
++  cout << "DIn reg = 0x" << hex << uppercase << setw(8) << setfill('0')
++       << m_regDataIn
++       << "    DOut reg = 0x" << hex << uppercase << setw(8) << setfill('0')
++       << m_regDataOut
++       << "   Addr reg = 0x" << hex << uppercase << setw(8) << setfill('0')
++       << m_regAddr
++       << "\n";
+ 
+-  cout.form("-------------------------------------------------------------------------------\n");
++  cout << "-------------------------------------------------------------------------------\n";
+ }
+ 
+ 
+diff -r -u swarm/src/main.cpp swarm-0.61.0/src/main.cpp
+--- swarm/src/main.cpp	2001-09-27 11:12:08.000000000 +0200
++++ swarm-0.61.0/src/main.cpp	2006-04-15 02:45:46.000000000 +0200
+@@ -34,11 +34,14 @@
+ #endif
+ #include "cache.h"
+ #include "direct.h"
+-#include <iostream.h>
++#include <iostream>
++#include <iomanip>
+ #include <sys/stat.h>
+ #include "libc.h"
+ #include "syscopro.h"
+ 
++using namespace std;
++
+ #define FAST_CYCLE 1
+ #define SLOW_CYCLE 4
+ 
+@@ -491,15 +494,17 @@
+ 	  }
+ 	  DebuggerRepeatCount--;
+ 	}
+-#endif DEBUGGER
++#endif // DEBUGGER
+       // Do we need to do anything with the bus?
+       if (pinout.benable == 1)
+ 	{
+ 	  // Quick sanity check
+ 	  if (pinout.address >= MEMORY_SIZE)
+ 	    {
+-	      cerr.form("SWARM failing: Bad address - 0x%08X\n", 
+-			pinout.address);
++	      cerr << "SWARM failing: Bad address - 0x"
++		   << hex << uppercase << setw(8) << setfill('0')
++		   << pinout.address
++		   << "\n";
+ 
+ 	      pArm->DebugDump();
+ 	      
+diff -r -u swarm/src/syscopro.cpp swarm-0.61.0/src/syscopro.cpp
+--- swarm/src/syscopro.cpp	2001-09-23 18:12:23.000000000 +0200
++++ swarm-0.61.0/src/syscopro.cpp	2006-04-15 02:49:31.000000000 +0200
+@@ -26,10 +26,13 @@
+ #include "syscopro.h"
+ #include <string.h>
+ #include "isa.h"
+-#include <iostream.h>
++#include <iostream>
++#include <iomanip>
+ 
+ #include "memory.cpp"
+ 
++using namespace std;
++
+ // Defines a dull ARM7 type processor ID. Make = ARM, Arch = 3, rest NULL
+ #define SWARM_ID 0x41007000
+ 
+@@ -486,22 +489,29 @@
+ {
+   char str[80];
+ 
+-  cout.form("-------------------------------------------------------------------------------\n");
+-  cout.form("System coprocessor debug dump\n\n");
++  cout << "-------------------------------------------------------------------------------\n";
++  cout << "System coprocessor debug dump\n\n";
+ 
+-  cout.form("Registers:");
++  cout << "Registers:";
+   for (int j = 0; j < 4; j++)
+     {
+       for (int i = 0; i < 4; i++)
+-	cout.form("   0x%08X", m_regsWorking[i + (j * 4)]);
+-      cout.form("\n\t  ");
++	cout << "   0x"
++	     << hex << uppercase << setw(8) << setfill('0')
++	     << m_regsWorking[i + (j * 4)];
++      cout << "\n\t  ";
+     }
+-  cout.form("\n");
++  cout << "\n";
+   
+-  cout.form("DIn reg = 0x%08X    DOut reg = 0x%08X\n",
+-	    m_regDataIn, m_regDataOut);
++  cout << "DIn reg = 0x"
++       << hex << uppercase << setw(8) << setfill('0')
++       << m_regDataIn
++       << "    DOut reg = 0x"
++       << hex << uppercase << setw(8) << setfill('0')
++       << m_regDataOut
++       << "\n";
+ 
+-  cout.form("-------------------------------------------------------------------------------\n");
++  cout << "-------------------------------------------------------------------------------\n";
+ }
+ 
+ 

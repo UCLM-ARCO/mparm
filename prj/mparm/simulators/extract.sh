@@ -6,22 +6,22 @@ pkg_extract() {
     case $1 in
 	*.tar.bz2) 
 		BASE=$(basename $1 .tar.bz2 )
-		EXTRACT="tar xjf"
+		EXTRACT="tar -C tmp -xjf"
 		INSPECT="tar tjf"
 		;;
 	*.tbz) 
 		BASE=$(basename $1 .tbz )
-		EXTRACT="tar xjf"
+		EXTRACT="tar -C tmp -xjf"
 		INSPECT="tar tjf"
 		;;
 	*.tar.gz)
 		BASE=$(basename $1 .tar.gz ) 
-		EXTRACT="tar xzf"
+		EXTRACT="tar -C tmp -xzf"
 		INSPECT="tar tzf"
 		;;
 	*.tgz)
 		BASE=$(basename $1 .tgz ) 
-		EXTRACT="tar xzf"
+		EXTRACT="tar -C tmp -xzf"
 		INSPECT="tar tzf"
 		;;
     esac
@@ -39,10 +39,9 @@ pkg_extract() {
 	ORIG = $ORIG
 EOF
 
-    $EXTRACT $1
-    if [ $DIR != $DEST ] ; then
-        mv $DIR $DEST
-    fi
+    mkdir tmp && $EXTRACT $1
+    mv tmp/$DIR $DEST
+    rmdir tmp
     tar czf $ORIG $DEST
     rsync -aq --exclude=.svn $(dirname $0)/$PKG/ $DEST/debian
 }
