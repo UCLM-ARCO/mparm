@@ -1,0 +1,14 @@
+Source: systemc20
+Section: electronics
+Priority: optional
+Maintainer: Francisco Moya <francisco.moya@uclm.es>
+Build-Depends: cdbs (>= 0.4.27-1), debhelper (>= 4.2.0)
+Standards-Version: 3.6.2
+
+Package: libsystemc20-dev
+Architecture: any
+Section: devel
+Description: SystemC v2.0 development libraries
+ SystemC is a HDL based on a C++ class library intended for
+ simulations using standard C++ tools. This package provides the
+ requires libraries and header files to perform SystemC simulations.

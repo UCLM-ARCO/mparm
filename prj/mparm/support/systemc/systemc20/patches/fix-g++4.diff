@@ -1,0 +1,893 @@
+diff -rNubB systemc-2.0.1.orig/src/systemc/datatypes/bit/sc_logic.h systemc-2.0.1/src/systemc/datatypes/bit/sc_logic.h
+--- systemc-2.0.1.orig/src/systemc/datatypes/bit/sc_logic.h	2002-03-27 14:52:30.000000000 +0100
++++ systemc-2.0.1/src/systemc/datatypes/bit/sc_logic.h	2006-04-19 13:23:30.000000000 +0200
+@@ -99,7 +99,7 @@
+ 
+     static sc_logic_value_t to_value( char c )
+ 	{
+-	    sc_logic_value_t v = char_to_logic[c];
++	    sc_logic_value_t v = char_to_logic[int(c)];
+ 	    if( v < Log_0 || v > Log_X ) {
+ 		invalid_value( c );
+ 	    }
+diff -rNubB systemc-2.0.1.orig/src/systemc/datatypes/bit/sc_lv_base.cpp systemc-2.0.1/src/systemc/datatypes/bit/sc_lv_base.cpp
+--- systemc-2.0.1.orig/src/systemc/datatypes/bit/sc_lv_base.cpp	2002-03-27 14:52:31.000000000 +0100
++++ systemc-2.0.1/src/systemc/datatypes/bit/sc_lv_base.cpp	2006-04-19 13:27:12.000000000 +0200
+@@ -88,7 +88,7 @@
+     int i = 0;
+     for( ; i < min_len; ++ i ) {
+ 	char c = s[s_len - i - 1];
+-	set_bit( i, sc_logic::char_to_logic[c] );
++	set_bit( i, sc_logic::char_to_logic[int(c)] );
+     }
+     // if formatted, fill the rest with sign(s), otherwise fill with zeros
+     sc_logic_value_t fill = (s[s_len] == 'F' ? sc_logic_value_t( s[0] - '0' )
+diff -rNubB systemc-2.0.1.orig/src/systemc/datatypes/bit/sc_proxy.h systemc-2.0.1/src/systemc/datatypes/bit/sc_proxy.h
+--- systemc-2.0.1.orig/src/systemc/datatypes/bit/sc_proxy.h	2002-03-27 14:52:32.000000000 +0100
++++ systemc-2.0.1/src/systemc/datatypes/bit/sc_proxy.h	2006-04-19 13:25:34.000000000 +0200
+@@ -701,7 +701,7 @@
+     int i = 0;
+     for( ; i < min_len; ++ i ) {
+ 	char c = s[s_len - i - 1];
+-	x.set_bit( i, sc_logic::char_to_logic[c] );
++	x.set_bit( i, sc_logic::char_to_logic[int(c)] );
+     }
+     // if formatted, fill the rest with sign(s), otherwise fill with zeros
+     sc_logic_value_t fill = (s[s_len] == 'F' ? sc_logic_value_t( s[0] - '0' )
+diff -rNubB systemc-2.0.1.orig/src/systemc/datatypes/fx/sc_context.h systemc-2.0.1/src/systemc/datatypes/fx/sc_context.h
+--- systemc-2.0.1.orig/src/systemc/datatypes/fx/sc_context.h	2002-03-12 11:44:50.000000000 +0100
++++ systemc-2.0.1/src/systemc/datatypes/fx/sc_context.h	2006-04-19 13:24:37.000000000 +0200
+@@ -224,6 +224,7 @@
+ {
+     // this method should never be called
+     SC_REPORT_FATAL( SC_ID_INTERNAL_ERROR_, "should never be called" );
++    return 0;
+ }
+ 
+ 
+diff -rNubB systemc-2.0.1.orig/src/systemc/datatypes/fx/scfx_rep.h systemc-2.0.1/src/systemc/datatypes/fx/scfx_rep.h
+--- systemc-2.0.1.orig/src/systemc/datatypes/fx/scfx_rep.h	2002-03-12 11:45:33.000000000 +0100
++++ systemc-2.0.1/src/systemc/datatypes/fx/scfx_rep.h	2006-04-19 13:21:18.000000000 +0200
+@@ -58,6 +58,36 @@
+ class sc_unsigned;
+ 
+ 
++void multiply( scfx_rep&, const scfx_rep&, const scfx_rep&,
++		  int = SC_DEFAULT_MAX_WL_ );
++
++scfx_rep*  neg__scfx_rep( const scfx_rep& );
++scfx_rep* mult__scfx_rep( const scfx_rep&, const scfx_rep&,
++			     int = SC_DEFAULT_MAX_WL_ );
++scfx_rep*  div__scfx_rep( const scfx_rep&, const scfx_rep&,
++			     int = SC_DEFAULT_DIV_WL_ );
++scfx_rep*  add__scfx_rep( const scfx_rep&, const scfx_rep&,
++			     int = SC_DEFAULT_MAX_WL_ );
++scfx_rep*  sub__scfx_rep( const scfx_rep&, const scfx_rep&,
++			     int = SC_DEFAULT_MAX_WL_ );
++scfx_rep*  lsh__scfx_rep( const scfx_rep&, int );
++scfx_rep*  rsh__scfx_rep( const scfx_rep&, int );
++int        cmp__scfx_rep( const scfx_rep&, const scfx_rep& );
++scfx_rep* quantization__scfx_rep( const scfx_rep&,
++				     const scfx_params&,
++				     bool& );
++scfx_rep*     overflow__scfx_rep( const scfx_rep&,
++				     const scfx_params&,
++				     bool& );
++void  align( const scfx_rep&, const scfx_rep&, int&, int&,
++		scfx_mant_ref&, scfx_mant_ref& );
++int   compare_msw( const scfx_rep&, const scfx_rep& );
++int   compare_msw_ff( const scfx_rep& lhs, const scfx_rep& rhs );
++void print_dec( scfx_string&, const scfx_rep&, int, sc_fmt );
++void print_other( scfx_string&, const scfx_rep&, sc_numrep, int,
++		     sc_fmt, const scfx_params* );
++int compare_abs( const scfx_rep&, const scfx_rep& );
++
+ const int min_mant = 4;
+ 
+ const int bits_in_int  = sizeof(int)  * CHAR_BIT;
+@@ -149,17 +179,17 @@
+     void operator = ( const scfx_rep& );
+ 
+     friend void multiply( scfx_rep&, const scfx_rep&, const scfx_rep&,
+-			  int = SC_DEFAULT_MAX_WL_ );
++			  int );
+ 
+     friend scfx_rep*  neg__scfx_rep( const scfx_rep& );
+     friend scfx_rep* mult__scfx_rep( const scfx_rep&, const scfx_rep&,
+-				     int = SC_DEFAULT_MAX_WL_ );
++				     int );
+     friend scfx_rep*  div__scfx_rep( const scfx_rep&, const scfx_rep&,
+-				     int = SC_DEFAULT_DIV_WL_ );
++				     int );
+     friend scfx_rep*  add__scfx_rep( const scfx_rep&, const scfx_rep&,
+-				     int = SC_DEFAULT_MAX_WL_ );
++				     int );
+     friend scfx_rep*  sub__scfx_rep( const scfx_rep&, const scfx_rep&,
+-				     int = SC_DEFAULT_MAX_WL_ );
++				     int );
+     friend scfx_rep*  lsh__scfx_rep( const scfx_rep&, int );
+     friend scfx_rep*  rsh__scfx_rep( const scfx_rep&, int );
+ 
+diff -rNubB systemc-2.0.1.orig/src/systemc/datatypes/int/sc_signed.h systemc-2.0.1/src/systemc/datatypes/int/sc_signed.h
+--- systemc-2.0.1.orig/src/systemc/datatypes/int/sc_signed.h	2002-03-27 14:52:51.000000000 +0100
++++ systemc-2.0.1/src/systemc/datatypes/int/sc_signed.h	2006-04-19 13:21:18.000000000 +0200
+@@ -104,6 +104,356 @@
+ class sc_fxnum;
+ class sc_fxnum_fast;
+ 
++sc_signed operator + (const sc_unsigned&  u, const sc_signed&    v); 
++sc_signed operator + (const sc_signed&    u, const sc_unsigned&  v); 
++sc_signed operator + (const sc_unsigned&  u, int64               v); 
++sc_signed operator + (const sc_unsigned&  u, long                v); 
++sc_signed operator + (int64               u, const sc_unsigned&  v); 
++sc_signed operator + (long                u, const sc_unsigned&  v); 
++sc_signed operator + (const sc_signed&    u, const sc_signed&    v);
++sc_signed operator + (const sc_signed&    u, int64               v); 
++sc_signed operator + (const sc_signed&    u, uint64              v); 
++sc_signed operator + (const sc_signed&    u, long                v); 
++sc_signed operator + (const sc_signed&    u, unsigned long       v);
++sc_signed operator + (int64               u, const sc_signed&    v); 
++sc_signed operator + (uint64              u, const sc_signed&    v); 
++sc_signed operator + (long                u, const sc_signed&    v); 
++sc_signed operator + (unsigned long       u, const sc_signed&    v);
++sc_signed operator + (const sc_unsigned&  u, const sc_int_base&  v);
++sc_signed operator + (const sc_int_base&  u, const sc_unsigned&  v);
++sc_signed operator + (const sc_signed&    u, const sc_int_base&  v); 
++sc_signed operator + (const sc_signed&    u, const sc_uint_base& v); 
++sc_signed operator + (const sc_int_base&  u, const sc_signed&    v); 
++sc_signed operator + (const sc_uint_base& u, const sc_signed&    v); 
++sc_signed operator - (const sc_unsigned&  u, const sc_signed&    v); 
++sc_signed operator - (const sc_signed&    u, const sc_unsigned&  v); 
++sc_signed operator - (const sc_unsigned&  u, const sc_unsigned&  v);
++sc_signed operator - (const sc_unsigned&  u, int64               v); 
++sc_signed operator - (const sc_unsigned&  u, uint64              v); 
++sc_signed operator - (const sc_unsigned&  u, long                v); 
++sc_signed operator - (const sc_unsigned&  u, unsigned long       v);
++sc_signed operator - (int64               u, const sc_unsigned&  v); 
++sc_signed operator - (uint64              u, const sc_unsigned&  v); 
++sc_signed operator - (long                u, const sc_unsigned&  v); 
++sc_signed operator - (unsigned long       u, const sc_unsigned&  v);
++sc_signed operator - (const sc_signed&    u, const sc_signed&    v);
++sc_signed operator - (const sc_signed&    u, int64               v); 
++sc_signed operator - (const sc_signed&    u, uint64              v); 
++sc_signed operator - (const sc_signed&    u, long                v); 
++sc_signed operator - (const sc_signed&    u, unsigned long       v);
++sc_signed operator - (int64               u, const sc_signed&    v); 
++sc_signed operator - (uint64              u, const sc_signed&    v); 
++sc_signed operator - (long                u, const sc_signed&    v); 
++sc_signed operator - (unsigned long       u, const sc_signed&    v);
++sc_signed operator - (const sc_unsigned&  u, const sc_int_base&  v);
++sc_signed operator - (const sc_unsigned&  u, const sc_uint_base& v);
++sc_signed operator - (const sc_int_base&  u, const sc_unsigned&  v);
++sc_signed operator - (const sc_uint_base& u, const sc_unsigned&  v);
++sc_signed operator - (const sc_signed&    u, const sc_int_base&  v); 
++sc_signed operator - (const sc_signed&    u, const sc_uint_base& v); 
++sc_signed operator - (const sc_int_base&  u, const sc_signed&    v); 
++sc_signed operator - (const sc_uint_base& u, const sc_signed&    v); 
++sc_signed operator * (const sc_unsigned&  u, const sc_signed&    v); 
++sc_signed operator * (const sc_signed&    u, const sc_unsigned&  v); 
++sc_signed operator * (const sc_unsigned&  u, int64               v); 
++sc_signed operator * (const sc_unsigned&  u, long                v); 
++sc_signed operator * (int64               u, const sc_unsigned&  v); 
++sc_signed operator * (long                u, const sc_unsigned&  v); 
++sc_signed operator * (const sc_signed&  u, const sc_signed&  v);
++sc_signed operator * (const sc_signed&  u, int64             v); 
++sc_signed operator * (const sc_signed&  u, uint64            v); 
++sc_signed operator * (const sc_signed&  u, long              v); 
++sc_signed operator * (const sc_signed&  u, unsigned long     v);
++sc_signed operator * (int64             u, const sc_signed&  v); 
++sc_signed operator * (uint64            u, const sc_signed&  v); 
++sc_signed operator * (long              u, const sc_signed&  v); 
++sc_signed operator * (unsigned long     u, const sc_signed&  v);
++sc_signed operator * (const sc_unsigned&  u, const sc_int_base&  v);
++sc_signed operator * (const sc_int_base&  u, const sc_unsigned&  v);
++sc_signed operator * (const sc_signed&    u, const sc_int_base&  v); 
++sc_signed operator * (const sc_signed&    u, const sc_uint_base& v); 
++sc_signed operator * (const sc_int_base&  u, const sc_signed&    v); 
++sc_signed operator * (const sc_uint_base& u, const sc_signed&    v); 
++sc_signed operator / (const sc_unsigned&  u, const sc_signed&    v); 
++sc_signed operator / (const sc_signed&    u, const sc_unsigned&  v); 
++sc_signed operator / (const sc_unsigned&  u, int64               v); 
++sc_signed operator / (const sc_unsigned&  u, long                v); 
++sc_signed operator / (int64               u, const sc_unsigned&  v); 
++sc_signed operator / (long                u, const sc_unsigned&  v); 
++sc_signed operator / (const sc_signed&    u, const sc_signed&    v);
++sc_signed operator / (const sc_signed&    u, int64               v); 
++sc_signed operator / (const sc_signed&    u, uint64              v); 
++sc_signed operator / (const sc_signed&    u, long                v); 
++sc_signed operator / (const sc_signed&    u, unsigned long       v);
++sc_signed operator / (int64               u, const sc_signed&    v); 
++sc_signed operator / (uint64              u, const sc_signed&    v); 
++sc_signed operator / (long                u, const sc_signed&    v); 
++sc_signed operator / (unsigned long       u, const sc_signed&    v);
++sc_signed operator / (const sc_unsigned&  u, const sc_int_base&  v);
++sc_signed operator / (const sc_int_base&  u, const sc_unsigned&  v);
++sc_signed operator / (const sc_signed&    u, const sc_int_base&  v); 
++sc_signed operator / (const sc_signed&    u, const sc_uint_base& v); 
++sc_signed operator / (const sc_int_base&  u, const sc_signed&    v); 
++sc_signed operator / (const sc_uint_base& u, const sc_signed&    v); 
++sc_signed operator % (const sc_unsigned&  u, const sc_signed&    v); 
++sc_signed operator % (const sc_signed&    u, const sc_unsigned&  v); 
++sc_signed operator % (const sc_unsigned&  u, int64               v); 
++sc_signed operator % (const sc_unsigned&  u, long                v); 
++sc_signed operator % (int64               u, const sc_unsigned&  v); 
++sc_signed operator % (long                u, const sc_unsigned&  v); 
++sc_signed operator % (const sc_signed&    u, const sc_signed&    v);
++sc_signed operator % (const sc_signed&    u, int64               v); 
++sc_signed operator % (const sc_signed&    u, uint64              v); 
++sc_signed operator % (const sc_signed&    u, long                v); 
++sc_signed operator % (const sc_signed&    u, unsigned long       v);
++sc_signed operator % (int64               u, const sc_signed&    v); 
++sc_signed operator % (uint64              u, const sc_signed&    v); 
++sc_signed operator % (long                u, const sc_signed&    v); 
++sc_signed operator % (unsigned long       u, const sc_signed&    v);
++sc_signed operator % (const sc_unsigned&  u, const sc_int_base&  v);
++sc_signed operator % (const sc_int_base&  u, const sc_unsigned&  v);
++sc_signed operator % (const sc_signed&    u, const sc_int_base&  v); 
++sc_signed operator % (const sc_signed&    u, const sc_uint_base& v); 
++sc_signed operator % (const sc_int_base&  u, const sc_signed&    v); 
++sc_signed operator % (const sc_uint_base& u, const sc_signed&    v); 
++sc_signed operator & (const sc_unsigned&  u, const sc_signed&    v); 
++sc_signed operator & (const sc_signed&    u, const sc_unsigned&  v); 
++sc_signed operator & (const sc_unsigned&  u, int64               v); 
++sc_signed operator & (const sc_unsigned&  u, long                v); 
++sc_signed operator & (int64               u, const sc_unsigned&  v); 
++sc_signed operator & (long                u, const sc_unsigned&  v); 
++sc_signed operator & (const sc_signed&    u, const sc_signed&    v);
++sc_signed operator & (const sc_signed&    u, int64               v); 
++sc_signed operator & (const sc_signed&    u, uint64              v); 
++sc_signed operator & (const sc_signed&    u, long                v); 
++sc_signed operator & (const sc_signed&    u, unsigned long       v);
++sc_signed operator & (int64             u, const sc_signed&  v); 
++sc_signed operator & (uint64            u, const sc_signed&  v); 
++sc_signed operator & (long              u, const sc_signed&  v); 
++sc_signed operator & (unsigned long     u, const sc_signed&  v);
++sc_signed operator & (const sc_unsigned&  u, const sc_int_base&  v);
++sc_signed operator & (const sc_int_base&  u, const sc_unsigned&  v);
++sc_signed operator & (const sc_signed&    u, const sc_int_base&  v); 
++sc_signed operator & (const sc_signed&    u, const sc_uint_base& v); 
++sc_signed operator & (const sc_int_base&  u, const sc_signed&    v); 
++sc_signed operator & (const sc_uint_base& u, const sc_signed&    v); 
++sc_signed operator | (const sc_unsigned&  u, const sc_signed&    v); 
++sc_signed operator | (const sc_signed&    u, const sc_unsigned&  v); 
++sc_signed operator | (const sc_unsigned&  u, int64               v); 
++sc_signed operator | (const sc_unsigned&  u, long                v); 
++sc_signed operator | (int64               u, const sc_unsigned&  v); 
++sc_signed operator | (long                u, const sc_unsigned&  v); 
++sc_signed operator | (const sc_signed&    u, const sc_signed&    v);
++sc_signed operator | (const sc_signed&    u, int64               v); 
++sc_signed operator | (const sc_signed&    u, uint64              v); 
++sc_signed operator | (const sc_signed&    u, long                v); 
++sc_signed operator | (const sc_signed&    u, unsigned long       v);
++sc_signed operator | (int64             u, const sc_signed&  v); 
++sc_signed operator | (uint64            u, const sc_signed&  v); 
++sc_signed operator | (long              u, const sc_signed&  v); 
++sc_signed operator | (unsigned long     u, const sc_signed&  v);
++sc_signed operator | (const sc_unsigned&  u, const sc_int_base&  v);
++sc_signed operator | (const sc_int_base&  u, const sc_unsigned&  v);
++sc_signed operator | (const sc_signed&    u, const sc_int_base&  v); 
++sc_signed operator | (const sc_signed&    u, const sc_uint_base& v); 
++sc_signed operator | (const sc_int_base&  u, const sc_signed&    v); 
++sc_signed operator | (const sc_uint_base& u, const sc_signed&    v); 
++sc_signed operator ^ (const sc_unsigned&  u, const sc_signed&    v); 
++sc_signed operator ^ (const sc_signed&    u, const sc_unsigned&  v); 
++sc_signed operator ^ (const sc_unsigned&  u, int64               v); 
++sc_signed operator ^ (const sc_unsigned&  u, long                v); 
++sc_signed operator ^ (int64               u, const sc_unsigned&  v); 
++sc_signed operator ^ (long                u, const sc_unsigned&  v); 
++sc_signed operator ^ (const sc_signed&    u, const sc_signed&    v);
++sc_signed operator ^ (const sc_signed&    u, int64               v); 
++sc_signed operator ^ (const sc_signed&    u, uint64              v); 
++sc_signed operator ^ (const sc_signed&    u, long                v); 
++sc_signed operator ^ (const sc_signed&    u, unsigned long       v);
++sc_signed operator ^ (int64             u, const sc_signed&  v); 
++sc_signed operator ^ (uint64            u, const sc_signed&  v); 
++sc_signed operator ^ (long              u, const sc_signed&  v); 
++sc_signed operator ^ (unsigned long     u, const sc_signed&  v);
++sc_signed operator ^ (const sc_unsigned&  u, const sc_int_base&  v);
++sc_signed operator ^ (const sc_int_base&  u, const sc_unsigned&  v);
++sc_signed operator ^ (const sc_signed&    u, const sc_int_base&  v); 
++sc_signed operator ^ (const sc_signed&    u, const sc_uint_base& v); 
++sc_signed operator ^ (const sc_int_base&  u, const sc_signed&    v); 
++sc_signed operator ^ (const sc_uint_base& u, const sc_signed&    v); 
++sc_unsigned operator << (const sc_unsigned&  u, const sc_signed&    v); 
++sc_signed operator << (const sc_signed&    u, const sc_unsigned&  v); 
++sc_signed operator << (const sc_signed&    u, const sc_signed&    v);
++sc_signed operator << (const sc_signed&    u, int64               v); 
++sc_signed operator << (const sc_signed&    u, uint64              v); 
++sc_signed operator << (const sc_signed&    u, long                v); 
++sc_signed operator << (const sc_signed&    u, unsigned long       v);
++sc_signed operator << (const sc_signed&    u, const sc_int_base&  v); 
++sc_signed operator << (const sc_signed&    u, const sc_uint_base& v); 
++sc_unsigned operator >> (const sc_unsigned&  u, const sc_signed&    v); 
++sc_signed operator >> (const sc_signed&    u, const sc_unsigned&  v); 
++sc_signed operator >> (const sc_signed&    u, const sc_signed&    v);
++sc_signed operator >> (const sc_signed&    u, int64               v); 
++sc_signed operator >> (const sc_signed&    u, uint64              v); 
++sc_signed operator >> (const sc_signed&    u, long                v); 
++sc_signed operator >> (const sc_signed&    u, unsigned long       v);
++sc_signed operator >> (const sc_signed&    u, const sc_int_base&  v); 
++sc_signed operator >> (const sc_signed&    u, const sc_uint_base& v); 
++sc_signed operator + (const sc_signed&   u);
++sc_signed operator - (const sc_signed&   u); 
++sc_signed operator - (const sc_unsigned& u);
++bool operator == (const sc_unsigned&  u, const sc_signed&    v); 
++bool operator == (const sc_signed&    u, const sc_unsigned&  v); 
++bool operator == (const sc_signed&    u, const sc_signed&    v);
++bool operator == (const sc_signed&    u, int64               v); 
++bool operator == (const sc_signed&    u, uint64              v); 
++bool operator == (const sc_signed&    u, long                v); 
++bool operator == (const sc_signed&    u, unsigned long       v);
++bool operator == (int64               u, const sc_signed&    v); 
++bool operator == (uint64              u, const sc_signed&    v); 
++bool operator == (long                u, const sc_signed&    v); 
++bool operator == (unsigned long       u, const sc_signed&    v);
++bool operator == (const sc_signed&    u, const sc_int_base&  v); 
++bool operator == (const sc_signed&    u, const sc_uint_base& v); 
++bool operator == (const sc_int_base&  u, const sc_signed&    v); 
++bool operator == (const sc_uint_base& u, const sc_signed&    v); 
++bool operator != (const sc_unsigned&  u, const sc_signed&    v); 
++bool operator != (const sc_signed&    u, const sc_unsigned&  v); 
++bool operator != (const sc_signed&    u, const sc_signed&    v);
++bool operator != (const sc_signed&    u, int64               v); 
++bool operator != (const sc_signed&    u, uint64              v); 
++bool operator != (const sc_signed&    u, long                v); 
++bool operator != (const sc_signed&    u, unsigned long       v);
++bool operator != (int64               u, const sc_signed&    v); 
++bool operator != (uint64              u, const sc_signed&    v); 
++bool operator != (long                u, const sc_signed&    v); 
++bool operator != (unsigned long       u, const sc_signed&    v);
++bool operator != (const sc_signed&    u, const sc_int_base&  v); 
++bool operator != (const sc_signed&    u, const sc_uint_base& v); 
++bool operator != (const sc_int_base&  u, const sc_signed&    v); 
++bool operator != (const sc_uint_base& u, const sc_signed&    v); 
++bool operator < (const sc_unsigned&  u, const sc_signed&    v); 
++bool operator < (const sc_signed&    u, const sc_unsigned&  v); 
++bool operator < (const sc_signed&    u, const sc_signed&    v);
++bool operator < (const sc_signed&    u, int64               v); 
++bool operator < (const sc_signed&    u, uint64              v); 
++bool operator < (const sc_signed&    u, long                v); 
++bool operator < (const sc_signed&    u, unsigned long       v);
++bool operator < (int64               u, const sc_signed&    v); 
++bool operator < (uint64              u, const sc_signed&    v); 
++bool operator < (long                u, const sc_signed&    v); 
++bool operator < (unsigned long       u, const sc_signed&    v);
++bool operator < (const sc_signed&    u, const sc_int_base&  v); 
++bool operator < (const sc_signed&    u, const sc_uint_base& v); 
++bool operator < (const sc_int_base&  u, const sc_signed&    v); 
++bool operator < (const sc_uint_base& u, const sc_signed&    v); 
++bool operator <= (const sc_unsigned&  u, const sc_signed&    v); 
++bool operator <= (const sc_signed&    u, const sc_unsigned&  v); 
++bool operator <= (const sc_signed&    u, const sc_signed&    v);
++bool operator <= (const sc_signed&    u, int64               v); 
++bool operator <= (const sc_signed&    u, uint64              v); 
++bool operator <= (const sc_signed&    u, long                v); 
++bool operator <= (const sc_signed&    u, unsigned long       v);
++bool operator <= (int64               u, const sc_signed&    v); 
++bool operator <= (uint64              u, const sc_signed&    v); 
++bool operator <= (long                u, const sc_signed&    v); 
++bool operator <= (unsigned long       u, const sc_signed&    v);
++bool operator <= (const sc_signed&    u, const sc_int_base&  v); 
++bool operator <= (const sc_signed&    u, const sc_uint_base& v); 
++bool operator <= (const sc_int_base&  u, const sc_signed&    v); 
++bool operator <= (const sc_uint_base& u, const sc_signed&    v); 
++bool operator > (const sc_unsigned&  u, const sc_signed&    v); 
++bool operator > (const sc_signed&    u, const sc_unsigned&  v); 
++bool operator > (const sc_signed&    u, const sc_signed&    v);
++bool operator > (const sc_signed&    u, int64               v); 
++bool operator > (const sc_signed&    u, uint64              v); 
++bool operator > (const sc_signed&    u, long                v); 
++bool operator > (const sc_signed&    u, unsigned long       v);
++bool operator > (int64               u, const sc_signed&    v); 
++bool operator > (uint64              u, const sc_signed&    v); 
++bool operator > (long                u, const sc_signed&    v); 
++bool operator > (unsigned long       u, const sc_signed&    v);
++bool operator > (const sc_signed&    u, const sc_int_base&  v); 
++bool operator > (const sc_signed&    u, const sc_uint_base& v); 
++bool operator > (const sc_int_base&  u, const sc_signed&    v); 
++bool operator > (const sc_uint_base& u, const sc_signed&    v); 
++bool operator >= (const sc_unsigned&  u, const sc_signed&    v); 
++bool operator >= (const sc_signed&    u, const sc_unsigned&  v); 
++bool operator >= (const sc_signed&    u, const sc_signed&    v);
++bool operator >= (const sc_signed&    u, int64               v); 
++bool operator >= (const sc_signed&    u, uint64              v); 
++bool operator >= (const sc_signed&    u, long                v); 
++bool operator >= (const sc_signed&    u, unsigned long       v);
++bool operator >= (int64               u, const sc_signed&    v); 
++bool operator >= (uint64              u, const sc_signed&    v); 
++bool operator >= (long                u, const sc_signed&    v); 
++bool operator >= (unsigned long       u, const sc_signed&    v);
++bool operator >= (const sc_signed&    u, const sc_int_base&  v); 
++bool operator >= (const sc_signed&    u, const sc_uint_base& v); 
++bool operator >= (const sc_int_base&  u, const sc_signed&    v); 
++bool operator >= (const sc_uint_base& u, const sc_signed&    v); 
++sc_signed operator ~ (const sc_signed& u); 
++sc_signed add_signed_friend(small_type us, 
++                            int unb,
++                            int und, 
++                            const unsigned long *ud, 
++                            small_type vs, 
++                            int vnb,
++                            int vnd,
++                            const unsigned long *vd);
++sc_signed sub_signed_friend(small_type us, 
++                            int unb,
++                            int und, 
++                            const unsigned long *ud, 
++                            small_type vs, 
++                            int vnb,
++                            int vnd, 
++                            const unsigned long *vd);
++sc_signed mul_signed_friend(small_type s,
++                            int unb,
++                            int und, 
++                            const unsigned long *ud, 
++                            int vnb,
++                            int vnd,
++                            const unsigned long *vd);
++sc_signed div_signed_friend(small_type s,
++                            int unb,
++                            int und, 
++                            const unsigned long *ud, 
++                            int vnb,
++                            int vnd,
++                            const unsigned long *vd);
++sc_signed mod_signed_friend(small_type us,
++                            int unb,
++                            int und, 
++                            const unsigned long *ud, 
++                            int vnb,
++                            int vnd,
++                            const unsigned long *vd);
++sc_signed and_signed_friend(small_type us, 
++                            int unb, 
++                            int und, 
++                            const unsigned long *ud, 
++                            small_type vs,
++                            int vnb, 
++                            int vnd,
++                            const unsigned long *vd);
++sc_signed or_signed_friend(small_type us, 
++                           int unb, 
++                           int und, 
++                           const unsigned long *ud, 
++                           small_type vs,
++                           int vnb, 
++                           int vnd,
++                           const unsigned long *vd);
++sc_signed xor_signed_friend(small_type us, 
++                            int unb, 
++                            int und, 
++                            const unsigned long *ud, 
++                            small_type vs,
++                            int vnb, 
++                            int vnd,
++                            const unsigned long *vd);
++
++
+ 
+ #define NOT_YET_IMPLEMENTED                                                   \
+     SC_REPORT_ERROR( SC_ID_NOT_IMPLEMENTED_,                                  \
+diff -rNubB systemc-2.0.1.orig/src/systemc/datatypes/int/sc_unsigned.h systemc-2.0.1/src/systemc/datatypes/int/sc_unsigned.h
+--- systemc-2.0.1.orig/src/systemc/datatypes/int/sc_unsigned.h	2002-03-27 14:52:58.000000000 +0100
++++ systemc-2.0.1/src/systemc/datatypes/int/sc_unsigned.h	2006-04-19 13:21:18.000000000 +0200
+@@ -108,6 +108,329 @@
+ class sc_fxnum_fast;
+ 
+ 
++sc_signed operator + (const sc_unsigned&  u, const sc_signed&    v); 
++sc_signed operator + (const sc_signed&    u, const sc_unsigned&  v); 
++
++sc_unsigned operator + (const sc_unsigned&  u, const sc_unsigned&  v);
++sc_signed operator + (const sc_unsigned&  u, int64               v); 
++sc_unsigned operator + (const sc_unsigned&  u, uint64              v); 
++sc_signed operator + (const sc_unsigned&  u, long                v); 
++sc_unsigned operator + (const sc_unsigned&  u, unsigned long       v);
++sc_signed operator + (const sc_unsigned&  u, int                 v);
++sc_signed operator + (int64               u, const sc_unsigned&  v); 
++sc_unsigned operator + (uint64              u, const sc_unsigned&  v); 
++sc_signed operator + (long                u, const sc_unsigned&  v); 
++sc_unsigned operator + (unsigned long       u, const sc_unsigned&  v);
++sc_signed operator + (int                 u, const sc_unsigned&  v);
++sc_unsigned operator + (const sc_unsigned&  u, const sc_uint_base& v);
++sc_signed operator + (const sc_unsigned&  u, const sc_int_base&  v);
++sc_unsigned operator + (const sc_uint_base& u, const sc_unsigned&  v);
++sc_signed operator + (const sc_int_base&  u, const sc_unsigned&  v);
++sc_signed operator - (const sc_unsigned&  u, const sc_signed&    v); 
++sc_signed operator - (const sc_signed&    u, const sc_unsigned&  v); 
++sc_signed operator - (const sc_unsigned&  u, const sc_unsigned&  v);
++sc_signed operator - (const sc_unsigned&  u, int64               v); 
++sc_signed operator - (const sc_unsigned&  u, uint64              v); 
++sc_signed operator - (const sc_unsigned&  u, long                v); 
++sc_signed operator - (const sc_unsigned&  u, unsigned long       v);
++sc_signed operator - (const sc_unsigned&  u, int                 v); 
++sc_signed operator - (const sc_unsigned&  u, unsigned int        v);
++sc_signed operator - (int64               u, const sc_unsigned&  v); 
++sc_signed operator - (uint64              u, const sc_unsigned&  v); 
++sc_signed operator - (long                u, const sc_unsigned&  v); 
++sc_signed operator - (unsigned long       u, const sc_unsigned&  v);
++sc_signed operator - (int                 u, const sc_unsigned&  v);
++sc_signed operator - (unsigned int        u, const sc_unsigned&  v); 
++sc_signed operator - (const sc_unsigned&  u, const sc_uint_base& v);
++sc_signed operator - (const sc_unsigned&  u, const sc_int_base&  v);
++sc_signed operator - (const sc_uint_base& u, const sc_unsigned&  v);
++sc_signed operator - (const sc_int_base&  u, const sc_unsigned&  v);
++sc_signed operator * (const sc_unsigned&  u, const sc_signed&    v); 
++sc_signed operator * (const sc_signed&    u, const sc_unsigned&  v); 
++sc_unsigned operator * (const sc_unsigned&  u, const sc_unsigned&  v);
++sc_signed operator * (const sc_unsigned&  u, int64               v); 
++sc_unsigned operator * (const sc_unsigned&  u, uint64              v); 
++sc_signed operator * (const sc_unsigned&  u, long                v); 
++sc_unsigned operator * (const sc_unsigned&  u, unsigned long       v);
++sc_signed operator * (const sc_unsigned&  u, int                 v);
++sc_signed operator * (int64               u, const sc_unsigned&  v); 
++sc_unsigned operator * (uint64              u, const sc_unsigned&  v); 
++sc_signed operator * (long                u, const sc_unsigned&  v); 
++sc_unsigned operator * (unsigned long       u, const sc_unsigned&  v);
++sc_signed operator * (int                 u, const sc_unsigned&  v);
++sc_unsigned operator * (const sc_unsigned&  u, const sc_uint_base& v);
++sc_signed operator * (const sc_unsigned&  u, const sc_int_base&  v);
++sc_unsigned operator * (const sc_uint_base& u, const sc_unsigned&  v);
++sc_signed operator * (const sc_int_base&  u, const sc_unsigned&  v);
++sc_signed operator / (const sc_unsigned&  u, const sc_signed&    v); 
++sc_signed operator / (const sc_signed&    u, const sc_unsigned&  v); 
++sc_unsigned operator / (const sc_unsigned&  u, const sc_unsigned&  v);
++sc_signed operator / (const sc_unsigned&  u, int64               v); 
++sc_unsigned operator / (const sc_unsigned&  u, uint64              v); 
++sc_signed operator / (const sc_unsigned&  u, long                v); 
++sc_unsigned operator / (const sc_unsigned&  u, unsigned long       v);
++sc_signed operator / (const sc_unsigned&  u, int                 v);
++sc_signed operator / (int64               u, const sc_unsigned&  v); 
++sc_unsigned operator / (uint64              u, const sc_unsigned&  v); 
++sc_signed operator / (long                u, const sc_unsigned&  v); 
++sc_unsigned operator / (unsigned long       u, const sc_unsigned&  v);
++sc_signed operator / (int                 u, const sc_unsigned&  v);
++sc_unsigned operator / (const sc_unsigned&  u, const sc_uint_base& v);
++sc_signed operator / (const sc_unsigned&  u, const sc_int_base&  v);
++sc_unsigned operator / (const sc_uint_base& u, const sc_unsigned&  v);
++sc_signed operator / (const sc_int_base&  u, const sc_unsigned&  v);
++sc_signed operator % (const sc_unsigned&  u, const sc_signed&    v); 
++sc_signed operator % (const sc_signed&    u, const sc_unsigned&  v); 
++sc_unsigned operator % (const sc_unsigned&  u, const sc_unsigned&  v);
++sc_signed operator % (const sc_unsigned&  u, int64               v); 
++sc_unsigned operator % (const sc_unsigned&  u, uint64              v); 
++sc_signed operator % (const sc_unsigned&  u, long                v); 
++sc_unsigned operator % (const sc_unsigned&  u, unsigned long       v);
++sc_signed operator % (const sc_unsigned&  u, int                 v);
++sc_signed operator % (int64               u, const sc_unsigned&  v); 
++sc_unsigned operator % (uint64              u, const sc_unsigned&  v); 
++sc_signed operator % (long                u, const sc_unsigned&  v); 
++sc_unsigned operator % (unsigned long       u, const sc_unsigned&  v);
++sc_signed operator % (int                 u, const sc_unsigned&  v);
++sc_unsigned operator % (const sc_unsigned&  u, const sc_uint_base& v);
++sc_signed operator % (const sc_unsigned&  u, const sc_int_base&  v);
++sc_unsigned operator % (const sc_uint_base& u, const sc_unsigned&  v);
++sc_signed operator % (const sc_int_base&  u, const sc_unsigned&  v);
++sc_signed operator & (const sc_unsigned&  u, const sc_signed&    v); 
++sc_signed operator & (const sc_signed&    u, const sc_unsigned&  v); 
++sc_unsigned operator & (const sc_unsigned&  u, const sc_unsigned&  v);
++sc_signed operator & (const sc_unsigned&  u, int64               v); 
++sc_unsigned operator & (const sc_unsigned&  u, uint64              v); 
++sc_signed operator & (const sc_unsigned&  u, long                v); 
++sc_unsigned operator & (const sc_unsigned&  u, unsigned long       v);
++sc_signed operator & (const sc_unsigned&  u, int                 v);
++sc_signed operator & (int64               u, const sc_unsigned&  v); 
++sc_unsigned operator & (uint64              u, const sc_unsigned&  v); 
++sc_signed operator & (long                u, const sc_unsigned&  v); 
++sc_unsigned operator & (unsigned long       u, const sc_unsigned&  v);
++sc_signed operator & (int                 u, const sc_unsigned&  v);
++sc_unsigned operator & (const sc_unsigned&  u, const sc_uint_base& v);
++sc_signed operator & (const sc_unsigned&  u, const sc_int_base&  v);
++sc_unsigned operator & (const sc_uint_base& u, const sc_unsigned&  v);
++sc_signed operator & (const sc_int_base&  u, const sc_unsigned&  v);
++sc_signed operator | (const sc_unsigned&  u, const sc_signed&    v); 
++sc_signed operator | (const sc_signed&    u, const sc_unsigned&  v); 
++sc_unsigned operator | (const sc_unsigned&  u, const sc_unsigned&  v);
++sc_signed operator | (const sc_unsigned&  u, int64               v); 
++sc_unsigned operator | (const sc_unsigned&  u, uint64              v); 
++sc_signed operator | (const sc_unsigned&  u, long                v); 
++sc_unsigned operator | (const sc_unsigned&  u, unsigned long       v);
++sc_signed operator | (const sc_unsigned&  u, int                 v);
++sc_signed operator | (int64               u, const sc_unsigned&  v); 
++sc_unsigned operator | (uint64              u, const sc_unsigned&  v); 
++sc_signed operator | (long                u, const sc_unsigned&  v); 
++sc_unsigned operator | (unsigned long       u, const sc_unsigned&  v);
++sc_signed operator | (int                 u, const sc_unsigned&  v);
++sc_unsigned operator | (const sc_unsigned&  u, const sc_uint_base& v);
++sc_signed operator | (const sc_unsigned&  u, const sc_int_base&  v);
++sc_unsigned operator | (const sc_uint_base& u, const sc_unsigned&  v);
++sc_signed operator | (const sc_int_base&  u, const sc_unsigned&  v);
++sc_signed operator ^ (const sc_unsigned&  u, const sc_signed&    v); 
++sc_signed operator ^ (const sc_signed&    u, const sc_unsigned&  v); 
++sc_unsigned operator ^ (const sc_unsigned&  u, const sc_unsigned&  v);
++sc_signed operator ^ (const sc_unsigned&  u, int64               v); 
++sc_unsigned operator ^ (const sc_unsigned&  u, uint64              v); 
++sc_signed operator ^ (const sc_unsigned&  u, long                v); 
++sc_unsigned operator ^ (const sc_unsigned&  u, unsigned long       v);
++sc_signed operator ^ (const sc_unsigned&  u, int                 v);
++sc_signed operator ^ (int64               u, const sc_unsigned&  v); 
++sc_unsigned operator ^ (uint64              u, const sc_unsigned&  v); 
++sc_signed operator ^ (long                u, const sc_unsigned&  v); 
++sc_unsigned operator ^ (unsigned long       u, const sc_unsigned&  v);
++sc_signed operator ^ (int                 u, const sc_unsigned&  v);
++sc_unsigned operator ^ (const sc_unsigned&  u, const sc_uint_base& v);
++sc_signed operator ^ (const sc_unsigned&  u, const sc_int_base&  v);
++sc_unsigned operator ^ (const sc_uint_base& u, const sc_unsigned&  v);
++sc_signed operator ^ (const sc_int_base&  u, const sc_unsigned&  v);
++sc_unsigned operator << (const sc_unsigned&  u, const sc_signed&    v); 
++sc_signed operator << (const sc_signed&    u, const sc_unsigned&  v); 
++sc_unsigned operator << (const sc_unsigned&  u, const sc_unsigned&  v);
++sc_unsigned operator << (const sc_unsigned&  u, int64               v); 
++sc_unsigned operator << (const sc_unsigned&  u, uint64              v); 
++sc_unsigned operator << (const sc_unsigned&  u, long                v); 
++sc_unsigned operator << (const sc_unsigned&  u, unsigned long       v);
++sc_unsigned operator << (const sc_unsigned&  u, const sc_uint_base& v);
++sc_unsigned operator << (const sc_unsigned&  u, const sc_int_base&  v);
++sc_unsigned operator >> (const sc_unsigned&  u, const sc_signed&    v); 
++sc_signed operator >> (const sc_signed&    u, const sc_unsigned&  v); 
++sc_unsigned operator >> (const sc_unsigned&  u, const sc_unsigned&  v);
++sc_unsigned operator >> (const sc_unsigned&  u, int64               v); 
++sc_unsigned operator >> (const sc_unsigned&  u, uint64              v); 
++sc_unsigned operator >> (const sc_unsigned&  u, long                v); 
++sc_unsigned operator >> (const sc_unsigned&  u, unsigned long       v);
++sc_unsigned operator >> ( const sc_unsigned& , const sc_uint_base& );
++sc_unsigned operator >> ( const sc_unsigned&, const sc_int_base& );
++sc_unsigned operator + (const sc_unsigned& u);
++sc_signed operator - (const sc_unsigned& u);
++bool operator == (const sc_unsigned&  u, const sc_signed&    v); 
++bool operator == (const sc_signed&    u, const sc_unsigned&  v); 
++bool operator == (const sc_unsigned&  u, const sc_unsigned&  v);
++bool operator == (const sc_unsigned&  u, int64               v); 
++bool operator == (const sc_unsigned&  u, uint64              v); 
++bool operator == (const sc_unsigned&  u, long                v); 
++bool operator == (const sc_unsigned&  u, unsigned long       v);
++bool operator == (int64               u, const sc_unsigned&  v); 
++bool operator == (uint64              u, const sc_unsigned&  v); 
++bool operator == (long                u, const sc_unsigned&  v); 
++bool operator == (unsigned long       u, const sc_unsigned&  v);
++bool operator == (const sc_unsigned&  u, const sc_uint_base& v);
++bool operator == (const sc_unsigned&  u, const sc_int_base&  v);
++bool operator == (const sc_uint_base& u, const sc_unsigned&  v);
++bool operator == (const sc_int_base&  u, const sc_unsigned&  v);
++bool operator != (const sc_unsigned&  u, const sc_signed&    v); 
++bool operator != (const sc_signed&    u, const sc_unsigned&  v); 
++bool operator != (const sc_unsigned&  u, const sc_unsigned&  v);
++bool operator != (const sc_unsigned&  u, int64               v); 
++bool operator != (const sc_unsigned&  u, uint64              v); 
++bool operator != (const sc_unsigned&  u, long                v); 
++bool operator != (const sc_unsigned&  u, unsigned long       v);
++bool operator != (int64               u, const sc_unsigned&  v); 
++bool operator != (uint64              u, const sc_unsigned&  v); 
++bool operator != (long                u, const sc_unsigned&  v); 
++bool operator != (unsigned long       u, const sc_unsigned&  v);
++bool operator != (const sc_unsigned&  u, const sc_uint_base& v);
++bool operator != (const sc_unsigned&  u, const sc_int_base&  v);
++bool operator != (const sc_uint_base& u, const sc_unsigned&  v);
++bool operator != (const sc_int_base&  u, const sc_unsigned&  v);
++bool operator < (const sc_unsigned&  u, const sc_signed&    v); 
++bool operator < (const sc_signed&    u, const sc_unsigned&  v); 
++bool operator < (const sc_unsigned&  u, const sc_unsigned&  v);
++bool operator < (const sc_unsigned&  u, int64               v); 
++bool operator < (const sc_unsigned&  u, uint64              v); 
++bool operator < (const sc_unsigned&  u, long                v); 
++bool operator < (const sc_unsigned&  u, unsigned long       v);
++bool operator < (int64               u, const sc_unsigned&  v); 
++bool operator < (uint64              u, const sc_unsigned&  v); 
++bool operator < (long                u, const sc_unsigned&  v); 
++bool operator < (unsigned long       u, const sc_unsigned&  v);
++bool operator < (const sc_unsigned&  u, const sc_uint_base& v);
++bool operator < (const sc_unsigned&  u, const sc_int_base&  v);
++bool operator < (const sc_uint_base& u, const sc_unsigned&  v);
++bool operator < (const sc_int_base&  u, const sc_unsigned&  v);
++bool operator <= (const sc_unsigned&  u, const sc_signed&    v); 
++bool operator <= (const sc_signed&    u, const sc_unsigned&  v); 
++bool operator <= (const sc_unsigned&  u, const sc_unsigned&  v);
++bool operator <= (const sc_unsigned&  u, int64               v); 
++bool operator <= (const sc_unsigned&  u, uint64              v); 
++bool operator <= (const sc_unsigned&  u, long                v); 
++bool operator <= (const sc_unsigned&  u, unsigned long       v);
++bool operator <= (int64               u, const sc_unsigned&  v); 
++bool operator <= (uint64              u, const sc_unsigned&  v); 
++bool operator <= (long                u, const sc_unsigned&  v); 
++bool operator <= (unsigned long       u, const sc_unsigned&  v);
++bool operator <= (const sc_unsigned&  u, const sc_uint_base& v);
++bool operator <= (const sc_unsigned&  u, const sc_int_base&  v);
++bool operator <= (const sc_uint_base& u, const sc_unsigned&  v);
++bool operator <= (const sc_int_base&  u, const sc_unsigned&  v);
++bool operator > (const sc_unsigned&  u, const sc_signed&    v); 
++bool operator > (const sc_signed&    u, const sc_unsigned&  v); 
++bool operator > (const sc_unsigned&  u, const sc_unsigned&  v);
++bool operator > (const sc_unsigned&  u, int64               v); 
++bool operator > (const sc_unsigned&  u, uint64              v); 
++bool operator > (const sc_unsigned&  u, long                v); 
++bool operator > (const sc_unsigned&  u, unsigned long       v);
++bool operator > (int64               u, const sc_unsigned&  v); 
++bool operator > (uint64              u, const sc_unsigned&  v); 
++bool operator > (long                u, const sc_unsigned&  v); 
++bool operator > (unsigned long       u, const sc_unsigned&  v);
++bool operator > (const sc_unsigned&  u, const sc_uint_base& v);
++bool operator > (const sc_unsigned&  u, const sc_int_base&  v);
++bool operator > (const sc_uint_base& u, const sc_unsigned&  v);
++bool operator > (const sc_int_base&  u, const sc_unsigned&  v);
++bool operator >= (const sc_unsigned&  u, const sc_signed&    v); 
++bool operator >= (const sc_signed&    u, const sc_unsigned&  v); 
++bool operator >= (const sc_unsigned&  u, const sc_unsigned&  v);
++bool operator >= (const sc_unsigned&  u, int64               v); 
++bool operator >= (const sc_unsigned&  u, uint64              v); 
++bool operator >= (const sc_unsigned&  u, long                v); 
++bool operator >= (const sc_unsigned&  u, unsigned long       v);
++bool operator >= (int64               u, const sc_unsigned&  v); 
++bool operator >= (uint64              u, const sc_unsigned&  v); 
++bool operator >= (long                u, const sc_unsigned&  v); 
++bool operator >= (unsigned long       u, const sc_unsigned&  v);
++bool operator >= (const sc_unsigned&  u, const sc_uint_base& v);
++bool operator >= (const sc_unsigned&  u, const sc_int_base&  v);
++bool operator >= (const sc_uint_base& u, const sc_unsigned&  v);
++bool operator >= (const sc_int_base&  u, const sc_unsigned&  v);
++sc_unsigned operator ~ (const sc_unsigned& u); 
++int compare_unsigned(small_type us, 
++                     int unb,
++                     int und, 
++                     const unsigned long *ud, 
++                     small_type vs, 
++                     int vnb,
++                     int vnd,
++                     const unsigned long *vd,
++                     small_type if_u_signed = 0,
++                     small_type if_v_signed = 0);
++sc_unsigned add_unsigned_friend(small_type us, 
++                                int unb,
++                                int und, 
++                                const unsigned long *ud, 
++                                small_type vs, 
++                                int vnb,
++                                int vnd,
++                                const unsigned long *vd);
++sc_unsigned sub_unsigned_friend(small_type us, 
++                                int unb,
++                                int und, 
++                                const unsigned long *ud, 
++                                small_type vs, 
++                                int vnb,
++                                int vnd, 
++                                const unsigned long *vd);
++sc_unsigned mul_unsigned_friend(small_type s,
++                                int unb,
++                                int und, 
++                                const unsigned long *ud, 
++                                int vnb,
++                                int vnd,
++                                const unsigned long *vd);
++sc_unsigned div_unsigned_friend(small_type s,
++                                int unb,
++                                int und, 
++                                const unsigned long *ud, 
++                                int vnb,
++                                int vnd,
++                                const unsigned long *vd);
++sc_unsigned mod_unsigned_friend(small_type us,
++                                int unb,
++                                int und, 
++                                const unsigned long *ud, 
++                                int vnb,
++                                int vnd,
++                                const unsigned long *vd);
++sc_unsigned and_unsigned_friend(small_type us, 
++                                int unb, 
++                                int und, 
++                                const unsigned long *ud, 
++                                small_type vs,
++                                int vnb, 
++                                int vnd,
++                                const unsigned long *vd);
++sc_unsigned or_unsigned_friend(small_type us, 
++                               int unb, 
++                               int und, 
++                               const unsigned long *ud, 
++                               small_type vs,
++                               int vnb, 
++                               int vnd,
++                               const unsigned long *vd);
++sc_unsigned xor_unsigned_friend(small_type us, 
++                                int unb, 
++                                int und, 
++                                const unsigned long *ud, 
++                                small_type vs,
++                                int vnb, 
++                                int vnd,
++                                const unsigned long *vd);
++
++
+ #define NOT_YET_IMPLEMENTED                                                   \
+     SC_REPORT_ERROR( SC_ID_NOT_IMPLEMENTED_,                                  \
+                      "sc_unsigned/sc_biguint concatenation" )
+@@ -1936,8 +2259,8 @@
+                               int vnb,
+                               int vnd,
+                               const unsigned long *vd,
+-                              small_type if_u_signed = 0,
+-                              small_type if_v_signed = 0);
++                              small_type if_u_signed,
++                              small_type if_v_signed);
+   
+   friend sc_unsigned add_unsigned_friend(small_type us, 
+                                          int unb,
+diff -rNubB systemc-2.0.1.orig/src/systemc/kernel/sc_module_name.h systemc-2.0.1/src/systemc/kernel/sc_module_name.h
+--- systemc-2.0.1.orig/src/systemc/kernel/sc_module_name.h	2002-03-12 11:46:49.000000000 +0100
++++ systemc-2.0.1/src/systemc/kernel/sc_module_name.h	2006-04-19 13:21:18.000000000 +0200
+@@ -39,6 +39,8 @@
+ 
+ 
+ class sc_simcontext;
++class sc_module;
++class sc_object_manager;
+ 
+ 
+ // ----------------------------------------------------------------------------
+diff -rNubB systemc-2.0.1.orig/src/systemc/kernel/sc_process_int.cpp systemc-2.0.1/src/systemc/kernel/sc_process_int.cpp
+--- systemc-2.0.1.orig/src/systemc/kernel/sc_process_int.cpp	2002-03-12 11:47:19.000000000 +0100
++++ systemc-2.0.1/src/systemc/kernel/sc_process_int.cpp	2006-04-19 13:21:18.000000000 +0200
+@@ -326,15 +326,6 @@
+ 
+ 
+ void
+-sc_thread_process::prepare_for_simulation()
+-{
+-    m_cor = simcontext()->cor_pkg()->create( m_stack_size,
+-					     sc_thread_cor_fn, this );
+-    m_cor->stack_protect( true );
+-}
+-
+-
+-void
+ sc_thread_cor_fn( void* arg )
+ {
+     sc_thread_handle thread_h = RCAST<sc_thread_handle>( arg );
+@@ -357,6 +348,15 @@
+ }
+ 
+ 
++void
++sc_thread_process::prepare_for_simulation()
++{
++    m_cor = simcontext()->cor_pkg()->create( m_stack_size,
++					     sc_thread_cor_fn, this );
++    m_cor->stack_protect( true );
++}
++
++
+ bool
+ sc_thread_process::trigger_dynamic( sc_event* e )
+ {
+@@ -487,15 +487,6 @@
+ }
+ 
+ 
+-void
+-sc_cthread_process::prepare_for_simulation()
+-{
+-    m_cor = simcontext()->cor_pkg()->create( m_stack_size,
+-					     sc_cthread_cor_fn, this );
+-    m_cor->stack_protect( true );
+-}
+-
+-
+ bool
+ sc_cthread_process::ready_to_run()
+ {
+@@ -553,6 +544,15 @@
+ }
+ 
+ 
++void
++sc_cthread_process::prepare_for_simulation()
++{
++    m_cor = simcontext()->cor_pkg()->create( m_stack_size,
++					     sc_cthread_cor_fn, this );
++    m_cor->stack_protect( true );
++}
++
++
+ bool
+ sc_cthread_process::eval_watchlist()
+ {

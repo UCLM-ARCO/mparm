@@ -1,0 +1,18 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
+include /usr/share/cdbs/1/rules/debhelper.mk
+include /usr/share/cdbs/1/rules/simple-patchsys.mk
+include /usr/share/cdbs/1/class/autotools.mk
+
+DEB_MAKE_INSTALL_TARGET := -C src install prefix=$(CURDIR)/debian/libsystemc21-dev/usr
+DEB_MAKE_CLEAN_TARGET := clean
+DEB_COMPRESS_EXCLUDE := .pdf
+
+install/libsystemc21-dev::
+	mv $(CURDIR)/debian/libsystemc21-dev/usr/lib-linux $(CURDIR)/debian/libsystemc21-dev/usr/lib
+	mv $(CURDIR)/debian/libsystemc21-dev/usr/lib/libsystemc.a $(CURDIR)/debian/libsystemc21-dev/usr/lib/libsystemc21.a
+	install -d -m 755 $(CURDIR)/debian/libsystemc21-dev/usr/include/systemc-2.1
+	-mv $(CURDIR)/debian/libsystemc21-dev/usr/include/* $(CURDIR)/debian/libsystemc21-dev/usr/include/systemc-2.1
+	install -d -m 755 $(CURDIR)/debian/libsystemc21-dev/usr/share/doc/libsystemc21-dev
+	install -m 644 $(CURDIR)/docs/*.pdf $(CURDIR)/debian/libsystemc21-dev/usr/share/doc/libsystemc21-dev

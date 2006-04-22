@@ -1,0 +1,365 @@
+diff -ru systemc-2.1.v1/src/sysc/datatypes/fx/scfx_rep.h systemc-2.1.1/src/sysc/datatypes/fx/scfx_rep.h
+--- systemc-2.1.v1/src/sysc/datatypes/fx/scfx_rep.h	2005-03-31 23:22:30.000000000 +0200
++++ systemc-2.1.1/src/sysc/datatypes/fx/scfx_rep.h	2006-04-14 13:55:24.000000000 +0200
+@@ -63,6 +63,35 @@
+ const int bits_in_int  = sizeof(int)  * CHAR_BIT;
+ const int bits_in_word = sizeof(word) * CHAR_BIT;
+ 
++void multiply( scfx_rep&, const scfx_rep&, const scfx_rep&,
++	       int = SC_DEFAULT_MAX_WL_ );
++scfx_rep*  neg_scfx_rep( const scfx_rep& );
++scfx_rep*  mult_scfx_rep( const scfx_rep&, const scfx_rep&,
++			  int = SC_DEFAULT_MAX_WL_ );
++scfx_rep*  div_scfx_rep( const scfx_rep&, const scfx_rep&,
++			 int = SC_DEFAULT_DIV_WL_ );
++scfx_rep*  add_scfx_rep( const scfx_rep&, const scfx_rep&,
++			 int = SC_DEFAULT_MAX_WL_ );
++scfx_rep*  sub_scfx_rep( const scfx_rep&, const scfx_rep&,
++			 int = SC_DEFAULT_MAX_WL_ );
++scfx_rep*  lsh_scfx_rep( const scfx_rep&, int );
++scfx_rep*  rsh_scfx_rep( const scfx_rep&, int );
++
++int        cmp_scfx_rep( const scfx_rep&, const scfx_rep& );
++scfx_rep*  quantization_scfx_rep( const scfx_rep&,
++				  const scfx_params&,
++				  bool& );
++scfx_rep*  overflow_scfx_rep( const scfx_rep&,
++			      const scfx_params&,
++			      bool& );
++void       align( const scfx_rep&, const scfx_rep&, int&, int&,
++		  scfx_mant_ref&, scfx_mant_ref& );
++int        compare_msw( const scfx_rep&, const scfx_rep& );
++int        compare_msw_ff( const scfx_rep& lhs, const scfx_rep& rhs );
++void       print_dec( scfx_string&, const scfx_rep&, int, sc_fmt );
++void       print_other( scfx_string&, const scfx_rep&, sc_numrep, int,
++			sc_fmt, const scfx_params* );
++int compare_abs( const scfx_rep&, const scfx_rep& );
+ 
+ // ----------------------------------------------------------------------------
+ //  CLASS : scfx_index
+@@ -148,18 +177,13 @@
+ 
+     void operator = ( const scfx_rep& );
+ 
+-    friend void multiply( scfx_rep&, const scfx_rep&, const scfx_rep&,
+-			  int = SC_DEFAULT_MAX_WL_ );
++    friend void multiply( scfx_rep&, const scfx_rep&, const scfx_rep&, int );
+ 
+     friend scfx_rep*  neg_scfx_rep( const scfx_rep& );
+-    friend scfx_rep* mult_scfx_rep( const scfx_rep&, const scfx_rep&,
+-				     int = SC_DEFAULT_MAX_WL_ );
+-    friend scfx_rep*  div_scfx_rep( const scfx_rep&, const scfx_rep&,
+-				     int = SC_DEFAULT_DIV_WL_ );
+-    friend scfx_rep*  add_scfx_rep( const scfx_rep&, const scfx_rep&,
+-				     int = SC_DEFAULT_MAX_WL_ );
+-    friend scfx_rep*  sub_scfx_rep( const scfx_rep&, const scfx_rep&,
+-				     int = SC_DEFAULT_MAX_WL_ );
++    friend scfx_rep* mult_scfx_rep( const scfx_rep&, const scfx_rep&, int );
++    friend scfx_rep*  div_scfx_rep( const scfx_rep&, const scfx_rep&, int );
++    friend scfx_rep*  add_scfx_rep( const scfx_rep&, const scfx_rep&, int );
++    friend scfx_rep*  sub_scfx_rep( const scfx_rep&, const scfx_rep&, int );
+     friend scfx_rep*  lsh_scfx_rep( const scfx_rep&, int );
+     friend scfx_rep*  rsh_scfx_rep( const scfx_rep&, int );
+ 
+Sólo en systemc-2.1.1/src/sysc/datatypes/fx: scfx_rep.h~
+Sólo en systemc-2.1.1/src/sysc/datatypes/int: Makefile
+diff -ru systemc-2.1.v1/src/sysc/datatypes/int/sc_signed.h systemc-2.1.1/src/sysc/datatypes/int/sc_signed.h
+--- systemc-2.1.v1/src/sysc/datatypes/int/sc_signed.h	2005-05-24 23:56:51.000000000 +0200
++++ systemc-2.1.1/src/sysc/datatypes/int/sc_signed.h	2006-04-14 14:00:40.000000000 +0200
+@@ -106,6 +106,75 @@
+ class sc_fxnum_fast;
+ 
+ 
++sc_signed add_signed_friend(small_type us, 
++                            int unb,
++                            int und, 
++                            const unsigned long *ud, 
++                            small_type vs, 
++                            int vnb,
++                            int vnd,
++                            const unsigned long *vd);
++
++sc_signed sub_signed_friend(small_type us, 
++                            int unb,
++                            int und, 
++                            const unsigned long *ud, 
++                            small_type vs, 
++                            int vnb,
++                            int vnd, 
++                            const unsigned long *vd);
++
++sc_signed mul_signed_friend(small_type s,
++                            int unb,
++                            int und, 
++                            const unsigned long *ud, 
++                            int vnb,
++                            int vnd,
++                            const unsigned long *vd);
++
++sc_signed div_signed_friend(small_type s,
++                            int unb,
++                            int und, 
++                            const unsigned long *ud, 
++                            int vnb,
++                            int vnd,
++                            const unsigned long *vd);
++
++sc_signed mod_signed_friend(small_type us,
++                            int unb,
++                            int und, 
++                            const unsigned long *ud, 
++                            int vnb,
++                            int vnd,
++                            const unsigned long *vd);
++
++sc_signed and_signed_friend(small_type us, 
++                            int unb, 
++                            int und, 
++                            const unsigned long *ud, 
++                            small_type vs,
++                            int vnb, 
++                            int vnd,
++                            const unsigned long *vd);
++
++sc_signed or_signed_friend(small_type us, 
++                           int unb, 
++                           int und, 
++                           const unsigned long *ud, 
++                           small_type vs,
++                           int vnb, 
++                           int vnd,
++                           const unsigned long *vd);
++
++sc_signed xor_signed_friend(small_type us, 
++			    int unb, 
++			    int und, 
++			    const unsigned long *ud, 
++			    small_type vs,
++			    int vnb, 
++			    int vnd,
++			    const unsigned long *vd);
++
+ // ----------------------------------------------------------------------------
+ //  CLASS : sc_signed_bitref_r
+ //
+Sólo en systemc-2.1.1/src/sysc/datatypes/int: sc_signed.h~
+diff -ru systemc-2.1.v1/src/sysc/datatypes/int/sc_unsigned.h systemc-2.1.1/src/sysc/datatypes/int/sc_unsigned.h
+--- systemc-2.1.v1/src/sysc/datatypes/int/sc_unsigned.h	2005-05-24 23:57:07.000000000 +0200
++++ systemc-2.1.1/src/sysc/datatypes/int/sc_unsigned.h	2006-04-14 14:03:03.000000000 +0200
+@@ -108,6 +108,85 @@
+ class sc_fxnum;
+ class sc_fxnum_fast;
+ 
++int compare_unsigned(small_type us, 
++                     int unb,
++                     int und, 
++                     const unsigned long *ud, 
++                     small_type vs, 
++                     int vnb,
++                     int vnd,
++                     const unsigned long *vd,
++                     small_type if_u_signed = 0,
++                     small_type if_v_signed = 0);
++
++sc_unsigned add_unsigned_friend(small_type us, 
++                                int unb,
++                                int und, 
++                                const unsigned long *ud, 
++                                small_type vs, 
++                                int vnb,
++                                int vnd,
++                                const unsigned long *vd);
++
++sc_unsigned sub_unsigned_friend(small_type us, 
++                                int unb,
++                                int und, 
++                                const unsigned long *ud, 
++                                small_type vs, 
++                                int vnb,
++                                int vnd, 
++                                const unsigned long *vd);
++
++sc_unsigned mul_unsigned_friend(small_type s,
++                                int unb,
++                                int und, 
++                                const unsigned long *ud, 
++                                int vnb,
++                                int vnd,
++                                const unsigned long *vd);
++
++sc_unsigned div_unsigned_friend(small_type s,
++                                int unb,
++                                int und, 
++                                const unsigned long *ud, 
++                                int vnb,
++                                int vnd,
++                                const unsigned long *vd);
++
++sc_unsigned mod_unsigned_friend(small_type us,
++                                int unb,
++                                int und, 
++                                const unsigned long *ud, 
++                                int vnb,
++                                int vnd,
++                                const unsigned long *vd);
++
++sc_unsigned and_unsigned_friend(small_type us, 
++                                int unb, 
++                                int und, 
++                                const unsigned long *ud, 
++                                small_type vs,
++                                int vnb, 
++                                int vnd,
++                                const unsigned long *vd);
++
++sc_unsigned or_unsigned_friend(small_type us, 
++                               int unb, 
++                               int und, 
++                               const unsigned long *ud, 
++                               small_type vs,
++                               int vnb, 
++                               int vnd,
++                               const unsigned long *vd);
++
++sc_unsigned xor_unsigned_friend(small_type us, 
++                                int unb, 
++                                int und, 
++                                const unsigned long *ud, 
++                                small_type vs,
++                                int vnb, 
++                                int vnd,
++                                const unsigned long *vd);
+ 
+ // ----------------------------------------------------------------------------
+ //  CLASS : sc_unsigned_bitref_r
+@@ -1364,8 +1443,8 @@
+                               int vnb,
+                               int vnd,
+                               const unsigned long *vd,
+-                              small_type if_u_signed = 0,
+-                              small_type if_v_signed = 0);
++                              small_type if_u_signed,
++                              small_type if_v_signed);
+   
+   friend sc_unsigned add_unsigned_friend(small_type us, 
+                                          int unb,
+Sólo en systemc-2.1.1/src/sysc/datatypes/int: sc_unsigned.h~
+Sólo en systemc-2.1.1/src/sysc/datatypes: Makefile
+Sólo en systemc-2.1.1/src/sysc/datatypes/misc: Makefile
+Sólo en systemc-2.1.1/src/sysc/kernel: Makefile
+diff -ru systemc-2.1.v1/src/sysc/kernel/sc_process_int.cpp systemc-2.1.1/src/sysc/kernel/sc_process_int.cpp
+--- systemc-2.1.v1/src/sysc/kernel/sc_process_int.cpp	2005-04-05 01:14:27.000000000 +0200
++++ systemc-2.1.1/src/sysc/kernel/sc_process_int.cpp	2006-04-14 13:37:03.000000000 +0200
+@@ -435,15 +435,6 @@
+ 
+ 
+ void
+-sc_thread_process::prepare_for_simulation()
+-{
+-    m_cor = simcontext()->cor_pkg()->create( m_stack_size,
+-					     sc_thread_cor_fn, this );
+-    m_cor->stack_protect( true );
+-}
+-
+-
+-void
+ sc_thread_cor_fn( void* arg )
+ {
+     int mon_n;
+@@ -481,6 +472,16 @@
+     simc->cor_pkg()->abort( simc->next_cor() );
+ }
+ 
++
++void
++sc_thread_process::prepare_for_simulation()
++{
++    m_cor = simcontext()->cor_pkg()->create( m_stack_size,
++					     sc_thread_cor_fn, this );
++    m_cor->stack_protect( true );
++}
++
++
+ void sc_thread_process::signal_monitors(int type)
+ {
+     int mon_n;	// # of monitors present.
+@@ -624,39 +625,6 @@
+ 
+ 
+ void
+-sc_cthread_process::prepare_for_simulation()
+-{
+-    m_cor = simcontext()->cor_pkg()->create( m_stack_size,
+-					     sc_cthread_cor_fn, this );
+-    m_cor->stack_protect( true );
+-}
+-
+-
+-bool
+-sc_cthread_process::ready_to_run()
+-{
+-    bool exception = eval_watchlist();
+-    if( exception ) {
+-	return true;
+-    }
+-
+-    bool ready;
+-    switch( m_wait_state ) {
+-    case CLOCK:
+-        ready = ( -- m_wait_cycles == 0 );
+-        break;
+-    case LAMBDA:
+-        ready = m_wait_lambda->eval();
+-        break;
+-    default:
+-        ready = true;
+-        break;
+-    }
+-    return ready;
+-}
+-
+-
+-void
+ sc_cthread_cor_fn( void* arg )
+ {
+     sc_cthread_handle cthread_h = RCAST<sc_cthread_handle>( arg );
+@@ -705,6 +673,39 @@
+ }
+ 
+ 
++void
++sc_cthread_process::prepare_for_simulation()
++{
++    m_cor = simcontext()->cor_pkg()->create( m_stack_size,
++					     sc_cthread_cor_fn, this );
++    m_cor->stack_protect( true );
++}
++
++
++bool
++sc_cthread_process::ready_to_run()
++{
++    bool exception = eval_watchlist();
++    if( exception ) {
++	return true;
++    }
++
++    bool ready;
++    switch( m_wait_state ) {
++    case CLOCK:
++        ready = ( -- m_wait_cycles == 0 );
++        break;
++    case LAMBDA:
++        ready = m_wait_lambda->eval();
++        break;
++    default:
++        ready = true;
++        break;
++    }
++    return ready;
++}
++
++
+ bool
+ sc_cthread_process::eval_watchlist()
+ {

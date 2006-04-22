@@ -1,0 +1,4 @@
+#!/bin/sh
+
+update-alternatives --install /usr/lib/libsystemc.a libsystemc.a /usr/lib/libsystemc21.a 100
+
