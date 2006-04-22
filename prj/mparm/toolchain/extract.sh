@@ -42,7 +42,7 @@ EOF
     if [ $DIR != $DEST ] ; then
         mv $DIR $DEST
     fi
-    ln -f $1 $ORIG
+    tar czf $ORIG $DEST
     rsync -aq --exclude=.svn $(dirname $0)/$PKG/ $DEST/debian
 }
 
