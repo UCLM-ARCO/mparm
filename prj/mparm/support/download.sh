@@ -1,27 +1,22 @@
 #!/bin/sh
 
-# Package versions
-SKYEYE_VER=1.2-RC7-2
-
-SF_MIRROR=ovh
-SOURCEFORGE=http://$SF_MIRROR.dl.sourceforge.net/sourceforge
-SKYEYE=$SOURCEFORGE/skyeye/skyeye-$SKYEYE_VER.tar.bz2
-
-FILES="$SKYEYE"
 
 mkdir -p orig
-cd orig && (
-    for i in $FILES ; do
-	if [ -e $(basename $i ) ] ; then
-	    echo "Skipping $i"
-	else
-	    echo -n "Getting $i ... "
-	    echo "[wget \"$i\"]"
-	    if wget "$i" ; then
-		echo Done.
-	    else
-		echo Failed.
-	    fi
-	fi
-    done
-)
+
+cat <<EOF
+
+Sorry, but SystemC files are not easy to download from a
+script. You must manually point to:
+
+  https://www.systemc.org/projects/systemc/files
+
+And log in with your own using your private Login and Password
+combination in the upper right corner of the page.
+
+Source files must be stored in orig/ subdirectory. The following
+files will be automatically packaged:
+
+- systemc-2.1.v1.tgz
+- systemc-2.0.1.tgz
+
+EOF

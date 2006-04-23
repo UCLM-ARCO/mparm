@@ -3,7 +3,7 @@
 # GNU copyright 1997 to 1999 by Joey Hess.
 
 PACKAGE=arm-rtems4.7
-BSP="edb7310 gba"
+BSP=edb7310 gba
 
 ifeq (,$(DEB_BUILD_GNU_TYPE))
   include /usr/share/dbs/dpkg-arch.mk
