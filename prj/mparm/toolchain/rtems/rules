@@ -3,7 +3,7 @@
 # GNU copyright 1997 to 1999 by Joey Hess.
 
 PACKAGE=arm-rtems4.7
-BSP=edb7310 gba
+BSP=mparm edb7312 gba
 
 ifeq (,$(DEB_BUILD_GNU_TYPE))
   include /usr/share/dbs/dpkg-arch.mk
@@ -25,6 +25,7 @@ include /usr/share/dbs/dbs-build.mk
 configure: configure-stamp
 configure-stamp: $(patched)
 	dh_testdir
+	cp -r debian/mparm-bsp/* $(BUILD_TREE)/
 	cd $(BUILD_TREE) && ./bootstrap
 	mkdir objdir
 	cd objdir && ../$(BUILD_TREE)/configure $(CONFARGS) 

@@ -1,0 +1,19 @@
+%rename lib old_lib
+%rename endfile old_endfile
+%rename startfile old_startfile
+%rename link old_link
+
+*lib:
+%{!qrtems: %(old_lib)} %{!nostdlib: %{qrtems: --start-group \
+%{!qrtems_debug: -lrtemsbsp -lrtemscpu} %{qrtems_debug: -lrtemsbsp_g -lrtemscpu_g} \
+-lc -lgcc --end-group \
+%{!qnolinkcmds: -T linkcmds%s}}}
+
+*startfile:
+%{!qrtems: %(old_startfile)} %{!nostdlib: %{qrtems: \
+%{!qrtems_debug: start.o%s crtbegin.o%s} \
+%{qrtems_debug: start_g.o%s crtbegin.o%s}}}
+
+*link:
+%{!qrtems: %(old_link)} %{qrtems: -Qy -dp -Bstatic -e _start}
+
