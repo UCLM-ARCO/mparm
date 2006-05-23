@@ -106,8 +106,8 @@ int BSP_remove_rtems_irq_handler  (const rtems_irq_connect_data* irq)
 }
 
 void soff (const rtems_irq_connect_data* irq)
-{unsigned32 numero,mascheraold;
- numero=(unsigned32) irq->name;
+{rtems_unsigned32 numero,mascheraold;
+ numero=(rtems_unsigned32) irq->name;
  mascheraold = *((volatile unsigned long*)SWARM_INT_MASK);
  mascheraold &= ~(1 << numero);
  *((volatile unsigned long *)SWARM_INT_MASK) = mascheraold;
@@ -117,8 +117,8 @@ void soff (const rtems_irq_connect_data* irq)
 }
 
 void son (const rtems_irq_connect_data* irq)
-{unsigned32 numero,mascheraold;
- numero=(unsigned32) irq->name;
+{rtems_unsigned32 numero,mascheraold;
+ numero=(rtems_unsigned32) irq->name;
  mascheraold= *((volatile unsigned long *)SWARM_INT_MASK);
  mascheraold |= (1 << numero);
  *((volatile unsigned long *)SWARM_INT_MASK) = mascheraold;
@@ -128,8 +128,8 @@ void son (const rtems_irq_connect_data* irq)
 }
 
 int sison (const rtems_irq_connect_data* irq)
-{unsigned32 numero,mascheraold;
- numero=(unsigned32) irq->name;
+{rtems_unsigned32 numero,mascheraold;
+ numero=(rtems_unsigned32) irq->name;
  mascheraold= *((volatile unsigned long *)SWARM_INT_MASK);
  mascheraold &= ~(1 << numero);
  return (int) ( mascheraold >> numero);

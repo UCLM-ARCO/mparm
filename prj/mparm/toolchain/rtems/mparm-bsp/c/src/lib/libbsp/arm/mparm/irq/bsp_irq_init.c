@@ -29,7 +29,7 @@ void BSP_rtems_irq_mngt_init() {
 
 inline void ExecuteITHandler()										 
  {													
-	unsigned32 stato,i,appoggio;								
+	rtems_unsigned32 stato,i,appoggio;								
 	rtems_irq_hdl *table;										
 	table =(rtems_irq_hdl *) VECTOR_TABLE;								
 	stato = *((volatile unsigned long *)SWARM_INT_IRQ_STATUS);					

@@ -19,10 +19,10 @@ static void clock_isr_on(const rtems_irq_connect_data *unused);
 static void clock_isr_off(const rtems_irq_connect_data *unused);
 static int clock_isr_is_on(const rtems_irq_connect_data *irq);
 
-static inline unsigned32
+static inline rtems_unsigned32
 tread(int reg)
 {
-  register unsigned32 val;
+  register rtems_unsigned32 val;
 
   val = *((volatile unsigned long *)reg);
   
@@ -30,7 +30,7 @@ tread(int reg)
 }
 
 static inline void      
-twrite(int reg, unsigned32 val)
+twrite(int reg, rtems_unsigned32 val)
 {
 
   *((volatile unsigned long *)reg) = val;
@@ -64,7 +64,7 @@ rtems_irq_connect_data clock_isr_data = {BSP_TIMER_0,
  * Set up the clock hardware
 */
 #define Clock_driver_support_initialize_hardware()                            \
-  do { unsigned32 TimerCnt;                                                   \
+  do { rtems_unsigned32 TimerCnt;                                                   \
        TimerCnt = tread(SWARM_TIMER_CNT);                                     \
        TimerCnt += SWARM_TIMER_SYS_COUNT; /*defined in register.h*/	      \
        twrite(SWARM_TIMER_MATCH1, TimerCnt);				      \
@@ -77,7 +77,7 @@ rtems_irq_connect_data clock_isr_data = {BSP_TIMER_0,
      } while (0)
 
 static void clock_isr_on(const rtems_irq_connect_data *irq)
-{unsigned32 stato;
+{rtems_unsigned32 stato;
  son(irq); /*abilito l'int nell'int controller*/ 
  stato = tread(SWARM_TIMER_INTEN);				      \
  stato |= 0x1;							      \
@@ -86,7 +86,7 @@ static void clock_isr_on(const rtems_irq_connect_data *irq)
 
 static void clock_isr_off(const rtems_irq_connect_data *irq)
 {
- unsigned32 stato;
+ rtems_unsigned32 stato;
  stato = tread(SWARM_TIMER_INTEN);
  stato &= ~(0x1);
  twrite(SWARM_TIMER_INTEN,stato);

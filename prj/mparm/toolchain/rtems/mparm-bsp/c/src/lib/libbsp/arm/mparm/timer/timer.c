@@ -26,10 +26,10 @@ static rtems_irq_connect_data timer_isr_data = {BSP_TIMER_0,
 rtems_boolean Timer_driver_Find_average_overhead;
 int contatore=0,first=0;
 
-static inline unsigned32
+static inline rtems_unsigned32
 tread(int reg)
 {
-  register unsigned32 val;
+  register rtems_unsigned32 val;
 
   val = *((volatile unsigned long *)reg);
   
@@ -37,7 +37,7 @@ tread(int reg)
 }
 
 static inline void      
-twrite(int reg, unsigned32 val)
+twrite(int reg, rtems_unsigned32 val)
 {
 
   *((volatile unsigned long *)reg) = val;
@@ -68,14 +68,14 @@ twrite(int reg, unsigned32 val)
 }
 
 void ton (const rtems_irq_connect_data* irq)
-{unsigned32 stato;
+{rtems_unsigned32 stato;
  son(irq); /*abilito l'int nell'int controller*/
  stato = tread(SWARM_TIMER_INTEN);
  stato |= 0x1;
  twrite(SWARM_TIMER_INTEN,stato);
 }
 void toff (const rtems_irq_connect_data* irq)
-{unsigned32 stato;
+{rtems_unsigned32 stato;
  stato = tread(SWARM_TIMER_INTEN);
  stato &= ~(0x1);
  twrite(SWARM_TIMER_INTEN,stato);

@@ -38,12 +38,12 @@ shm_config_table BSP_shm_cfgtbl;
 volatile int *p1 = (int *)SLAVE1_BASE_ADDRESS;
 
 void Shm_Get_configuration(
-  rtems_unsigned32   localnode,
+  rtems_rtems_unsigned32   localnode,
   shm_config_table **shmcfg
 )
 {  int status;
    /*base address of the shared memory*/
-   BSP_shm_cfgtbl.base         = (rtems_unsigned32 *)SHARED_BASE_ADDRESS;
+   BSP_shm_cfgtbl.base         = (rtems_rtems_unsigned32 *)SHARED_BASE_ADDRESS;
    /*lenght of the shared memory*/
    BSP_shm_cfgtbl.length       = RTEMS_SHARED_SIZE; 
    BSP_shm_cfgtbl.format       = SHM_LITTLE;

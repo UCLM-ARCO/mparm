@@ -44,7 +44,7 @@ char            *rtems_progname;               /* Program name - from main(). */
 | External Prototypes
 +--------------------------------------------------------------------------*/
 void rtems_irq_mngt_init(void);
-void bsp_libc_init( void *, unsigned32, int );
+void bsp_libc_init( void *, rtems_unsigned32, int );
 void bsp_postdriver_hook(void);
 
 
@@ -60,7 +60,7 @@ void bsp_postdriver_hook(void);
 +--------------------------------------------------------------------------*/
 void bsp_pretasking_hook(void)
 {
-  unsigned32 heap_start;
+  rtems_unsigned32 heap_start;
 
   heap_start = rtemsFreeMemStart;
         
@@ -89,7 +89,7 @@ void bsp_start_default( void )
   Cpu_table.do_zero_of_workspace    = FALSE;
 
   BSP_Configuration.work_space_start = (void*)&_freememstart;
-  rtemsFreeMemStart = ((unsigned32)&_freememstart + BSP_Configuration.work_space_size);
+  rtemsFreeMemStart = ((rtems_unsigned32)&_freememstart + BSP_Configuration.work_space_size);
   BSP_Configuration.microseconds_per_tick = 100000;
 
   if (BSP_Configuration.User_multiprocessing_table) {
