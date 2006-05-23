@@ -405,8 +405,8 @@ double AMBAAHBEnergy(uint bus_ID, AHB_bus_activity monitor, BUS_ENERGY_LEVEL typ
       energy = AMBAHB_EnergyParameter(BASE_TYP, monitor.n_masters, monitor.n_slaves) +
                AMBAHB_EnergyParameter(HT_TYP,  monitor.n_masters, monitor.n_slaves) *
                    (
-                     ((double)((hmaster_count[bus_ID] + (int)monitor.htrans) ^ 2) / (double)(n_cycles[bus_ID] + 1.0) ) -
-                     ((double)(hmaster_count[bus_ID] ^ 2) / (double)(n_cycles[bus_ID]))
+                     ((double)((hmaster_count[bus_ID] + (int)monitor.htrans) * (hmaster_count[bus_ID] + (int)monitor.htrans)) / (double)(n_cycles[bus_ID] + 1.0) ) -
+                     ((double)(hmaster_count[bus_ID] * hmaster_count[bus_ID]) / (double)(n_cycles[bus_ID]))
                    ) +
                AMBAHB_EnergyParameter(HM_TYP,   monitor.n_masters, monitor.n_slaves) * (int)monitor.hmaster +
                AMBAHB_EnergyParameter(HR_TYP,   monitor.n_masters, monitor.n_slaves) * (int)monitor.hready;
@@ -416,8 +416,8 @@ double AMBAAHBEnergy(uint bus_ID, AHB_bus_activity monitor, BUS_ENERGY_LEVEL typ
       energy = AMBAHB_EnergyParameter(BASE_MIN, monitor.n_masters, monitor.n_slaves) +
                AMBAHB_EnergyParameter(HT_MIN,  monitor.n_masters, monitor.n_slaves) *
                    (
-                     ((double)((hmaster_count[bus_ID] + (int)monitor.htrans) ^ 2) / (double)(n_cycles[bus_ID] + 1.0) ) -
-                     ((double)(hmaster_count[bus_ID] ^ 2) / (double)(n_cycles[bus_ID]))
+                     ((double)((hmaster_count[bus_ID] + (int)monitor.htrans) * (hmaster_count[bus_ID] + (int)monitor.htrans)) / (double)(n_cycles[bus_ID] + 1.0) ) -
+                     ((double)(hmaster_count[bus_ID] * hmaster_count[bus_ID]) / (double)(n_cycles[bus_ID]))
                    ) +
                AMBAHB_EnergyParameter(HM_MIN,   monitor.n_masters, monitor.n_slaves) * (int)monitor.hmaster +
                AMBAHB_EnergyParameter(HR_MIN,   monitor.n_masters, monitor.n_slaves) * (int)monitor.hready;

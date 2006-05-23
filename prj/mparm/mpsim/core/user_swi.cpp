@@ -205,3 +205,24 @@ uint32_t core_go_idle_swi_call(CArmProc *arm, uint32_t r0, uint32_t r1, uint32_t
   return r0;
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// read_swi_call - read data from native file descriptor
+uint32_t read_swi_call(CArmProc *arm, uint32_t r0, uint32_t r1, uint32_t r2, uint32_t r3)
+{
+  int fd = (int)r1;
+  void* data = (void*)r2;
+  size_t len = (size_t)r3;
+
+  return (uint32_t) read(fd, data, len);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// write_swi_call - write data to native file descriptor
+uint32_t write_swi_call(CArmProc *arm, uint32_t r0, uint32_t r1, uint32_t r2, uint32_t r3)
+{
+  int fd = (int)r1;
+  void* data = (void*)r2;
+  size_t len = (size_t)r3;
+
+  return (uint32_t) write(fd, data, len);
+}

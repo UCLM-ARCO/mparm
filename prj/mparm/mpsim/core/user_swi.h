@@ -27,4 +27,7 @@ uint32_t metric_dump_light_swi_call(CArmProc *arm, uint32_t r0, uint32_t r1, uin
 uint32_t metric_clear_swi_call(CArmProc *arm, uint32_t r0, uint32_t r1, uint32_t r2, uint32_t r3);
 uint32_t core_go_idle_swi_call(CArmProc *arm, uint32_t r0, uint32_t r1, uint32_t r2, uint32_t r3);
 
+uint32_t read_swi_call(CArmProc *arm, uint32_t r0, uint32_t r1, uint32_t r2, uint32_t r3);
+uint32_t write_swi_call(CArmProc *arm, uint32_t r0, uint32_t r1, uint32_t r2, uint32_t r3);
+
 #endif // __USER_SWI_H__

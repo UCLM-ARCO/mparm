@@ -148,6 +148,8 @@ void armsystem::startsimul()
   pArm->RegisterSWI(SWI_METRIC_DUMPL, metric_dump_light_swi_call);
   pArm->RegisterSWI(SWI_METRIC_CLEAR, metric_clear_swi_call);
   pArm->RegisterSWI(SWI_CORE_GO_IDLE, core_go_idle_swi_call);
+  pArm->RegisterSWI(SWI_READ, read_swi_call);
+  pArm->RegisterSWI(SWI_WRITE, write_swi_call);
  
   // Setup the bus safely
   pinout.fiq = 1;

@@ -24,13 +24,10 @@
 #define SWI_METRIC_CLEAR 0x0080000B
 #define SWI_CORE_GO_IDLE 0x0080000C
 
-#define SWI_EXITstr         "0x00800000"
-#define SWI_PRINTstr        "0x00800005"
-#define SWI_METRIC_STARTstr "0x00800007"
-#define SWI_METRIC_STOPstr  "0x00800008"
-#define SWI_METRIC_DUMPstr  "0x00800009"
-#define SWI_METRIC_DUMPLstr "0x0080000A"
-#define SWI_METRIC_CLEARstr "0x0080000B"
-#define SWI_CORE_GO_IDLEstr "0x0080000C"
+#define SWI_READ         0x00800100
+#define SWI_WRITE        0x00800101
+
+#define __swi_str(x) #x
+#define __swi(x) __asm("swi " __swi_str(x))
 
 #endif // __SWI_CALLS_H__
