@@ -52,14 +52,6 @@ $(PROJECT_LIB)/linkcmds: startup/linkcmds $(PROJECT_LIB)/$(dirstamp)
 	$(INSTALL_DATA) $< $(PROJECT_LIB)/linkcmds
 PREINSTALL_FILES += $(PROJECT_LIB)/linkcmds
 
-$(PROJECT_INCLUDE)/uart.h: ../../arm/shared/comm/uart.h $(PROJECT_INCLUDE)/$(dirstamp)
-	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/uart.h
-PREINSTALL_FILES += $(PROJECT_INCLUDE)/uart.h
-
-$(PROJECT_INCLUDE)/consoleswarm.h: console/consoleswarm.h $(PROJECT_INCLUDE)/$(dirstamp)
-	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/consoleswarm.h
-PREINSTALL_FILES += $(PROJECT_INCLUDE)/consoleswarm.h
-
 $(PROJECT_INCLUDE)/irq.h: irq/irq.h $(PROJECT_INCLUDE)/$(dirstamp)
 	$(INSTALL_DATA) $< $(PROJECT_INCLUDE)/irq.h
 PREINSTALL_FILES += $(PROJECT_INCLUDE)/irq.h

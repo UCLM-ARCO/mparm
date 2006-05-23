@@ -24,10 +24,10 @@ void answer7();
 void answer8();
 
 /*inizialized in the file main.c*/		
-volatile uint** smartmem;
+volatile rtems_unsigned32** smartmem;
 /*volatile uint** queue;*/
-volatile uint** scratch;
-volatile uint** dma_base;		
+volatile rtems_unsigned32** scratch;
+volatile rtems_unsigned32** dma_base;		
 uint max_obj=4; /*8 maximun_number of obj for each processor in the smartdma */
 uint RTEMS_SMART_DMA_SIZE;
 uint** Task_id_sus;

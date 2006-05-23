@@ -11,7 +11,7 @@
 #include <rtems/libio.h>
 #include <termios.h>
 		
-volatile uint* int_dma_base;
+volatile rtems_unsigned32* int_dma_base;
  
 int int_newobject(uint sizerow,uint numberofrow,uint rl1,uint rl2,uint l1add,uint l2add,uint state, rtems_boolean waitdma)
 {

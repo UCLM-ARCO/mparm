@@ -25,15 +25,14 @@ extern "C" {
 
 #include <bspopts.h>
 #include <rtems.h>
-#include <iosupp.h>
-#include <console.h>
+#include <rtems/iosupp.h>
+#include <rtems/console.h>
 #include <rtems/bspIo.h>
+#include <rtems/clockdrv.h>
 #include <registers.h>
-#include <consoleswarm.h>
 #include <dmaswarm.h>
 #include <int_dmaswarm.h>
 #include <irq.h>
-#include <clockdrv.h>
 /*
  *  Define the interrupt mechanism for Time Test 27
  *

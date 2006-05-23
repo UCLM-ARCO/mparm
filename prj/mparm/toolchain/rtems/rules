@@ -26,6 +26,7 @@ configure: configure-stamp
 configure-stamp: $(patched)
 	dh_testdir
 	cp -r debian/mparm-bsp/* $(BUILD_TREE)/
+	rm -rf $(BUILD_TREE)/c/src/lib/libbsp/{i386,c4x,h8300,m68k,mips,sh,sparc,no_cpu,powerpc,bare,unix}
 	cd $(BUILD_TREE) && ./bootstrap
 	mkdir objdir
 	cd objdir && ../$(BUILD_TREE)/configure $(CONFARGS) 
@@ -63,14 +64,11 @@ binary-arch: build install
 	dh_testroot
 	dh_installdocs -n
 	dh_installman
-	dh_undocumented
 	dh_installchangelogs 
 	dh_link
-	dh_strip
 	dh_compress
 	dh_fixperms
 	dh_installdeb
-	dh_shlibdeps
 	dh_gencontrol
 	dh_md5sums
 	dh_builddeb

@@ -26,7 +26,6 @@ project_lib_DATA = start.$(OBJEXT)
 dist_project_lib_DATA += startup/linkcmds
 
 noinst_PROGRAMS += startup.rel
-include_HEADERS += ../../arm/shared/comm/uart.h
 startup_rel_SOURCES = ../../shared/bsplibc.c ../../shared/bsppost.c \
     startup/bspstart.c startup/exit.c ../../shared/bootcard.c \
     ../../shared/main.c ../../shared/sbrk.c \
@@ -40,8 +39,7 @@ clock_rel_CPPFLAGS = $(AM_CPPFLAGS)
 clock_rel_LDFLAGS = $(RTEMS_RELLDFLAGS)
 
 noinst_PROGRAMS += console.rel
-include_HEADERS += console/consoleswarm.h
-console_rel_SOURCES = console/uart.c ../../shared/console.c
+console_rel_SOURCES = console/console-io.c ../../shared/console-polled.c
 console_rel_CPPFLAGS = $(AM_CPPFLAGS)
 console_rel_LDFLAGS = $(RTEMS_RELLDFLAGS)
 
@@ -54,7 +52,7 @@ include_HEADERS += irq/irq.h
 
 noinst_PROGRAMS += irq.rel
 irq_rel_SOURCES = irq/irq.c irq/bsp_irq_init.c \
-    ../../arm/shared/irq/irq_init.c irq/bsp_irq_asm.S \
+    ../../arm/shared/irq/irq_init.c \
     ../../arm/shared/irq/irq_asm.S irq/irq.h
 irq_rel_CPPFLAGS = $(AM_CPPFLAGS)
 irq_rel_LDFLAGS = $(RTEMS_RELLDFLAGS)

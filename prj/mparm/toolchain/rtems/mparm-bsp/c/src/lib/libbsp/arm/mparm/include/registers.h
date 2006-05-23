@@ -20,11 +20,11 @@
 
 /*This macro return the ID of a core*/  
 #define get_id() \
-({ rtems_rtems_unsigned32 result; __asm__ volatile ("mrc 15, 0, %0, c11, c0, 3" : "=r" (result) :); (result=result+1); }) 
+({ rtems_unsigned32 result; __asm__ volatile ("mrc 15, 0, %0, c11, c0, 3" : "=r" (result) :); (result=result+1); }) 
 
 /*This macro return the ID of a core*/  
 #define get_tot() \
-({ rtems_rtems_unsigned32 result; __asm__ volatile ("mrc 15, 0, %0, c11, c0, 4" : "=r" (result) :); result; }) 
+({ rtems_unsigned32 result; __asm__ volatile ("mrc 15, 0, %0, c11, c0, 4" : "=r" (result) :); result; }) 
  
 /*This define sets some prints thrown to the serial for the boot of the OS*/ 
 #define PRINTDEBUGINFO
@@ -45,11 +45,11 @@ the multiprocessor communication*/
 /*Base address of the semaphore*/
 #define SEMAPHORE_BASE_ADDRESS 0x20000000
 
-extern volatile rtems_rtems_unsigned32* int_dma_base;
-extern volatile rtems_rtems_unsigned32** dma_base;
-extern volatile rtems_rtems_unsigned32** smartmem;
-/*extern volatile rtems_rtems_unsigned32** queue;*/
-extern volatile rtems_rtems_unsigned32** scratch;
+extern volatile rtems_unsigned32* int_dma_base;
+extern volatile rtems_unsigned32** dma_base;
+extern volatile rtems_unsigned32** smartmem;
+/*extern volatile rtems_unsigned32** queue;*/
+extern volatile rtems_unsigned32** scratch;
 
 /*Base address of the scratch-pad memory*/
 #define SCRATCH_BASE_ADDRESS   	0x22000000

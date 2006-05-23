@@ -8,30 +8,30 @@
 #include <stdlib.h>
 #include <assert.h>
 
-// from swi_calls.h in the MPARM source
+/* from swi_calls.h in the MPARM source */
 
 #define SWI_READ         0x00800100
 #define SWI_WRITE        0x00800101
-#define __swi_str(x) #x
-#define __swi(x) __asm("swi " __swi_str(x))
+#define L(x) #x
+#define l(x) L(x)
 
 int _swiwrite (int fd, char *p, int len)
 {
   int value;
-  asm volatile ("mov r1, %1; mov r2, %2; mov r3, %3; " __swi(SWI_WRITE) "; mov %0, r0"
+  asm volatile ("mov r1, %1; mov r2, %2; mov r3, %3; swi " l(SWI_WRITE) "; mov %0, r0"
        : "=r" (value)
 		: "r" (fd), "r" (p), "r" (len)
-       : "r0", "r1", "r2", "r3", "lr"
+       : "r0", "r1", "r2", "r3", "lr");
   return value;
 }
 
-int _swiwrite (int fd, char *p, int len)
+int _swiread (int fd, char *p, int len)
 {
   int value;
-  asm volatile ("mov r1, %1; mov r2, %2; mov r3, %3; " __swi(SWI_READ) "; mov %0, r0"
+  asm volatile ("mov r1, %1; mov r2, %2; mov r3, %3; swi " l(SWI_READ) "; mov %0, r0"
        : "=r" (value)
 		: "r" (fd), "r" (p), "r" (len)
-       : "r0", "r1", "r2", "r3", "lr"
+       : "r0", "r1", "r2", "r3", "lr");
   return value;
 }
 
