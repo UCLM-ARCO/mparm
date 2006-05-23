@@ -1,3 +1,9 @@
+mparm (0.1.1) unstable; urgency=low
+
+  * New SWI calls to make OS console easier to implement.
+
+ -- Francisco Moya <francisco.moya@uclm.es>  Tue, 23 May 2006 17:36:01 +0200
+
 mparm (0.1.0) unstable; urgency=low
 
   * Initial release.

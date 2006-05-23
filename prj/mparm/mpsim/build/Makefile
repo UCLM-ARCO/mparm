@@ -10,7 +10,7 @@ endif
 ############## Initialization of core includes, libs, sources
 INCDIR   += -I. -I.. -I$(SYSTEMC)/include -I$(SWARMDIR)/core -I$(SWARMDIR)/swarm
 LIBDIR   += -L$(SYSTEMC)/lib-$(SYSC_TARGET_ARCH)
-LIBS     += -lsystemc
+LIBS     += -lsystemc20
 CPPSRCS  += address.cpp clock_tree.cpp core_signal.cpp debug.cpp dmacontrol.cpp dmatransfer.cpp \
             dual_clock_fifo.cpp dual_clock_pinout_adapter.cpp dual_clock_pinout_master_if.cpp \
             dual_clock_pinout_slave_if.cpp freq_register.cpp globals.cpp main.cpp mem_class.cpp \

@@ -24,10 +24,10 @@
 #define SWI_METRIC_CLEAR 0x0080000B
 #define SWI_CORE_GO_IDLE 0x0080000C
 
-#define SWI_READ         0x00800100
-#define SWI_WRITE        0x00800101
+#define SWI_READ         0x00800080
+#define SWI_WRITE        0x00800081
 
-#define __swi_str(x) #x
-#define __swi(x) __asm("swi " __swi_str(x))
+#define __swi_str_expand(x) #x
+#define __swi_str(x) __swi_str_expand(x)
 
 #endif // __SWI_CALLS_H__
