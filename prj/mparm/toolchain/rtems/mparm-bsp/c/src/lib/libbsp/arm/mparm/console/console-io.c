@@ -10,8 +10,8 @@
 
 /* from swi_calls.h in the MPARM source */
 
-#define SWI_READ         0x00800100
-#define SWI_WRITE        0x00800101
+#define SWI_READ         0x00800080
+#define SWI_WRITE        0x00800081
 #define L(x) #x
 #define l(x) L(x)
 
