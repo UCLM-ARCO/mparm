@@ -123,12 +123,16 @@ class CArmProc
   COSTimer* m_pOSTimer;
   CIntCtrl* m_pIntCtrl;
   CLCDCtrl* m_pLCDCtrl;
-  CUARTCtrl* m_pUARTCtrl;
+  CUARTCtrl* m_pUART0Ctrl;
+  //Martino
+  CUARTCtrl* m_pUART1Ctrl;
 
   OSTBUS     m_ostbus;
   INTCTRLBUS m_icbus;
   LCDCTRLBUS m_lcdctrlbus;
-  UARTCTRLBUS m_uartctrlbus;
+  UARTCTRLBUS m_uart0ctrlbus;
+  //Martino  
+  UARTCTRLBUS m_uart1ctrlbus;
 
   // Used for storing between cycles
   uint32_t   m_addrPrev;

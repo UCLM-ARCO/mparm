@@ -105,8 +105,17 @@ int CUARTCtrl::GetPty()
                 if (SHOWPROMPT)
                 {
 		  printf(MODULE_NAME": Serial device Slave pts [%s]\n", namepty);
-		  printf(MODULE_NAME": Connect to Slave pts if required, and press ENTER key\n");
-		  getchar();
+		  char* console = getenv("SWARM_CONSOLE");
+		  if (0 != console) {
+		    char cmd[1024];
+		    sprintf(cmd, console, namepty);
+		    printf(MODULE_NAME": Running SWARM_CONSOLE [%s]\n", cmd);
+		    popen(cmd, "w");
+		  }
+		  else {
+		    printf(MODULE_NAME": Connect to Slave pts if required, and press ENTER key\n");
+		    getchar();
+		  }
                 }
 	}
 	return 0;

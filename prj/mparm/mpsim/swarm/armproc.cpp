@@ -165,7 +165,9 @@ CArmProc::CArmProc(const char *armname, Mem_class *builderscra, Mem_class *build
   m_pOSTimer = new COSTimer(name);
   m_pIntCtrl = new CIntCtrl(name);
   m_pLCDCtrl = new CLCDCtrl();
-  m_pUARTCtrl = new CUARTCtrl(name);
+  m_pUART0Ctrl = new CUARTCtrl(name);
+  //Martino
+  m_pUART1Ctrl = new CUARTCtrl(name);
 
   m_nCycles = 0;
   m_nCacheHits = 0;
@@ -205,7 +207,9 @@ CArmProc::~CArmProc()
   delete m_pIntCtrl;
   delete m_pOSTimer;
   delete m_pLCDCtrl;
-  delete m_pUARTCtrl;
+  delete m_pUART0Ctrl;
+  //Martino
+  delete m_pUART1Ctrl;
 
   delete m_pCore;
   delete m_pCoreBus;
@@ -222,7 +226,9 @@ void CArmProc::Reset()
   memset(&m_ostbus, 0, sizeof(OSTBUS));
   memset(&m_icbus, 0, sizeof(INTCTRLBUS));
   memset(&m_lcdctrlbus, 0, sizeof(LCDCTRLBUS));
-  memset(&m_uartctrlbus, 0, sizeof(UARTCTRLBUS));
+  memset(&m_uart0ctrlbus, 0, sizeof(UARTCTRLBUS));
+  //Martino
+  memset(&m_uart1ctrlbus, 0, sizeof(UARTCTRLBUS));
 }
 
 
@@ -254,15 +260,23 @@ void CArmProc::AtomicCycle(PINOUT* pinout,int* extint)
   if (m_lcdctrlbus.interrupt)
     m_icbus.intbits |= (0x1 << 25);
 
-  m_pUARTCtrl->Cycle(&m_uartctrlbus);
-  if (m_uartctrlbus.interrupt)
+  m_pUART0Ctrl->Cycle(&m_uart0ctrlbus);
+  if (m_uart0ctrlbus.interrupt)
     m_icbus.intbits |= (0x1 << 24);
+    
+  //Martino
+  m_pUART1Ctrl->Cycle(&m_uart1ctrlbus);
+  if (m_uart1ctrlbus.interrupt){
+    m_icbus.intbits |= (0x1 << 23);
+    }
     
   //set the intctrl bus
   for(i=0;i<NUMBER_OF_EXT;i++)
     {if(intatomic[i]!=0) 
       {
-	m_icbus.intbits |= (0x1 <<  (23-i) );
+	//m_icbus.intbits |= (0x1 <<  (23-i) );
+        //Martino
+        m_icbus.intbits |= (0x1 <<  (22-i) );
 	//printf("%s Received intbits:%x,%d\n",name,m_icbus.intbits,i);
       }
     }
@@ -273,8 +287,10 @@ void CArmProc::AtomicCycle(PINOUT* pinout,int* extint)
   m_ostbus.r = m_ostbus.w = 0;
   m_icbus.r = m_icbus.w = 0;
   m_lcdctrlbus.r = m_lcdctrlbus.w = 0;
-  m_uartctrlbus.r = m_uartctrlbus.w = 0;
-
+  m_uart0ctrlbus.r = m_uart0ctrlbus.w = 0;
+  //Martino
+  m_uart1ctrlbus.r = m_uart1ctrlbus.w = 0;
+  
   // Generate the interrupt bits
   m_pCoreBus->fiq = pinout->fiq && m_icbus.fiq;
   m_pCoreBus->irq = pinout->irq && m_icbus.irq;
@@ -289,13 +305,17 @@ void CArmProc::AtomicCycle(PINOUT* pinout,int* extint)
       //If state !=0, a new int between 0 and 23 has been asserted (external interrupt!)
       if (state)
 	{ 
-	  for(i=0;i<24;i++)
-	    {support = state & (1 << i);									
+          //Martino
+	  //for(i=0;i<24;i++)
+	    for(i=0;i<23;i++)
+            {support = state & (1 << i);									
 	    if (support!=0) break;									
 	    }
-	  if (intatomic[23 - i]!=0) 
+            //if (intatomic[23 - i]!=0) 
+            if (intatomic[22 - i]!=0) 
 	    {
-	      intatomic[23 - i]--;
+              intatomic[22 - i]--;
+	      //intatomic[23 - i]--;
 	      //printf("Atomic_cycle:%d,intatomic[%d]:%d\n",ID,(23-i),intatomic[23-i]);
 	    }
 	}
@@ -305,7 +325,7 @@ void CArmProc::AtomicCycle(PINOUT* pinout,int* extint)
 
   if ((m_pCoProBus->dw == 1) && (m_pCoreBus->enout != 0))
     m_pCoreBus->Din = m_pCoProBus->Dout;
-
+ 
   if (m_pCoreBus->A & 0x80000000)
     {
       // Find out which internal device we're talking to
@@ -319,15 +339,23 @@ void CArmProc::AtomicCycle(PINOUT* pinout,int* extint)
 	  // The OS Timer
 	  m_pCoreBus->Din = m_ostbus.data;
 	}
+      //Martino
       else if ((m_pCoreBus->A & 0xFFFFF000) == 0x90081000)
 	{
-	  // The UART Controller
-	  m_pCoreBus->Din = m_uartctrlbus.data;
-	}
+	  // The UART Controllers
+          if((m_pCoreBus->A & 0xFFFFF010) == 0x90081000)
+	   m_pCoreBus->Din = m_uart0ctrlbus.data;
+          else if((m_pCoreBus->A & 0xFFFFF010) == 0x90081010){
+           //printf("m_uart1ctrlbus.data\n");          
+           m_pCoreBus->Din = m_uart1ctrlbus.data;
+           }
+	
+        }
+
       else if ((m_pCoreBus->A & 0xFFF00000) == 0x90100000)
 	{
 	  // The LCD Controller
-	  m_pCoreBus->Din = m_uartctrlbus.data;
+	  m_pCoreBus->Din = m_uart0ctrlbus.data;
 	}
     }
 
@@ -478,7 +506,7 @@ void CArmProc::Cycle(PINOUT* pinout,int* extint)
 				dataRAM = m_pICache->Read_dataRAM(addr >> 2);
 				tagRAM  = m_pICache->Read_tagRAM(addr >> 2);
 				dirtyRAM  = m_pICache->Read_dirtyRAM(addr >> 2);
-				ASSERT (SHARED_CACHE || ((dirtyRAM&DIRTY_BIT) != DIRTY_BIT)); // instruction cannot be dirty but can be invalid
+				ASSERT ((dirtyRAM&DIRTY_BIT) != DIRTY_BIT); // instruction cannot be dirty but can be invalid
 				SNOOP_UNLOCK();
 			      }
 			    else
@@ -644,7 +672,8 @@ void CArmProc::Cycle(PINOUT* pinout,int* extint)
 		m_diPrev = m_pCoreBus->di;
 		m_mode = P_INTWRITE;
 	      }
-
+         
+                                
 	    if ((m_pCoreBus->rw == 0) && (m_pCoreBus->enout == 0))
 	      {
 		// Find out which internal device we're talking to
@@ -660,12 +689,21 @@ void CArmProc::Cycle(PINOUT* pinout,int* extint)
 		    m_ostbus.addr = m_pCoreBus->A & 0x0000FFFF;
 		    m_ostbus.r = 1;
 		  }
+                //Martino
 		else if ((m_pCoreBus->A & 0xFFFFF000) == 0x90081000)
 		  {
-		    // The UART Controller
-		    m_uartctrlbus.addr = m_pCoreBus->A & 0x00000FFF;
-		    m_uartctrlbus.r = 1;
+	           // The UART Controllers
+                   if((m_pCoreBus->A & 0xFFFFF010) == 0x90081000){
+                      m_uart0ctrlbus.addr = m_pCoreBus->A & 0x0000000F;
+		      m_uart0ctrlbus.r = 1;
+                      }
+                   else if((m_pCoreBus->A & 0xFFFFF010) == 0x90081010){
+                      //printf("m_uart1ctrlbus.data\n");          
+		      m_uart1ctrlbus.addr = m_pCoreBus->A & 0x0000000F;
+		      m_uart1ctrlbus.r = 1;                      
+                      }
 		  }
+
 		else if ((m_pCoreBus->A & 0xFFF00000) == 0x90100000)
 		  {
 		    // The LCD Controller
@@ -1005,7 +1043,7 @@ void CArmProc::Cycle(PINOUT* pinout,int* extint)
 
 	// Not using real memory at any point
 	pinout->benable = 0;
-
+          
 	// Find out which internal device we're talking to
 	if ((m_addrPrev & 0xFFFF0000) == 0x90050000)
 	  {
@@ -1021,13 +1059,23 @@ void CArmProc::Cycle(PINOUT* pinout,int* extint)
 	    m_ostbus.w = 1;
 	    m_ostbus.data = m_pCoreBus->Dout;
 	  }
+        //Martino
 	else if ((m_addrPrev & 0xFFFFF000) == 0x90081000)
 	  {
-	    // The UART Controller
-	    m_uartctrlbus.addr = m_addrPrev & 0x00000FFF;
-	    m_uartctrlbus.w = 1;
-	    m_uartctrlbus.data = m_pCoreBus->Dout;
+	  // The UART Controllers
+          if((m_addrPrev & 0xFFFFF010) == 0x90081000){
+	    m_uart0ctrlbus.addr = m_addrPrev & 0x0000000F;
+	    m_uart0ctrlbus.w = 1;
+	    m_uart0ctrlbus.data = m_pCoreBus->Dout;
+            }
+          else if((m_addrPrev & 0xFFFFF010) == 0x90081010){
+            //printf("m_uart1ctrlbus.data + .addr\n");          
+	    m_uart1ctrlbus.addr = m_addrPrev & 0x0000000F;
+	    m_uart1ctrlbus.w = 1;
+	    m_uart1ctrlbus.data = m_pCoreBus->Dout;
+            }          
 	  }
+
 	else if ((m_addrPrev & 0xFFF00000) == 0x90100000)
 	  {
 	    // The LCD Controller
