@@ -1,4 +1,4 @@
-binutils-arm-linux-uclibc.7 (2.16.1-1) unstable; urgency=low
+binutils-arm-linux-uclibc (2.16.1-1) unstable; urgency=low
 
   * New upstream release
 

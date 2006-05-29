@@ -5,10 +5,15 @@ TARGET := arm-linux-uclibc
 DEB_BUILD_OPTIONS := nocheck
 DEB_TAR_SRCDIR := binutils-2.16.1
 
-include /usr/share/cdbs/1/rules/debhelper.mk
-include /usr/share/cdbs/1/class/autotools.mk
 include /usr/share/cdbs/1/rules/simple-patchsys.mk
 include /usr/share/cdbs/1/rules/tarball.mk
+include /usr/share/cdbs/1/rules/debhelper.mk
+include /usr/share/cdbs/1/class/autotools.mk
 
-DEB_CONFIGURE_EXTRA_FLAGS := --target=$(TARGET) --host=i486-pc-linux-gnu
+DEB_CONFIGURE_EXTRA_FLAGS := --target=$(TARGET) --host=$(DEB_HOST_GNU_TYPE)
 
+binary-install/binutils-arm-linux-uclibc::
+	$(RM) debian/binutils-arm-linux-uclibc/usr/lib/*.a
+	$(RM) -r debian/binutils-arm-linux-uclibc/usr/share/info
+	$(RM) -r debian/binutils-arm-linux-uclibc/usr/share/locale
+	$(RM) -r debian/binutils-arm-linux-uclibc/usr/share/man
