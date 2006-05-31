@@ -2,8 +2,10 @@
 
 TARGET := arm-linux-uclibc
 
-DEB_BUILD_OPTIONS := nocheck
+DEB_BUILD_OPTIONS := nocheck nostrip
 DEB_TAR_SRCDIR := gcc-4.1.1
+
+export DEB_BUILD_OPTIONS
 
 include /usr/share/cdbs/1/rules/simple-patchsys.mk
 include /usr/share/cdbs/1/rules/tarball.mk
