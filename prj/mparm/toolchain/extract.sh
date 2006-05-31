@@ -1,8 +1,7 @@
 #!/bin/bash
 
-#V=4.7
-#ARCH=-arm-rtems${V}
-ARCH=-arm-linux-uclibc
+ARCH=arm-linux-uclibc
+UCLIBC=0.9.28
 
 pkg_extract() {
     if test ! -e $1 ; then return ; fi
@@ -54,7 +53,7 @@ pkg_copy() {
     BASE=$(basename "$1" \
 	| sed -e 's|\.tar\.bz2||' -e 's|\.tar\.gz||'  -e 's|\.tbz||'  -e 's|\.tgz||' )
     PKG=$(echo $BASE | sed -e 's/\([A-Z_a-z-]*\)-\([0-9][0-9.]*\)[-A-Z0-9]*/\1/g' )
-    DEST=$(echo $BASE | sed -e "s/\\([A-Z_a-z-]*\\)-\\([0-9][0-9.]*\\)[-A-Z0-9]*/\\1$ARCH-\\2/g" )
+    DEST=$(echo $BASE | sed -e "s/\\([A-Z_a-z-]*\\)-\\([0-9][0-9.]*\\)[-A-Z0-9]*/\\1-$ARCH-\\2/g" )
     VER=$(echo $BASE | sed -e 's/\([A-Z_a-z-]*\)\([0-9][0-9.]*\)[-A-Z0-9]*/\2/g' )
     ORIG=$(echo $DEST | sed -e 's/-\([0-9][0-9.]*\)/_\1.orig.tar.gz/g' )
 
@@ -71,28 +70,29 @@ EOF
     rsync -aq --exclude=.svn $(dirname $0)/$PKG/ $DEST/debian
 }
 
-pkg_copy_gcc() {
-    if test ! -e $1 ; then return ; fi
-    echo "Copying gcc files from $1 ... "
-
-    COR=$(echo "$1" | sed -e 's/\([a-z]*\)-\([+a-z]*\)-\([0-9][0-9.]*\)/\1-core-\3/g' )
-    CPP=$(echo "$1" | sed -e 's/\([a-z]*\)-\([+a-z]*\)-\([0-9][0-9.]*\)/\1-g++-\3/g' )
-    DIR=$(basename "$COR" .tar.bz2 )
-    PKG=$(echo "$DIR" | sed -e "s/\\([a-z]*\\)-core-\\([0-9][0-9.]*\\)/\\1$ARCH-\\2/g" )
-    ORIG=$(echo "$PKG" | sed -e 's/-\([0-9][0-9.]*\)/_\1.orig.tar.gz/g' )
+pkg_copy_to() {
+    echo "Copying to $* ... "
+    
+    PKG=uclibc
+    DEST=${ARCH}-$1
+    VER=$1
+    ORIG=${ARCH}_${VER}.orig.tar.gz
 
     cat <<EOF
-	PKG        = $PKG
-	CORE       = $COR
-	CPLUSPLUS  = $CPP
-	ORIG       = $ORIG
+	PKG  = $PKG
+	VER  = $VER
+	DEST = $DEST
+	ORIG = $ORIG
 EOF
 
-    mkdir -p $PKG
-    ln -f $COR $PKG/
-    ln -f $CPP $PKG/
-    tar czf $ORIG $PKG
-    rsync -aq --exclude=.svn $(dirname $0)/gcc/ $PKG/debian
+    mkdir -p $DEST
+    while [ $# -gt 1 ] ; do
+        shift
+        if test ! -e $1 ; then echo "File does not exist: $1" ; continue ; fi
+        ln -f $1 $DEST/
+    done
+    tar czf $ORIG $DEST
+    rsync -aq --exclude=.svn $(dirname $0)/$PKG/ $DEST/debian
 }
 
 extract() {
@@ -103,9 +103,9 @@ extract() {
 		rm -f *.orig.tar.gz *.deb *.dsc *.changes *.build *.diff.gz *~ */*~
 		;;
 	    *binutils-*) pkg_copy "$i" ;;
-	    *rtems-*)    ARCH=${V} pkg_copy "$i" ;;
 	    *gcc-*)      pkg_copy "$i" ;;
 	    *headers-*)  pkg_copy "$i" ;;
+	    *uClibc*)    pkg_copy_to $UCLIBC "$i" $(dirname "$i")/linux-libc-headers*.tar.bz2 ;;
 	    *.tar.bz2)   pkg_extract "$i" ;;
 	    *.tar.gz)    pkg_extract "$i" ;;
 	    *) echo "Unknown file format: $i" 1>&2 ;;

@@ -3,21 +3,20 @@
 TARGET := arm-linux-uclibc
 
 DEB_BUILD_OPTIONS := nocheck nostrip
-DEB_TAR_SRCDIR := gcc-4.1.1
+DEB_TAR_SRCDIR := uClibc
 
 export DEB_BUILD_OPTIONS
 
 include /usr/share/cdbs/1/rules/simple-patchsys.mk
 include /usr/share/cdbs/1/rules/tarball.mk
 include /usr/share/cdbs/1/rules/debhelper.mk
-include /usr/share/cdbs/1/class/autotools.mk
+include /usr/share/cdbs/1/class/makefile.mk
 
-DEB_CONFIGURE_EXTRA_FLAGS := --target=$(TARGET) --host=$(DEB_HOST_GNU_TYPE) \
-	--enable-shared --disable-__cxa_atexit --enable-target-optspace \
-	--with-gnu-ld --disable-nls --enable-threads --enable-multilib \
-	--with-float=soft --enable-languages=c
+DEB_MAKE_CLEAN_TARGET   := clean
+DEB_MAKE_BUILD_TARGET   := all
+DEB_MAKE_INSTALL_TARGET := install DESTDIR=$(CURDIR)/debian/tmp/
+DEB_MAKE_CHECK_TARGET   :=
 
-binary-install/gcc-arm-linux-uclibc::
-	$(RM) -r debian/gcc-arm-linux-uclibc/usr/share/info
-	$(RM) -r debian/gcc-arm-linux-uclibc/usr/share/locale
-	$(RM) -r debian/gcc-arm-linux-uclibc/usr/share/man
+makebuilddir/arm-linux-uclibc::
+	cp debian/uclibc.config build-tree/uClibc*/.config
+
