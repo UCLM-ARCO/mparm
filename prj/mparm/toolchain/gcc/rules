@@ -15,9 +15,13 @@ include /usr/share/cdbs/1/class/autotools.mk
 DEB_CONFIGURE_EXTRA_FLAGS := --target=$(TARGET) --host=$(DEB_HOST_GNU_TYPE) \
 	--enable-shared --disable-__cxa_atexit --enable-target-optspace \
 	--with-gnu-ld --disable-nls --enable-threads --enable-multilib \
-	--with-float=soft --enable-languages=c
+	--with-float=soft --enable-languages=c,c++
 
 binary-install/gcc-arm-linux-uclibc::
 	$(RM) -r debian/gcc-arm-linux-uclibc/usr/share/info
 	$(RM) -r debian/gcc-arm-linux-uclibc/usr/share/locale
 	$(RM) -r debian/gcc-arm-linux-uclibc/usr/share/man
+	mv debian/gcc-arm-linux-uclibc/usr/include/c++/4.1.1/arm-linux-uclibc /tmp
+	$(RM) -r debian/gcc-arm-linux-uclibc/usr/include/c++
+	mkdir -p debian/gcc-arm-linux-uclibc/usr/include/c++/4.1.1
+	mv /tmp/arm-linux-uclibc debian/gcc-arm-linux-uclibc/usr/include/c++/4.1.1/
