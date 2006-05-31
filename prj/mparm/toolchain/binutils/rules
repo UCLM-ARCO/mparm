@@ -3,14 +3,15 @@
 TARGET := arm-linux-uclibc
 
 DEB_BUILD_OPTIONS := nocheck
-DEB_TAR_SRCDIR := binutils-2.16.1
+DEB_TAR_SRCDIR := binutils-2.16.91.0.7
 
 include /usr/share/cdbs/1/rules/simple-patchsys.mk
 include /usr/share/cdbs/1/rules/tarball.mk
 include /usr/share/cdbs/1/rules/debhelper.mk
 include /usr/share/cdbs/1/class/autotools.mk
 
-DEB_CONFIGURE_EXTRA_FLAGS := --target=$(TARGET) --host=$(DEB_HOST_GNU_TYPE)
+DEB_CONFIGURE_EXTRA_FLAGS := --target=$(TARGET) --host=$(DEB_HOST_GNU_TYPE) \
+	--disable-nls --enable-multilib --disable-werror --with-float=soft
 
 binary-install/binutils-arm-linux-uclibc::
 	$(RM) debian/binutils-arm-linux-uclibc/usr/lib/*.a

@@ -27,6 +27,7 @@ configure-stamp: $(patched)
 	dh_testdir
 	cp -r debian/mparm-bsp/* $(BUILD_TREE)/
 	rm -rf $(BUILD_TREE)/c/src/lib/libbsp/{i386,c4x,h8300,m68k,mips,sh,sparc,no_cpu,powerpc,bare,unix}
+	rm -rf $(BUILD_TREE)/c/src/lib/libcpu/{i386,m68k,mips,sh,sparc,powerpc}
 	cd $(BUILD_TREE) && ./bootstrap
 	mkdir objdir
 	cd objdir && ../$(BUILD_TREE)/configure $(CONFARGS) 

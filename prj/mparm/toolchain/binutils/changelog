@@ -1,3 +1,9 @@
+binutils-arm-linux-uclibc (2.16.91-1) unstable; urgency=low
+
+  * New upstream release (2.16.97.0.7 with buildroot patches)
+
+ -- Francisco Moya <francisco.moya@uclm.es>  Wed, 31 May 2006 15:56:59 +0200
+
 binutils-arm-linux-uclibc (2.16.1-1) unstable; urgency=low
 
   * New upstream release

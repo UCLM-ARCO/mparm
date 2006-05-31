@@ -26,10 +26,9 @@ esac
 exit 0
 
 @DPATCH@
-diff -urNad /home/james/debian/packages/binutils/binutils-2.14.90.0.6/ld/Makefile.am binutils-2.14.90.0.6/ld/Makefile.am
---- /home/james/debian/packages/binutils/binutils-2.14.90.0.6/ld/Makefile.am	2003-08-21 16:28:48.000000000 +0100
-+++ binutils-2.14.90.0.6/ld/Makefile.am	2003-09-10 23:12:09.000000000 +0100
-@@ -19,7 +19,7 @@
+--- binutils-2.16.91.0.1/ld/Makefile.am
++++ binutils-2.16.91.0.1/ld/Makefile.am
+@@ -20,7 +20,7 @@
  # We put the scripts in the directory $(scriptdir)/ldscripts.
  # We can't put the scripts in $(datadir) because the SEARCH_DIR
  # directives need to be different for native and cross linkers.
@@ -38,15 +37,14 @@ diff -urNad /home/james/debian/packages/binutils/binutils-2.14.90.0.6/ld/Makefil
  
  EMUL = @EMUL@
  EMULATION_OFILES = @EMULATION_OFILES@
-diff -urNad /home/james/debian/packages/binutils/binutils-2.14.90.0.6/ld/Makefile.in binutils-2.14.90.0.6/ld/Makefile.in
---- /home/james/debian/packages/binutils/binutils-2.14.90.0.6/ld/Makefile.in	2003-08-21 16:28:48.000000000 +0100
-+++ binutils-2.14.90.0.6/ld/Makefile.in	2003-09-10 23:12:09.000000000 +0100
-@@ -128,7 +128,7 @@
+--- binutils-2.16.91.0.1/ld/Makefile.in
++++ binutils-2.16.91.0.1/ld/Makefile.in
+@@ -268,7 +268,7 @@
  # We put the scripts in the directory $(scriptdir)/ldscripts.
  # We can't put the scripts in $(datadir) because the SEARCH_DIR
  # directives need to be different for native and cross linkers.
 -scriptdir = $(tooldir)/lib
 +scriptdir = $(libdir)
- 
- EMUL = @EMUL@
- EMULATION_OFILES = @EMULATION_OFILES@
+ BASEDIR = $(srcdir)/..
+ BFDDIR = $(BASEDIR)/bfd
+ INCDIR = $(BASEDIR)/include

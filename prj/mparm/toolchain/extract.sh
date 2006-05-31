@@ -1,7 +1,8 @@
 #!/bin/bash
 
-V=4.7
-ARCH=-arm-rtems${V}
+#V=4.7
+#ARCH=-arm-rtems${V}
+ARCH=-arm-linux-uclibc
 
 pkg_extract() {
     if test ! -e $1 ; then return ; fi
@@ -76,7 +77,6 @@ pkg_copy_gcc() {
 
     COR=$(echo "$1" | sed -e 's/\([a-z]*\)-\([+a-z]*\)-\([0-9][0-9.]*\)/\1-core-\3/g' )
     CPP=$(echo "$1" | sed -e 's/\([a-z]*\)-\([+a-z]*\)-\([0-9][0-9.]*\)/\1-g++-\3/g' )
-    NEWLIB=$(ls -1 $(dirname "$1")/newlib* | head -1 )
     DIR=$(basename "$COR" .tar.bz2 )
     PKG=$(echo "$DIR" | sed -e "s/\\([a-z]*\\)-core-\\([0-9][0-9.]*\\)/\\1$ARCH-\\2/g" )
     ORIG=$(echo "$PKG" | sed -e 's/-\([0-9][0-9.]*\)/_\1.orig.tar.gz/g' )
@@ -85,14 +85,12 @@ pkg_copy_gcc() {
 	PKG        = $PKG
 	CORE       = $COR
 	CPLUSPLUS  = $CPP
-	NEWLIB     = $NEWLIB
 	ORIG       = $ORIG
 EOF
 
     mkdir -p $PKG
     ln -f $COR $PKG/
     ln -f $CPP $PKG/
-    ln -f $NEWLIB $PKG/
     tar czf $ORIG $PKG
     rsync -aq --exclude=.svn $(dirname $0)/gcc/ $PKG/debian
 }
@@ -106,7 +104,8 @@ extract() {
 		;;
 	    *binutils-*) pkg_copy "$i" ;;
 	    *rtems-*)    ARCH=${V} pkg_copy "$i" ;;
-	    *gcc-*)      pkg_copy_gcc "$i" ;;
+	    *gcc-*)      pkg_copy "$i" ;;
+	    *headers-*)  pkg_copy "$i" ;;
 	    *.tar.bz2)   pkg_extract "$i" ;;
 	    *.tar.gz)    pkg_extract "$i" ;;
 	    *) echo "Unknown file format: $i" 1>&2 ;;
