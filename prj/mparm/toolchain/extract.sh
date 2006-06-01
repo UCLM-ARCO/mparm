@@ -65,13 +65,46 @@ pkg_copy() {
 EOF
 
     mkdir -p $DEST
-    ln -f $1 $DEST/
+    while [ $# -gt 0 ] ; do
+        if test ! -e $1 ; then 
+	    echo "File does not exist: $1"
+	else
+	    ln -f $1 $DEST/
+	fi
+        shift
+    done
     tar czf $ORIG $DEST
     rsync -aq --exclude=.svn $(dirname $0)/$PKG/ $DEST/debian
 }
 
-pkg_copy_to() {
-    echo "Copying to $* ... "
+pkg_copy_date() {
+    echo "Copying date $* ... "
+    
+    PKG=$1
+    VER=$(date -I | tr - . )
+    DEST=${PKG}-${VER}
+    ORIG=${PKG}_${VER}.orig.tar.gz
+
+    cat <<EOF
+	PKG  = $PKG
+	VER  = $VER
+	DEST = $DEST
+	ORIG = $ORIG
+EOF
+
+    mkdir -p $DEST
+    while [ $# -gt 1 ] ; do
+        shift
+        if test ! -e $1 ; then echo "File does not exist: $1" ; continue ; fi
+        ln -f $1 $DEST/
+    done
+    tar czf $ORIG $DEST
+    rsync -aq --exclude=.svn $(dirname $0)/$PKG/ $DEST/debian
+}
+
+
+pkg_copy_uclibc() {
+    echo "Copying uclibc $* ... "
     
     PKG=uclibc
     DEST=${ARCH}-$1
@@ -102,10 +135,11 @@ extract() {
 		rm -rf $(ls -1 |grep -- "-[0-9][0-9.]*")
 		rm -f *.orig.tar.gz *.deb *.dsc *.changes *.build *.diff.gz *~ */*~
 		;;
-	    *binutils-*) pkg_copy "$i" ;;
+	    *binutils-*) pkg_copy "$i" $(dirname "$i")/elf2flt.* ;;
 	    *gcc-*)      pkg_copy "$i" ;;
 	    *headers-*)  pkg_copy "$i" ;;
-	    *uClibc*)    pkg_copy_to $UCLIBC "$i" $(dirname "$i")/linux-libc-headers*.tar.bz2 ;;
+	    *uClibc*)    pkg_copy_uclibc $UCLIBC "$i" $(dirname "$i")/linux-libc-headers*.tar.bz2 ;;
+	    *elf2flt*)   pkg_copy_date elf2flt "$i" ;;
 	    *.tar.bz2)   pkg_extract "$i" ;;
 	    *.tar.gz)    pkg_extract "$i" ;;
 	    *) echo "Unknown file format: $i" 1>&2 ;;
