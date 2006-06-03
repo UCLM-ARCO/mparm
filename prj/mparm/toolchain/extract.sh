@@ -137,11 +137,8 @@ extract() {
 		rm -f *.orig.tar.gz *.deb *.dsc *.changes *.build *.diff.gz *~ */*~
 		;;
 	    *binutils-*) pkg_copy "$i" $(dirname "$i")/elf2flt.* ;;
-	    *gcc-*)      pkg_copy "$i" ;;
-	    *headers-*)  pkg_copy "$i" ;;
 	    *uClibc*)    pkg_copy_uclibc $UCLIBC "$i" $(dirname "$i")/linux-libc-headers*.tar.bz2 ;;
-	    *elf2flt*)   pkg_copy_date elf2flt "$i" ;;
-	    *.tar.bz2)   pkg_extract "$i" ;;
+	    *.tar.bz2)   pkg_copy "$i" ;;
 	    *.tar.gz)    pkg_extract "$i" ;;
 	    *) echo "Unknown file format: $i" 1>&2 ;;
 	esac

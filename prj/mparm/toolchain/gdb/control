@@ -1,0 +1,15 @@
+Source: gdb-arm-linux-uclibc
+Section: devel
+Priority: extra
+Maintainer: Francisco Moya <francisco.moya@uclm.es>
+Standards-Version: 3.0.1.1
+Build-Depends: autoconf (>= 2.13), bison, flex, gettext, tar (>= 1.13.18), bzip2, cdbs, gcc-arm-linux-uclibc
+
+Package: gdb-arm-linux-uclibc
+Section: devel
+Architecture: any
+Priority: extra
+Depends: ${shlibs:Depends} 
+Description: GNU debugger that supports ARM/uClibc targets.
+ GDB is an advanced symbolic debugger that can be used on many platforms
+ to debug binary applications either natively or remotely.
