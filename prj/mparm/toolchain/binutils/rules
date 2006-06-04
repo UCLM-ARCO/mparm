@@ -15,14 +15,15 @@ DEB_CONFIGURE_EXTRA_FLAGS := --target=$(TARGET) --host=$(DEB_HOST_GNU_TYPE) \
 
 build/binutils-arm-linux-uclibc::
 	cd build-tree/elf2flt && ./configure --target=$(TARGET) \
+		--prefix=/usr \
 		--with-libiberty=../$(DEB_TAR_SRCDIR)/libiberty/libiberty.a \
 		--with-libbfd=../$(DEB_TAR_SRCDIR)/bfd/libbfd.a \
 		--with-bfd-include-dir=../$(DEB_TAR_SRCDIR)/bfd \
 		--with-binutils-include-dir=../$(DEB_TAR_SRCDIR)/include \
-	&& make
+	&& $(MAKE)
 
 binary-install/binutils-arm-linux-uclibc::
-	cp build-tree/elf2flt/elf2flt debian/binutils-arm-linux-uclibc/usr/bin/
+	$(MAKE) -C build-tree/elf2flt install DESTDIR=$(CURDIR)/debian/binutils-arm-linux-uclibc
 	$(RM) debian/binutils-arm-linux-uclibc/usr/lib/*.a
 	$(RM) -r debian/binutils-arm-linux-uclibc/usr/share/info
 	$(RM) -r debian/binutils-arm-linux-uclibc/usr/share/locale
