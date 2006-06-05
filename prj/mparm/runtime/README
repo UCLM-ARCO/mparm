@@ -1,0 +1,9 @@
+Please, note that the current toolchain in this repo is broken.
+While it gets fixed we use 
+
+arm-elf-tools-20040427.sh
+arm-uclinux-tools-base-gcc3.4.0-20040713.sh
+arm-uclinux-tools-c++-gcc3.4.0-20040713.sh
+
+Please, remember to include -msoft-float in both CFLAGS and LDFLAGS
+

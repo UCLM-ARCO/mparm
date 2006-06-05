@@ -10,16 +10,17 @@ all: TargetMem_1.mem
 clean:
 	for i in $(ROMFS_DIRS); do $(RM) -r romfs/$$i ; done
 	for i in $(BUSYBOX_ALIAS); do $(RM) romfs/bin/$$i ; done
-	$(RM) romfs/etc/version romfs/tmp romfs/sbin
+	$(RM) romfs/etc/version romfs/tmp romfs/sbin romfs/bin/init
 	$(RM) *.img *.mem *.rom *~ stats*.txt
 
 config-romfs:
 	for i in $(ROMFS_DIRS); do [ -d romfs/$$i ] || mkdir -p romfs/$$i; done
-	for i in $(BUSYBOX_ALIAS); do ln romfs/bin/busybox romfs/bin/$$i ; done
+	for i in $(BUSYBOX_ALIAS); do ln -f romfs/bin/busybox romfs/bin/$$i ; done
 	for i in `cat devices.txt` ; do touch romfs/dev/@$$i ; done
 	$(RM) romfs/tmp romfs/sbin
 	ln -sf /var/tmp romfs/tmp
 	ln -sf /bin romfs/sbin
+	ln -f romfs/bin/sh romfs/bin/init
 	date -R > romfs/etc/version
 
 romfs: config-romfs
