@@ -1,18 +1,21 @@
 KERNEL_SWARM=../toolchain/uclinux-micrel/uClinux-dist/linux-2.4.x/linux
 KERNEL_GDB=/usr/local/uClinux-dist/linux-2.4.x/linux
-ROMFS_DIRS = bin dev etc home lib mnt proc usr var
+
+ROMFS_BASE = bin etc
+ROMFS_DIRS = dev home lib mnt proc usr var
+BUSYBOX_ALIAS = mount umount
 
 all: TargetMem_1.mem
 
 clean:
-	$(RM) -r romfs/{dev,home,lib,mnt,proc,usr,var}
+	for i in $(ROMFS_DIRS); do $(RM) -r romfs/$$i ; done
+	for i in $(BUSYBOX_ALIAS); do $(RM) romfs/bin/$$i ; done
 	$(RM) romfs/etc/version romfs/tmp romfs/sbin
 	$(RM) *.img *.mem *.rom *~ stats*.txt
 
 config-romfs:
-	for i in $(ROMFS_DIRS); do \
-		[ -d romfs/$$i ] || mkdir -p romfs/$$i; \
-	done
+	for i in $(ROMFS_DIRS); do [ -d romfs/$$i ] || mkdir -p romfs/$$i; done
+	for i in $(BUSYBOX_ALIAS); do ln romfs/bin/busybox romfs/bin/$$i ; done
 	for i in `cat devices.txt` ; do touch romfs/dev/@$$i ; done
 	$(RM) romfs/tmp romfs/sbin
 	ln -sf /var/tmp romfs/tmp
