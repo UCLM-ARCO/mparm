@@ -20,6 +20,7 @@ build/binutils-arm-linux-uclibc::
 		--with-libbfd=../$(DEB_TAR_SRCDIR)/bfd/libbfd.a \
 		--with-bfd-include-dir=../$(DEB_TAR_SRCDIR)/bfd \
 		--with-binutils-include-dir=../$(DEB_TAR_SRCDIR)/include \
+		--with-binutils-ldscript-dir=/usr/arm-linux-uclibc/lib \
 	&& $(MAKE)
 
 binary-install/binutils-arm-linux-uclibc::

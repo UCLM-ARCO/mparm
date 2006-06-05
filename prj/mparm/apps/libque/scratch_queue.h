@@ -113,19 +113,28 @@ void	scratch_queue_init_consumer(SCRATCH_QUEUE_CONSUMER *queue_c,
 
 
 #ifdef USE_SHARED_BUFFER
-void scratch_queue_autoinit_system(unsigned int sha_mutex=0,unsigned int sha_start=0, unsigned int sha_size=0,
-				   unsigned int scra_start=0,unsigned int scra_size=0);
+void scratch_queue_autoinit_system(unsigned int sha_mutex,
+				   unsigned int sha_start, 
+				   unsigned int sha_size,
+				   unsigned int scra_start,
+				   unsigned int scra_size);
 #else
-void scratch_queue_autoinit_system(unsigned int scra_start=0,unsigned
-				   int scra_size=0);
+void scratch_queue_autoinit_system(unsigned int scra_start,
+				   unsigned int scra_size);
 #endif
 /*void scratch_queue_autoinit_system(void); */
 
 
-SCRATCH_QUEUE_PRODUCER* scratch_queue_autoinit_producer(int core_consumer_id, int queue_id, int n_items, 
-							int token_size, int bufferzone = 0);
+SCRATCH_QUEUE_PRODUCER* 
+scratch_queue_autoinit_producer(int core_consumer_id, 
+				int queue_id, 
+				int n_items, 
+				int token_size, 
+				int bufferzone);
 
-SCRATCH_QUEUE_CONSUMER* scratch_queue_autoinit_consumer(int queue_id, bool allocate_local_buffer);
+SCRATCH_QUEUE_CONSUMER* 
+scratch_queue_autoinit_consumer(int queue_id, 
+				int allocate_local_buffer);
 
 /*Returns the actual pointer to the scratch */
 void* getFreeScratchAddress();
@@ -190,8 +199,10 @@ scratch_queue_putToken_write(register SCRATCH_QUEUE_PRODUCER *queue_p)
 /* write on queue specified data; this function has a suspensive
    semantic */
 inline void 
-scratch_queue_write(register SCRATCH_QUEUE_PRODUCER *queue_p,register  char *data)
+scratch_queue_write(register SCRATCH_QUEUE_PRODUCER *queue_p,
+		    register  char *data)
 {
+  unsigned i;
   char* tmp= scratch_queue_getToken_write(queue_p);
 
   /*write message on queue*/
@@ -200,7 +211,10 @@ scratch_queue_write(register SCRATCH_QUEUE_PRODUCER *queue_p,register  char *dat
 #else
    int* address=(int*)tmp;
    unsigned     int number=queue_p->message_size/sizeof(int);
-   for(unsigned int i=0; i<number; i++) address[i]=((int*)data)[i];    
+
+   for (i=0; i<number; i++) 
+     address[i]=((int*)data)[i];    
+
    /*Special iteration block used for memory transfer metrics */
    /*{ start_metric(); address[i]=((int*)data)[i]; stop_metric();  }*/
 #endif
@@ -245,7 +259,10 @@ scratch_queue_write_dma(register SCRATCH_QUEUE_PRODUCER *queue_p,register  char 
 /* read from the queue and write into a buffer; this function has
    suspensive semantic */
 inline void 
-scratch_queue_read(register SCRATCH_QUEUE_CONSUMER *queue_p,register char *buffer){
+scratch_queue_read(register SCRATCH_QUEUE_CONSUMER *queue_p,register char *buffer)
+{
+  unsigned i, number;
+  int* address;
 
 #ifdef DEBUGSWI
   SHOW_DEBUG("Read: address & size");
@@ -263,9 +280,12 @@ scratch_queue_read(register SCRATCH_QUEUE_CONSUMER *queue_p,register char *buffe
 #ifdef MEMCPY
   memcpy(buffer,&queue_p->fifo_p[queue_p->index_read*queue_p->message_size],queue_p->message_size);
 #else 
-  int* address=(int*)&(queue_p->fifo_p[queue_p->index_read*queue_p->message_size]);
-  unsigned int number=(queue_p->message_size/sizeof(int));
-  for(unsigned int i=0; i<number; i++) ((int*)buffer)[i]=address[i];
+  address=(int*)&(queue_p->fifo_p[queue_p->index_read*queue_p->message_size]);
+  number = (queue_p->message_size/sizeof(int));
+
+  for(i=0; i<number; i++) 
+    ((int*)buffer)[i]=address[i];
+
   /*Special iteration block used for memory transfer metrics */
   /*{ start_metric(); ((int*)buffer)[i]=address[i]; stop_metric(); }*/
 #endif
@@ -283,9 +303,11 @@ scratch_queue_read(register SCRATCH_QUEUE_CONSUMER *queue_p,register char *buffe
 
 
 inline void 
-scratch_queue_read_and_measure(register SCRATCH_QUEUE_CONSUMER *queue_p,register char *buffer, 
+scratch_queue_read_and_measure(register SCRATCH_QUEUE_CONSUMER *queue_p,
+			       register char *buffer, 
 			       int op1, int op2 )
 {
+  unsigned int i;
   
   SHOW_TIME_START(op1);
 #ifdef USEINTERRUPT
@@ -300,9 +322,10 @@ scratch_queue_read_and_measure(register SCRATCH_QUEUE_CONSUMER *queue_p,register
 #ifdef MEMCPY
   memcpy(buffer,&queue_p->fifo_p[queue_p->index_read*queue_p->message_size],queue_p->message_size);
 #else 
-  int* address=(int*)&(queue_p->fifo_p[queue_p->index_read*queue_p->message_size]);
-  unsigned int number=(queue_p->message_size/sizeof(int));
-  for(unsigned int i=0; i<number; i++) ((int*)buffer)[i]=address[i];
+  int* address = (int*)&(queue_p->fifo_p[queue_p->index_read*queue_p->message_size]);
+  unsigned int number = (queue_p->message_size/sizeof(int));
+  for(i=0; i<number; i++) 
+    ((int*)buffer)[i] = address[i];
   /*Special iteration block used for memory transfer metrics */
   /*{ start_metric(); ((int*)buffer)[i]=address[i]; stop_metric(); }*/
 #endif
@@ -322,9 +345,10 @@ scratch_queue_read_and_measure(register SCRATCH_QUEUE_CONSUMER *queue_p,register
 /* read from the queue and write into the consumer local buffer,
    returned as result; this function has suspensive semantic */
 inline char* 
-scratch_queue_read_and_measure(register SCRATCH_QUEUE_CONSUMER *queue_p, int op1, int op2 )
+scratch_queue_read_and_measure_localbuf(register SCRATCH_QUEUE_CONSUMER *queue_p, 
+					int op1, int op2 )
 {
-  scratch_queue_read_and_measure(queue_p,queue_p->local_buffer,op1,op2);
+  scratch_queue_read_and_measure(queue_p, queue_p->local_buffer, op1, op2);
 
 #ifdef DEBUGSWI
   SHOW_DEBUG("Read from local buffer");
@@ -338,7 +362,7 @@ scratch_queue_read_and_measure(register SCRATCH_QUEUE_CONSUMER *queue_p, int op1
 /* read from the queue and write into the consumer local buffer,
    returned as result; this function has suspensive semantic */
 inline char* 
-scratch_queue_read(register SCRATCH_QUEUE_CONSUMER *queue_p)
+scratch_queue_read_localbuf(register SCRATCH_QUEUE_CONSUMER *queue_p)
 {
   scratch_queue_read(queue_p,queue_p->local_buffer);
 

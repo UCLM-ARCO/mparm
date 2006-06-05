@@ -12,5 +12,5 @@ producer: producer.o
 consumer: consumer.o
 
 clean:
-	$(RM) *~
+	$(RM) *~ *.o
 

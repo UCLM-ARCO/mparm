@@ -362,7 +362,7 @@ scratch_queue_autoinit_producer(int core_consumer_id,
 }
 
 SCRATCH_QUEUE_CONSUMER* 
-scratch_queue_autoinit_consumer(int queue_id, bool allocate_local_buffer)
+scratch_queue_autoinit_consumer(int queue_id, int allocate_local_buffer)
 {
   QUEUE_SEMAPHORE sem_init;
   SCRATCH_QUEUE_PRODUCER  *queue_prod;
@@ -393,7 +393,7 @@ scratch_queue_autoinit_consumer(int queue_id, bool allocate_local_buffer)
 
   scratch_area_address=*current_scratch_pointer;
 
-  *current_scratch_pointer+=sizeof(SCRATCH_QUEUE_CONSUMER);
+  *current_scratch_pointer += sizeof(SCRATCH_QUEUE_CONSUMER);
 
   if (*current_scratch_pointer>scratch_start+scratch_size) {
     SHOW_DEBUG("QUEUE_LIB Scratch_size_Error");
@@ -402,15 +402,15 @@ scratch_queue_autoinit_consumer(int queue_id, bool allocate_local_buffer)
   /*exit from critical section */
   scratch_sem_signal(scratch_mutex);
 
-  queue_cons=(SCRATCH_QUEUE_CONSUMER*)scratch_area_address;
+  queue_cons = (SCRATCH_QUEUE_CONSUMER*)scratch_area_address;
   
-  scratch_queue_init_consumer(	queue_cons,
-  				queue_prod->fifo_p,
-				NULL,
-				queue_prod->n_items,
-				queue_prod->message_size,
-				queue_prod->semaphore_left,
-				queue_prod->semaphore_used); 
+  scratch_queue_init_consumer (queue_cons,
+			       queue_prod->fifo_p,
+			       NULL,
+			       queue_prod->n_items,
+			       queue_prod->message_size,
+			       queue_prod->semaphore_left,
+			       queue_prod->semaphore_used); 
 
 #ifdef USEINTERRUPT
   ss_sem_init(queue_cons->semaphore_used, 0); //set to 0 because now contains queue header address
@@ -420,7 +420,7 @@ scratch_queue_autoinit_consumer(int queue_id, bool allocate_local_buffer)
   scratch_sem_init(queue_cons->semaphore_left,queue_cons->n_items);
 #endif
   
-  if(allocate_local_buffer) {
+  if (allocate_local_buffer) {
     /*active wait for scratch mutex */
     while((scratch_sem_wait(scratch_mutex))==0);
     scratch_area_address = *current_scratch_pointer;

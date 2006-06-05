@@ -25,7 +25,7 @@ build/gdb-arm-linux-uclibc::
 	--localstatedir=/var --mandir=/usr/man --disable-nls \
 	--without-uiout --disable-tui --disable-gdbtk --without-x \
 	--without-included-gettext  && \
-	make CFLAGS="-Dfork=vfork -DHAVE_UINTPTR_T=1"
+	make LDFLAGS="-Wl,-elf2flt -static" CFLAGS="-Dfork=vfork -DHAVE_UINTPTR_T=1"
 
 binary-install/gdb-arm-linux-uclibc::
 	install -d debian/gdb-arm-linux-uclibc/usr/arm-linux-uclibc/target_utils
