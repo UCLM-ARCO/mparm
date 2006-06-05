@@ -1,5 +1,5 @@
-KERNEL_SWARM=../toolchain/uclinux-micrel/uClinux-dist/linux-2.4.x/linux
-KERNEL_GDB=/usr/local/uClinux-dist/linux-2.4.x/linux
+KERNEL_SWARM=kernel/uclinux-2.4-swarm
+KERNEL_GDB=kernel/uclinux-2.4-armulator
 
 ROMFS_BASE = bin etc
 ROMFS_DIRS = dev home lib mnt proc usr var
