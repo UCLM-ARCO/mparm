@@ -25,7 +25,7 @@
 #define SHUTDOWN_ADDRESS         0x0000000c
 /* Dump system statistics */
 #define DUMP_ADDRESS             0x00000010
-/* Dump system statistics (light version) /*
+/* Dump system statistics (light version) */
 #define DUMP_LIGHT_ADDRESS       0x00000014
 /* Clear system statistics */
 #define CLEAR_ADDRESS            0x00000018

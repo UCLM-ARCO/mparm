@@ -79,7 +79,7 @@
 /* martin letis 02-09-2004 */
 /* define WB_CACHE to have modifications for Write Back Cache */
 #ifdef WB_CACHE
-#define BUILTIN_DEFAULT_CACHE_WRITE_POLICY WT
+# define BUILTIN_DEFAULT_CACHE_WRITE_POLICY WT
 #endif
 
 #define CLOCKPERIOD 5                    /* SystemC clock signal period, in time units */

@@ -13,7 +13,7 @@ clean:
 	$(RM) romfs/etc/version romfs/tmp romfs/sbin romfs/bin/init
 	$(RM) *.img *.mem *.rom *~ stats*.txt
 
-config-romfs:
+romfs-config:
 	for i in $(ROMFS_DIRS); do [ -d romfs/$$i ] || mkdir -p romfs/$$i; done
 	for i in $(BUSYBOX_ALIAS); do ln -f romfs/bin/busybox romfs/bin/$$i ; done
 	for i in `cat devices.txt` ; do touch romfs/dev/@$$i ; done
@@ -23,10 +23,10 @@ config-romfs:
 	ln -f romfs/bin/sh romfs/bin/init
 	date -R > romfs/etc/version
 
-romfs: config-romfs
+romfs-image: romfs-config
 	genromfs -v -V "ROMdisk" -f romfs.img -d romfs
 
-TargetMem_1.mem: romfs
+TargetMem_1.mem: romfs-image
 	BSS=`arm-elf-objdump --headers $(KERNEL_SWARM) | grep .bss` ; \
 	BSSADDR=`set -- $${BSS} ; echo 0x$${4}` ; \
 	BSSSIZE=`set -- $${BSS} ; echo 0x$${3}` ; \
@@ -38,7 +38,7 @@ TargetMem_1.mem: romfs
 		$(KERNEL_SWARM) image-swarm.img 2> /dev/null
 	arm-elf-objcopy -O binary image-swarm.img TargetMem_1.mem
 
-boot.rom: romfs
+boot.rom: romfs-image
 	arm-elf-objcopy -O binary --remove-section=.romvec \
 			--remove-section=.text --remove-section=.ramvec \
 			--remove-section=.init \

@@ -37,15 +37,16 @@
   the platform otherwise the QUEUE_BASE address will result wrong and
   this imply problems in the initialization function 
 */
+
 #define SCRATCH_SIZE_PLATFORM (1024*4) 
 #define QUEUE_BASE (CORESLAVE_BASE+SCRATCH_SIZE_PLATFORM)
 
 #include "appsupport.h" /*for SHOW_DEBUG and start/stop metric */
 
-#ifdef DEBUG0 /*only for debug print */
+#if defined DEBUG0 /*only for debug print */
 # include <stdlib.h>
 # include <stdio.h>
-#elifdef DEBUG1
+#elif defined DEBUG1
 # include <stdlib.h>
 # include <stdio.h>
 #endif

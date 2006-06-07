@@ -31,27 +31,50 @@ extern unsigned int  NNODES;
  */
 
 void pr(char *msg, unsigned long int value, unsigned long int mode);
-unsigned int get_proc_id();
-unsigned int get_proc_num();
-
 
 /* start_metric - Starts statistic collection for this processor */
-#define start_metric()                                                                 \
-{                                                                                      \
-  volatile char *ptr = (char *)(SIMSUPPORT_BASE + START_METRIC_ADDRESS);               \
-  *ptr = 1;                                                                            \
+inline static void
+start_metric()
+{
+  volatile char *ptr = (char *)(SIMSUPPORT_BASE + START_METRIC_ADDRESS);
+  *ptr = 1;
 }
 
-/* stop_metric - Stops statistic collection for this processor /*
-#define stop_metric()                                                                  \
-{                                                                                      \
-  volatile char *ptr = (char *)(SIMSUPPORT_BASE + STOP_METRIC_ADDRESS);                \
-  *ptr = 1;                                                                            \
+/* stop_metric - Stops statistic collection for this processor */
+inline static void
+stop_metric()
+{
+  volatile char *ptr = (char *)(SIMSUPPORT_BASE + STOP_METRIC_ADDRESS);
+  *ptr = 1;
 }
 
-#define time_start(r) (*(volatile int *)(SIMSUPPORT_BASE+DUMP_TIME_START)) = r
+inline static void
+time_start(int r)
+{
+  (*(volatile int *)(SIMSUPPORT_BASE+DUMP_TIME_START)) = r;
+}
 
-#define time_stop(r) (*(volatile int *)(SIMSUPPORT_BASE+DUMP_TIME_STOP)) = r
+inline static void
+time_stop(int r)
+{
+  (*(volatile int *)(SIMSUPPORT_BASE+DUMP_TIME_STOP)) = r;
+}
+
+/* get_proc_id - Allows getting the processor's ID (from 1 onwards) */
+inline static unsigned int
+get_proc_id()
+{
+  char *ptr = (char *)(SIMSUPPORT_BASE + GET_CPU_ID_ADDRESS);
+  return (*(unsigned long int *)ptr);
+}
+
+/* get_proc_num - Allows getting the number of processors in the platform */
+inline static unsigned int
+get_proc_num()
+{
+  char *ptr = (char *)(SIMSUPPORT_BASE + GET_CPU_CNT_ADDRESS);
+  return (*(unsigned long int *)ptr);
+}
 
 void end_boot();
 void stop_simulation();
@@ -86,15 +109,52 @@ void *shared_alloc(int size);
  * Synchronization functions
  * -------------------------
  */
-int TEST_AND_SET(int ID);
-void WAIT(int ID);
-void SIGNAL(int ID);
+inline static int TEST_AND_SET(int ID);
+inline static void WAIT(int ID);
+inline static void SIGNAL(int ID);
 void send_interrupt(int ID);
 void interrupt_function() __attribute__((interrupt));
 void WAIT_FOR_INITIALIZATION();
 void INITIALIZATION_DONE();
 void BARINIT(int ID);
 void BARRIER(int ID, int n_proc);
+
+
+/* This is to prevent the compiler from optimizing away the polling code */
+#define dummy(a) (a)
+
+extern volatile int *lock;
+
+/*
+ * TEST_AND_SET - Returns the old value of a lock
+ */
+inline static int
+TEST_AND_SET(int ID)
+{
+  int a;
+  a = lock[ID];
+  return a;
+}
+
+/*
+ * WAIT - Spins on a lock
+ */
+inline static void
+WAIT(int ID)
+{
+  while (dummy(lock[ID]))
+    ;
+}
+
+/*
+ * SIGNAL - Releases a lock
+ */
+inline static void
+SIGNAL(int ID)
+{
+  lock[ID] = 0;
+}
+
 
 /* --------------------------------------------------------------------
    Shared Memory map:
@@ -161,5 +221,7 @@ void BARRIER(int ID, int n_proc);
 #else
 # define ASSERT(cond)
 #endif
+
+
 
 #endif
