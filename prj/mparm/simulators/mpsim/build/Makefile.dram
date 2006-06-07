@@ -1,8 +1,0 @@
-PLATFLAGS += -DDRAMBUILD
-INCDIR    +=  -I$(SWARMDIR)/dram
-CPPSRCS   += sdram.cpp dma2control.cpp dma2transfer.cpp statemachine3.cpp
-VPATH     += $(SWARMDIR)/dram
-#String to print during build process
-MSGSTRING += "DRAM    "
-
-dram: printmessage $(EXE)
