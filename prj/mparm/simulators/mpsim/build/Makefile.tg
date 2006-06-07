@@ -1,0 +1,9 @@
+DEBUGOPTS +=
+PLATFLAGS += -DTGBUILD
+INCDIR    += -I$(SWARMDIR)/tg -I$(SWARMDIR)/tg/File -I$(SWARMDIR)/tg/Functional/38bit
+CPPSRCS   += file.cpp misc.cpp TGMaster.cpp
+VPATH     += $(SWARMDIR)/tg  $(SWARMDIR)/tg/Functional/38bit $(SWARMDIR)/tg/File
+#String to print during build process
+MSGSTRING += "Traffic Generators   "
+
+tg: printmessage $(EXE)

@@ -1,0 +1,12 @@
+DEBUGOPTS += -DEXTRAMPRINTDEBUG
+PLATFLAGS += -DAMBAOCCNBUILD
+INCDIR    += -I$(SWARMDIR)/amba-occn -I$(OCCN)/include -I$(OCCN_AMBA)/include
+CPPSRCS   += ahb_default_master.cpp amba_occn_builder.cpp amba_occn_signal.cpp amba_occn_trace.cpp amba_occn_master.cpp \
+             amba_occn_slavemem.cpp amba_occn_slaveint.cpp
+VPATH     += $(SWARMDIR)/amba-occn
+LIBDIR    += -L$(OCCN_AMBA)/lib-$(SYSC_TARGET_ARCH) -L$(OCCN)/lib
+LIBS      += -loccn -larm_bus
+#String to print during build process
+MSGSTRING += "AMBA AHB (OCCN model)   "
+
+amba-occn: printmessage $(EXE)

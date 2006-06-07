@@ -1,0 +1,12 @@
+DEBUGOPTS += -DXPIPESDEBUG
+PLATFLAGS += -DXPIPESBUILD -DXPIPES_SIMULATION
+INCDIR    += -I$(SWARMDIR)/xpipes
+CPPSRCS   += ack_nack_link_rept.cpp allocator.cpp ni_buffer.cpp ni_dispatcher.cpp ni_ocp_tracing.cpp ni_receive.cpp ni_request.cpp \
+             ni_resend.cpp ni_response.cpp out_buffer.cpp routing_initiator.cpp routing_switch.cpp \
+             routing_target.cpp stall_go_link_rept.cpp switch.cpp t_error_link_rept.cpp \
+             t_error_link_recv.cpp t_error_link_errg.cpp xpipes_interconnect.cpp xpipes_platform.cpp
+VPATH     += $(SWARMDIR)/xpipes
+#String to print during build process
+MSGSTRING += "xpipes   "
+
+xpipes: printmessage $(EXE)

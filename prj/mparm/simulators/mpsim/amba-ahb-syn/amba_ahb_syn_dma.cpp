@@ -1,0 +1,161 @@
+
+//This Class implement a DMA to be connected to the amba-ahb-syn bus
+
+#include "amba_ahb_syn_dma.h"
+#include "stats.h"
+
+#define AMBA_AHB_SYN_MIN_DIM_BURST 0x4
+
+bool Amba_ahb_syn_Dma_transfer :: Write(uint32_t addr, uint32_t* data, uint32_t nburst)
+{
+ uint i,burstcounter;
+ PINOUT pinout_mast;
+ 
+ if(local(addr))
+ {
+  for(i=0;i<nburst;i++)
+  {
+   if (STATS)
+     statobject->inspectDMAAccess(addr, false, ID);
+     
+   //scra->Write(addr,data[i],0);
+   write_local(addr,data[i]);
+   wait();
+   addr+=4;
+  } 
+ }//end of scratch write
+ else
+ {
+  //setup the bus for the master
+  pinout_mast.address = addr;
+  pinout_mast.rw = 1; //write
+  pinout_mast.bw = 0; //dimension of 32 bit
+  pinout_mast.benable = 1;
+  
+  if((nburst < (uint32_t)AMBA_AHB_SYN_MIN_DIM_BURST))
+  {
+   pinout_mast.burst=1;
+   for(i=0;i<nburst;i++)
+   {      
+    request_to_master.write(true);
+    pinout_mast.data=data[i];
+    pinout.write(pinout_mast);
+
+    if (STATS)
+     statobject->inspectDMAAccess(pinout_mast.address, false, ID);
+
+    wait_until(ready_from_master.delayed() == true);
+    request_to_master.write(false);
+    pinout_mast.address+=4;
+   }  
+  }
+  else
+  {
+   //////////////
+   //start burst_write
+   pinout_mast.burst = nburst;
+   pinout_mast.data = buffer[0];
+   //write the bus for the master
+   pinout.write(pinout_mast);
+   //request the master
+   request_to_master.write(true);
+   burstcounter = 0;
+    
+   while(burstcounter<nburst)
+   {
+    if (STATS)
+    statobject->inspectDMAAccess(pinout_mast.address+4*burstcounter, false, ID);
+
+    wait_until(ready_from_master.delayed() == true);
+    burstcounter++;
+    if (burstcounter<nburst)
+    {//write the data
+     pinout_mast.data = data[burstcounter];
+     pinout.write(pinout_mast);
+    }
+    
+    if (burstcounter<nburst-1) request_to_master.write(false);
+   }
+    
+    pinout_mast.data = data[0];
+    pinout_mast.address+=4*nburst;
+
+  }//end of the burst write
+ }//end of master write
+ return true;
+};
+
+bool Amba_ahb_syn_Dma_transfer :: Read(uint32_t addr, uint32_t* data, uint32_t nburst)
+{
+ uint i,burstcounter;
+ PINOUT pinout_mast; 
+ 
+ if(local(addr))
+ {
+  for(i=0;i<nburst;i++)
+  {
+   if (STATS)
+     statobject->inspectDMAAccess(addr, false, ID);
+     
+   //data[i]=scra->Read(addr);
+   data[i]= read_local(addr);
+   wait();
+   addr+=4;
+   
+  }
+ }//end of scratch read
+ else
+ {
+  //set the bus for the master
+  pinout_mast.address = addr;
+  pinout_mast.rw = 0; //read
+  pinout_mast.bw = 0;
+  pinout_mast.benable = 1;
+  
+  if((nburst < (uint32_t)AMBA_AHB_SYN_MIN_DIM_BURST))
+  {
+   pinout_mast.burst=1;
+   for(i=0;i<nburst;i++)
+   { 
+    //write the bus for the master
+    pinout.write(pinout_mast);
+
+    request_to_master.write(true);
+    pinout.write(pinout_mast);
+
+    if (STATS)
+    statobject->inspectDMAAccess(pinout_mast.address, true, ID);
+   
+    wait_until(ready_from_master.delayed() == true);
+      
+    pinout_mast = pinout.read();
+    data[i]=pinout_mast.data; 
+    request_to_master.write(false);
+    pinout_mast.address+=4;   
+   }
+  }//end of single read
+  else
+  {
+   pinout_mast.burst = nburst;
+   request_to_master.write(true);
+   pinout.write(pinout_mast);
+   burstcounter = 0;
+   while(burstcounter<nburst)
+                {
+              if (STATS)
+              statobject->inspectDMAAccess(pinout_mast.address+4*burstcounter, true, ID);
+
+              wait_until(ready_from_master.delayed() == true);
+              //read the data
+              pinout_mast = pinout.read();
+              data[burstcounter]=pinout_mast.data;
+              ++burstcounter;
+             }
+
+   pinout_mast.address+=4*nburst;
+   request_to_master.write(false);
+  }//end of burst read
+   
+ }//end of master read
+ return true;
+};

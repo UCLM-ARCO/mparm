@@ -1,0 +1,48 @@
+This is the Debian GNU/Linux prepackaged version of the MPARM
+simulator.
+
+This package was put together by Francisco Moya 
+<francisco.moya@uclm.es>, with sources obtained from MICREL:
+
+  http://www-micrel.deis.unibo.it/sitonew/research/mparm.html
+
+Changes: See changelog.Debian.gz
+
+MPARM is composed by a conglomerate of freely distributable 
+and not freely distributable code.  It depends on SystemC and
+contains GPL'd cores such as SWARM ARM simulator, PPC750sim
+from MICROLIB, SimIt ARM simulator, etc.
+
+This is unfortunate because Open SystemC license is incompatible
+with GPL:
+
+[Extract from Open SystemC license]
+4.2 If a Recipient chooses to Distribute the Program in source code
+form then: (a) the Program must be Distributed under this Agreement; and
+
+[Extract from GPL]
+2.b) You must cause any work that you distribute or publish, that in
+whole or in part contains or is derived from the Program or any
+part thereof, to be licensed as a whole at no charge to all third
+parties under the terms of this License.
+
+
+Therefore as it is now we may not distribute it at all and must be
+kept for internal use only.
+
+SUGGESTIONS FOR EASIER DISTRIBUTION
+
+1. The copyright owners of the cores may accept to distribute their
+   simulators with a dual-licensing (GPL, OSCI) scheme. Unfortunately
+   this does not apply to proprietary modules.
+
+2. There may be an effort to develop a SystemC clean-room implementation.
+   It could be based on GNU pth, which already implements the co-routine
+   based threading used by SystemC. This solves some issues and does not
+   depend on changing the license terms of all cores. Unfortunately this
+   does not solve the proprietary modules issue.
+
+3. There may be a plug-in based mechanism to insert binary-only modules
+   into the MPARM simulator. I think this is a requirement to allow
+   commercial usage of MPARM with proprietary cores.
+

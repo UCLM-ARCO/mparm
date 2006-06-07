@@ -1,0 +1,34 @@
+##############################
+## TRAFFIC GEN              ##
+##############################
+
+DEFAULTFLAGS  +=-DIP_TG=true
+
+IPTG       = /home/mpsim/stbus1/iptg_1.5_20050414_binary_gcc3.2
+LDV        = /home/cadence/LDV5.1
+SCV        = /home/system_C/systemc-2.0.1-rh9
+
+INCDIR    += -I$(SYSTEMC_ST_NODE)/COMMON/inc -I$(SYSTEMC_ST_NODE)/COMMON/src \
+             -I$(SYSTEMC_ST_NODE)/INITIATOR/src -I$(SYSTEMC_ST_NODE)/TARGET/src -I$(SYSTEMC_ST_NODE)/NODE/src \
+             -I$(SYSTEMC_ST_NODE)/genconv -I$(SWARMDIR)/st_node
+             
+INCDIR    += -I$(IPTG)/IPTG/include \
+             -I$(IPTG)/TLM_INFRA/include \
+             -I$(IPTG)/TLM_STBUS/include \
+             -I$(SCV)/include \
+             -I$(LDV)/tools.lnx86/transrecord/include \
+             -I$(LDV)/tools.lnx86/include \
+             -I$(SYSTEMC)/include \
+             -I$(IPTG)/IPTG/include/amba_ahb \
+             
+LIBDIR    += -L$(SCV)/lib-linux \
+             -L$(LDV)/tools.lnx86/transrecord/lib \
+             -L$(LDV)/tools.lnx86/lib \
+             -L$(SYSTEMC)/lib-linux
+             
+LIBS      += -ldcapi -ldwapi -lsdi2-sst2-gcc_3.2 -lnsl  -lscv -export-dynamic \
+             $(IPTG)/IPTG/lib/IPTG-lib.so $(IPTG)/TLM_INFRA/lib/TLM_INFRA-lib.so $(IPTG)/TLM_STBUS/lib/TLM_STBUS-lib.so \
+             $(SYSTEMC)/lib-linux/libsystemc.a 
+            
+CFLAGS    += -DHF471 -DTRANS_RECORD    
+

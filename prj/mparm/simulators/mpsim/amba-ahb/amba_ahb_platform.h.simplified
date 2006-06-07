@@ -1,0 +1,740 @@
+///////////////////////////////////////////////////////////////////////////////
+// Copyright 2003 DEIS - Universita' di Bologna
+// 
+// name         amba_ahb_platform.h
+// author       DEIS - Universita' di Bologna
+//              Davide Bertozzi - dbertozzi@deis.unibo.it
+//              Mirko Loghi - mloghi@deis.unibo.it
+//              Federico Angiolini - fangiolini@deis.unibo.it
+//              Francesco Poletti - fpoletti@deis.unibo.it
+// portions by  Massimo Scardamaglia - mascard@vizzavi.it
+// info         Describes an AMBA AHB platform.
+//
+///////////////////////////////////////////////////////////////////////////////
+
+#ifndef __AMBA_AHB_PLATFORM_H__
+#define __AMBA_AHB_PLATFORM_H__
+
+#include <systemc.h>
+#include "globals.h"
+#include "amba_ahb_interconnect.h"
+#include "amba_ahb_common.h"
+#include "amba_ahb_master.h"
+#include "amba_ahb_ocp_master.h"
+#include "amba_ahb_simple_slaves.h"
+#include "amba_ahb_core_slave.h"
+#include "amba_ahb_prog_freq_reg.h"
+#include "amba_ahb_mlicm.h"
+#include "amba_ahb_bridge.h"
+#include "core_signal.h"
+#include "mem_class.h"
+#include "scratch_mem.h"
+#include "amba_ahb_dma_scratch.h"
+#include "reset.h"
+#include "clock_tree.h"
+#include "dual_clock_pinout_adapter.h"
+#include "freq_register.h"
+
+#ifdef SWARMBUILD
+  #include "wrapper.h"
+  #include "swarm_ocp_master_wrapper.h"
+#endif
+
+///////////////////////////////////////////////////////////////////////////////
+// amba_ahb_platform - This class instantiates a whole AMBA AHB system.
+//                     nm: platform name
+//                     tf: VCD trace file (used if tracing is enabled)
+//                     tracing: enables/disables VCD tracing
+//                     new_argc, new_argv, new_envp: environment for binary
+//                             to be loaded by SimIt-ARM/PowerPC ISSs
+class amba_ahb_platform:
+         public sc_module
+{
+
+ public:
+    
+    SC_HAS_PROCESS(amba_ahb_platform);
+    
+  public:
+
+#ifdef SWARMBUILD
+    ocpswarm **ocp_soc;
+    armsystem **soc;
+#endif
+
+public:
+  ~amba_ahb_platform()
+{
+}  
+
+void destroy_amba_ahb_platform()
+    {
+    }
+
+    amba_ahb_platform(sc_module_name nm,
+                      sc_trace_file *tf,
+                      bool tracing,
+                      int new_argc,
+                      char *new_argv[],
+                      char *new_envp[]) : sc_module(nm)
+    {
+   
+      // ------------------ Signal and misc initialization ------------------
+      char buffer[200]; //FIXME
+      unsigned char i, j;
+
+      // OCP signals
+      sc_signal< sc_uint<MCMDWD> >           *MCmd;
+      sc_signal< sc_uint<MATOMICLENGTHWD> >  *MAtomicLength;
+      sc_signal< bool >                      *MDataLast;
+      sc_signal< sc_uint<MADDRWD> >          *MAddr;
+      sc_signal< sc_uint<MADDRSPACEWD> >     *MAddrSpace;
+      sc_signal< sc_uint<MDATAWD> >          *MData;
+      sc_signal< bool >                      *MDataValid;
+      sc_signal< sc_uint<MBYTEENWD> >        *MByteEn;
+      sc_signal< bool >                      *MRespAccept;
+      sc_signal< sc_uint<MBURSTLENGTHWD> >   *MBurstLength;
+      sc_signal< sc_uint<MBURSTSEQWD> >      *MBurstSeq;
+      sc_signal< bool >                      *MBurstPrecise;
+      sc_signal< bool >                      *MReqLast;
+      sc_signal< sc_uint<MREQINFOWD> >       *MReqInfo;
+      sc_signal< bool >                      *MBurstSingleReq;
+      sc_signal< sc_uint<MTHREADIDWD> >      *MThreadID;
+      sc_signal< sc_uint<MFLAGWD> >          *MFlag;
+      sc_signal< sc_uint<MCONNIDWD> >        *MConnID;
+      sc_signal< bool >                      *SCmdAccept;
+      sc_signal< bool >                      *SDataAccept;
+      sc_signal< sc_uint<SRESPWD> >          *SResp;
+      sc_signal< sc_uint<SDATAWD> >          *SData;
+      sc_signal< bool >                      *SRespLast;
+      sc_signal< sc_uint<STHREADIDWD> >      *SThreadID;
+      sc_signal< sc_uint<SFLAGWD> >          *SFlag;
+      sc_signal< bool >                      *SInterrupt;
+
+      MCmd            = new sc_signal< sc_uint<MCMDWD> >           [N_CORES + N_SLAVES];
+      MAtomicLength   = new sc_signal< sc_uint<MATOMICLENGTHWD> >  [N_CORES + N_SLAVES];
+      MDataLast       = new sc_signal< bool >                      [N_CORES + N_SLAVES];
+      MAddr           = new sc_signal< sc_uint<MADDRWD> >          [N_CORES + N_SLAVES];
+      MAddrSpace      = new sc_signal< sc_uint<MADDRSPACEWD> >     [N_CORES + N_SLAVES];
+      MData           = new sc_signal< sc_uint<MDATAWD> >          [N_CORES + N_SLAVES];
+      MByteEn         = new sc_signal< sc_uint<MBYTEENWD> >        [N_CORES + N_SLAVES];
+      MDataValid      = new sc_signal< bool >                      [N_CORES + N_SLAVES];
+      MRespAccept     = new sc_signal< bool >                      [N_CORES + N_SLAVES];
+      MBurstLength    = new sc_signal< sc_uint<MBURSTLENGTHWD> >   [N_CORES + N_SLAVES];
+      MBurstSeq       = new sc_signal< sc_uint<MBURSTSEQWD> >      [N_CORES + N_SLAVES];
+      MBurstPrecise   = new sc_signal< bool >                      [N_CORES + N_SLAVES];
+      MReqLast        = new sc_signal< bool >                      [N_CORES + N_SLAVES];
+      MReqInfo        = new sc_signal< sc_uint<MREQINFOWD> >       [N_CORES + N_SLAVES];
+      MBurstSingleReq = new sc_signal< bool >                      [N_CORES + N_SLAVES];
+      MThreadID       = new sc_signal< sc_uint<MTHREADIDWD> >      [N_CORES + N_SLAVES];
+      MFlag           = new sc_signal< sc_uint<MFLAGWD> >          [N_CORES + N_SLAVES];
+      MConnID         = new sc_signal< sc_uint<MCONNIDWD> >        [N_CORES + N_SLAVES];
+      SCmdAccept      = new sc_signal< bool >                      [N_CORES + N_SLAVES];
+      SDataAccept     = new sc_signal< bool >                      [N_CORES + N_SLAVES];
+      SResp           = new sc_signal< sc_uint<SRESPWD> >          [N_CORES + N_SLAVES];
+      SData           = new sc_signal< sc_uint<MDATAWD> >          [N_CORES + N_SLAVES];
+      SRespLast       = new sc_signal< bool >                      [N_CORES + N_SLAVES];
+      SThreadID       = new sc_signal< sc_uint<STHREADIDWD> >      [N_CORES + N_SLAVES];
+      SFlag           = new sc_signal< sc_uint<SFLAGWD> >          [N_CORES + N_SLAVES];
+      SInterrupt      = new sc_signal< bool >                      [N_CORES + N_SLAVES];
+    
+      // Clock signals and dividers
+      sc_signal< bool >                      *init_clock;
+      sc_signal< bool >                      *interconnect_clock;  //FIXME (not *)
+      sc_signal< sc_uint<FREQSCALING_BITS> > *init_div;
+      sc_signal< sc_uint<FREQSCALING_BITS> > *interconnect_div;
+      
+      init_clock                 = new sc_signal< bool >                       [N_MASTERS];
+      interconnect_clock         = new sc_signal< bool >                       [N_BUSES];
+      init_div                   = new sc_signal< sc_uint<FREQSCALING_BITS> >  [N_MASTERS];
+      interconnect_div           = new sc_signal< sc_uint<FREQSCALING_BITS> >  [N_BUSES];
+
+      pinoutmast                 = new sc_signal<PINOUT>                       [N_MASTERS];
+      requestmast                = new sc_signal<bool>                         [N_MASTERS];
+      readymast                  = new sc_signal<bool>                         [N_MASTERS];
+      pinoutmast_interconnect    = new sc_signal<PINOUT>                       [N_MASTERS];
+      requestmast_interconnect   = new sc_signal<bool>                         [N_MASTERS];
+      readymast_interconnect     = new sc_signal<bool>                         [N_MASTERS];
+      
+      extint                     = new sc_signal<bool>                         [NUMBER_OF_EXT * N_CORES];
+      
+      if (DMA)
+      {
+        pinoutwrappertodma       = new sc_signal<PINOUT>                       [N_CORES];
+        readywrappertodma        = new sc_signal<bool>                         [N_CORES];
+        requestwrappertodma      = new sc_signal<bool>                         [N_CORES];
+        datadmacontroltotransfer = new sc_signal<DMA_CONT_REG1>                [N_CORES];
+        requestcontroltotransfer = new sc_signal<bool>                         [N_CORES];
+        finishedtransfer         = new sc_signal<bool>                         [N_CORES];
+        spinoutscratchdma        = new sc_signal<PINOUT>                       [N_CORES];
+        sreadyscratchdma         = new sc_signal<bool>                         [N_CORES];
+        srequestscratchdma       = new sc_signal<bool>                         [N_CORES];
+      }
+       
+      
+      // ------------------ Reset device ------------------
+      
+      resetter *reset_unit;
+      reset_unit = new resetter("reset_device", (unsigned long int)1);
+      reset_unit->clock(ClockGen_1);
+      reset_unit->reset_out_true_high(ResetGen_1);
+      reset_unit->reset_out_true_low(ResetGen_low_1);
+      
+      // ------------------ AMBA AHB interconnect ------------------
+      amba_ahb_interconnect *amba_ahb_ic [N_BUSES];
+      
+      for (i = 0; i < N_BUSES; i++)
+      {
+        sprintf(buffer, "AMBA_AHB_IC_%d", i);
+        amba_ahb_ic[i] = new amba_ahb_interconnect(buffer, i, tf, tracing);
+      
+        if (FREQSCALING || FREQSCALINGDEVICE)
+          amba_ahb_ic[i]->clock(interconnect_clock[i]);
+        else
+          amba_ahb_ic[i]->clock(ClockGen_1);
+        amba_ahb_ic[i]->reset(ResetGen_1);
+      }
+      
+      // ----- Clock tree generator and frequency sync ----
+      
+      if (FREQSCALING || FREQSCALINGDEVICE)
+      {
+        clock_tree *ctree;
+        ctree = new clock_tree("clock_tree_gen", N_FREQ_DEVICE + N_BUSES);
+        ctree->Clock_in(ClockGen_1);
+        ctree->Reset(ResetGen_1);
+        for (i = 0; i < N_FREQ_DEVICE; i ++)
+        {
+          ctree->Div[i](init_div[i]);
+          ctree->Clock_out[i](init_clock[i]);
+        }
+        for (i = 0; i < N_BUSES; i ++)
+        {
+          ctree->Div[N_FREQ_DEVICE + i](interconnect_div[i]);
+          ctree->Clock_out[N_FREQ_DEVICE + i](interconnect_clock[i]);
+        }
+        
+        // Device taking care of frequency divider generation
+        amba_ahb_prog_freq_reg *prog_register;
+        feeder *p_register;
+        if (FREQSCALINGDEVICE)
+        {
+          // A bus-attached slave device
+          prog_register = new amba_ahb_prog_freq_reg("prog_register", addresser->FreqStartID(),
+            FREQ_BASE, FREQ_SIZE, INT_WS, 0, N_FREQ_DEVICE + N_BUSES);
+          prog_register->clock(ClockGen_1);
+          prog_register->reset(ResetGen_1);
+          amba_ahb_ic[SLAVE_CONFIG[addresser->FreqStartID()].binding]->slave_port(*prog_register);
+     
+          for (i = 0; i < N_FREQ_DEVICE; i ++)
+            prog_register->p_feed[i](init_div[i]);
+          for (i = 0; i < N_BUSES; i ++)
+            prog_register->p_feed[N_FREQ_DEVICE + i](interconnect_div[i]);
+        }
+        else
+        {
+          // A statically-programmed device
+          p_register = new feeder("p_register", N_FREQ_DEVICE + N_BUSES);
+          p_register->clock(ClockGen_1);
+     
+          for (i = 0; i < N_FREQ_DEVICE; i ++)
+            p_register->feed[i](init_div[i]);
+          for (i = 0; i < N_BUSES; i ++)
+            p_register->feed[N_FREQ_DEVICE + i](interconnect_div[i]);
+        }
+
+        // Frequency controller interface
+        dual_clock_pinout_adapter *fifo[N_FREQ_DEVICE]; 
+        for (i = 0; i < N_FREQ_DEVICE; i ++)
+        {
+          if (M_DIVIDER[i] != I_DIVIDER[MASTER_CONFIG[i].binding] || FREQSCALINGDEVICE)
+          { sprintf(buffer, "dual_clock_fifo_%d", i);
+            fifo[i] = new dual_clock_pinout_adapter(buffer);
+          
+            fifo[i]->clk_s(init_clock[i]);
+            fifo[i]->rst_s(ResetGen_1);
+            fifo[i]->request_from_wrapper(requestmast[i]);
+            fifo[i]->ready_to_wrapper(readymast[i]);
+            fifo[i]->pinout_s(pinoutmast[i]);
+            
+            fifo[i]->clk_m(interconnect_clock[MASTER_CONFIG[i].binding]);
+            fifo[i]->rst_m(ResetGen_1);
+            fifo[i]->request_to_master(requestmast_interconnect[i]);
+            fifo[i]->ready_from_master(readymast_interconnect[i]);
+            fifo[i]->pinout_m(pinoutmast_interconnect[i]);
+          }
+        }
+      }
+       
+    
+      // ------------------ AMBA AHB memory slaves ------------------
+      // Their instantiation must be done before that of
+      // scratchpad memories, because if SPCHECK is active,
+      // scratchpad memories must fetch initialization data
+      // from external memories
+      
+      amba_ahb_slave *amba_ahb_s [N_PRIVATE + N_LX_PRIVATE + N_SHARED + N_SEMAPHORE];
+      
+      // FIXME no check whether we're attaching to a layer more slaves than it supports:
+      // SystemC will rightly complain, but with a hard-to-understand error message. Add
+      // a user-friendly debug here?
+      for (i = 0; i < N_PRIVATE + N_LX_PRIVATE + N_SHARED + N_SEMAPHORE; i ++)
+        { 
+        sprintf(buffer, "AMBA_AHB_slave_%d", i);
+        if (addresser->IsPrivate(i) && CURRENT_ISS == SWARM)
+        amba_ahb_s[i] = new amba_ahb_private_memory(buffer, i, addresser->ReturnSlavePhysicalAddress(i),
+                                                     addresser->ReturnPrivateSize(), MEM_IN_WS, MEM_BB_WS);
+        else
+	 
+	 if (addresser->IsShared(i))
+          amba_ahb_s[i] = new amba_ahb_shared_memory(buffer, i, addresser->ReturnSlavePhysicalAddress(i),
+                                                     addresser->ReturnSharedSize(i), MEM_IN_WS, MEM_BB_WS);
+       
+        else if (addresser->IsSemaphore(i))
+          amba_ahb_s[i] = new amba_ahb_semaphore_device(buffer, i, addresser->ReturnSlavePhysicalAddress(i),
+                                                       addresser->ReturnSemaphoreSize(i), MEM_IN_WS, MEM_BB_WS);
+      
+        if (FREQSCALING || FREQSCALINGDEVICE)
+            amba_ahb_s[i]->clock(interconnect_clock[SLAVE_CONFIG[i].binding]);
+        else amba_ahb_s[i]->clock(ClockGen_1);
+        amba_ahb_s[i]->reset(ResetGen_1);
+        amba_ahb_ic[SLAVE_CONFIG[i].binding]->slave_port(*amba_ahb_s[i]);
+        }
+      
+      if (N_INTERRUPT)
+      {
+        amba_ahb_interrupt_device *amba_ahb_i [N_INTERRUPT];
+      
+        for (i = 0; i < N_INTERRUPT; i ++)
+        {
+          sprintf(buffer, "AMBA_AHB_slave_%d", addresser->InterruptStartID() + i);
+
+          amba_ahb_i[i] = new amba_ahb_interrupt_device(buffer, addresser->InterruptStartID() + i,
+                                                        addresser->ReturnSlavePhysicalAddress(addresser->InterruptStartID() + i),
+                                                        addresser->ReturnInterruptSize(), INT_WS, 0);
+          for (j = 0; j < N_CORES; j ++)
+            amba_ahb_i[i]->extint[j](extint[(j*NUMBER_OF_EXT)+i]);
+          
+          if (FREQSCALING || FREQSCALINGDEVICE)
+            amba_ahb_i[i]->clock(interconnect_clock[SLAVE_CONFIG[addresser->InterruptStartID() + i].binding]);
+          else
+            amba_ahb_i[i]->clock(ClockGen_1);
+          amba_ahb_i[i]->reset(ResetGen_1);
+          amba_ahb_ic[SLAVE_CONFIG[addresser->InterruptStartID() + i].binding]->slave_port(*amba_ahb_i[i]);
+        }
+      }
+      
+
+      // ------------------ Scratchpad memories ------------------
+   
+      Mem_class *datascratch [N_CORES];
+      
+      for (i = 0; i < N_CORES; i ++)
+      {
+        if (SCRATCH && SPCHECK)
+          datascratch[i] = new Scratch_part_mem(i, addresser->ReturnScratchSize());
+        else
+          if (SCRATCH)
+            datascratch[i] = new Scratch_mem("Scratchpad", i, addresser->ReturnScratchSize(), addresser->ReturnScratchPhysicalAddress(i));
+          else
+            datascratch[i] = NULL;
+      }
+
+      Scratch_queue_mem *queue [N_CORES];
+  
+        for (i=0; i<N_CORESLAVE; i++)
+        {
+        if(CORESLAVE)       
+         {
+          sprintf(buffer, "Scratch-semaphore%d",i);
+          queue[i] = new Scratch_queue_mem(buffer,i,addresser->ReturnScratchSize(),
+                                            addresser->ReturnQueuePhysicalAddress(i));
+          queue[i]->sendint(extint[(i*NUMBER_OF_EXT)+N_INTERRUPT]);
+         }
+        else
+        queue[i] = NULL;
+        }
+     
+     
+ 
+      // ------------------ AMBA AHB core-associated slaves ------------------
+      // Their instantiation must be done after that of
+      // scratchpad memories, because they need pointers
+      // to scratchpad memories
+     
+      if (CORESLAVE)
+      {
+        amba_ahb_core_slave *amba_ahb_c [N_CORESLAVE];
+        for (i = 0; i < N_CORESLAVE; i ++)
+        {
+          sprintf(buffer, "AMBA_AHB_Core_Slave_%d", addresser->CoreSlaveStartID() + i);
+          amba_ahb_c[i] = new amba_ahb_core_slave (buffer, addresser->CoreSlaveStartID() + i, i,
+                                                   addresser->ReturnSlavePhysicalAddress(addresser->CoreSlaveStartID() + i),
+                                                   addresser->ReturnCoreSlaveSize(),
+                                                   1, // FIXME should be SCRATCH_WS, set to 1
+                                                      // for compatibility with other interconnects
+                                                   0, datascratch[i], queue[i]);
+                                                   
+          if (FREQSCALING || FREQSCALINGDEVICE)
+            amba_ahb_c[i]->clock(interconnect_clock[SLAVE_CONFIG[addresser->CoreSlaveStartID() + i].binding]);
+          else
+            amba_ahb_c[i]->clock(ClockGen_1);
+          amba_ahb_c[i]->reset(ResetGen_1);
+         amba_ahb_ic[SLAVE_CONFIG[addresser->CoreSlaveStartID() + i].binding]->slave_port(*amba_ahb_c[i]);
+        }
+      }
+      
+      // ------------------ AMBA AHB bus masters ------------------
+
+#ifdef SWARMBUILD
+      amba_ahb_master *amba_ahb_m [N_MASTERS];
+      amba_ahb_ocp_master *amba_ahb_ocp_m [N_MASTERS];
+#endif 
+
+      for (i = 0; i < N_MASTERS; i ++)
+      {
+#ifdef SWARMBUILD
+if(CURRENT_ISS == SWARM){      
+        if (USING_OCP)
+        {
+          sprintf(buffer, "AMBA_AHB_OCP_Master_%d", i);
+          amba_ahb_ocp_m[i] = new amba_ahb_ocp_master(buffer, i);
+          if (FREQSCALING || FREQSCALINGDEVICE)
+            amba_ahb_ocp_m[i]->clock(interconnect_clock[MASTER_CONFIG[i].binding]);
+          else
+            amba_ahb_ocp_m[i]->clock(ClockGen_1);
+          amba_ahb_ocp_m[i]->reset(ResetGen_1);
+          amba_ahb_ocp_m[i]->MCmd(MCmd[i]);
+          amba_ahb_ocp_m[i]->MAtomicLength(MAtomicLength[i]);
+          amba_ahb_ocp_m[i]->MBurstLength(MBurstLength[i]);
+          amba_ahb_ocp_m[i]->MBurstPrecise(MBurstPrecise[i]);
+          amba_ahb_ocp_m[i]->MBurstSeq(MBurstSeq[i]);
+          amba_ahb_ocp_m[i]->MBurstSingleReq(MBurstSingleReq[i]);
+          amba_ahb_ocp_m[i]->MDataLast(MDataLast[i]);
+          amba_ahb_ocp_m[i]->MReqLast(MReqLast[i]);
+          amba_ahb_ocp_m[i]->MAddr(MAddr[i]);
+          amba_ahb_ocp_m[i]->MAddrSpace(MAddrSpace[i]);
+          amba_ahb_ocp_m[i]->MData(MData[i]);
+          amba_ahb_ocp_m[i]->MDataValid(MDataValid[i]);
+          amba_ahb_ocp_m[i]->MByteEn(MByteEn[i]);
+          amba_ahb_ocp_m[i]->SCmdAccept(SCmdAccept[i]);
+          amba_ahb_ocp_m[i]->SDataAccept(SDataAccept[i]);
+          amba_ahb_ocp_m[i]->SResp(SResp[i]);
+          amba_ahb_ocp_m[i]->SRespLast(SRespLast[i]);
+          amba_ahb_ocp_m[i]->SData(SData[i]);
+          amba_ahb_ocp_m[i]->MRespAccept(MRespAccept[i]);
+          amba_ahb_ocp_m[i]->MFlag(MFlag[i]);
+          amba_ahb_ocp_m[i]->SFlag(SFlag[i]);
+          amba_ahb_ocp_m[i]->SInterrupt(SInterrupt[i]);
+          amba_ahb_ocp_m[i]->master_port(*amba_ahb_ic[MASTER_CONFIG[i].binding]);
+          // #ifndef OLD_INT_STYLE //FIXME
+          for (j = 0; j < NUMBER_OF_EXT; j ++)
+            amba_ahb_ocp_m[i]->extint[j](extint[i * NUMBER_OF_EXT + j]);
+          // #endif
+        }
+        else
+        {
+          sprintf(buffer, "AMBA_AHB_Master_%d", i);
+          amba_ahb_m[i] = new amba_ahb_master(buffer, i);
+          if (FREQSCALING || FREQSCALINGDEVICE)
+            amba_ahb_m[i]->clock(interconnect_clock[MASTER_CONFIG[i].binding]);
+          else
+            amba_ahb_m[i]->clock(ClockGen_1);
+          amba_ahb_m[i]->reset(ResetGen_1);
+          if ((FREQSCALING && M_DIVIDER[i] != I_DIVIDER[MASTER_CONFIG[i].binding]) || FREQSCALINGDEVICE)
+          {
+            amba_ahb_m[i]->request_from_wrapper(requestmast_interconnect[i]);
+            amba_ahb_m[i]->ready_to_wrapper(readymast_interconnect[i]);
+            amba_ahb_m[i]->pinout(pinoutmast_interconnect[i]);
+          }
+          else
+          {
+            amba_ahb_m[i]->request_from_wrapper(requestmast[i]);
+            amba_ahb_m[i]->ready_to_wrapper(readymast[i]);
+            amba_ahb_m[i]->pinout(pinoutmast[i]);
+          }
+          amba_ahb_m[i]->master_port(*amba_ahb_ic[MASTER_CONFIG[i].binding]);
+        }
+       } 
+#endif        
+     }
+
+      // ------------------ AMBA AHB bus bridges ------------------
+      amba_ahb_bridge *bridge [N_BRIDGES];
+     
+      for (i = 0; i < N_BRIDGES; i++)
+      {
+        sprintf(buffer, "AMBA_AHB_Bridge_%d", i);
+          
+        bridge[i] = new amba_ahb_bridge(buffer, i);
+        if(FREQSCALING || FREQSCALINGDEVICE)
+        {
+          // Clock to slave side
+          bridge[i]->clk_slave(interconnect_clock[BRIDGE_CONFIG[i].slave_binding]);
+          
+          //  Clock to master side
+          bridge[i]->clk_master(interconnect_clock[BRIDGE_CONFIG[i].master_binding]);
+        }
+        else
+        {     
+          // Clock to slave side
+          bridge[i]->clk_slave(ClockGen_1);
+          
+          //  Clock to master side 
+          bridge[i]->clk_master(ClockGen_1);
+        }
+
+        amba_ahb_ic[BRIDGE_CONFIG[i].slave_binding]->slave_port(*bridge[i]->bsif);
+        bridge[i]->master_port(*amba_ahb_ic[BRIDGE_CONFIG[i].master_binding]);
+      }
+    
+   
+      // ------------------ System processors ------------------
+
+#ifdef SWARMBUILD
+      ocpswarm *ocp_soc[N_CORES];
+      armsystem *soc[N_CORES];
+#endif
+
+      for (i = 0; i < N_CORES; i ++)
+      {
+#ifdef SWARMBUILD
+          if (USING_OCP)
+          {
+            sprintf(buffer, "OCP_ARM_%d", i);
+            ocp_soc[i] = new ocpswarm(buffer, (unsigned int)i, datascratch[i], queue[i]);
+            if (FREQSCALING || FREQSCALINGDEVICE)
+              ocp_soc[i]->clock(init_clock[i]);
+            else
+              ocp_soc[i]->clock(ClockGen_1);
+            ocp_soc[i]->MCmd[0](MCmd[i]);
+            ocp_soc[i]->MAtomicLength[0](MAtomicLength[i]);
+            ocp_soc[i]->MBurstLength[0](MBurstLength[i]);
+            ocp_soc[i]->MBurstPrecise[0](MBurstPrecise[i]);
+            ocp_soc[i]->MBurstSeq[0](MBurstSeq[i]);
+            ocp_soc[i]->MBurstSingleReq[0](MBurstSingleReq[i]);
+            ocp_soc[i]->MDataLast[0](MDataLast[i]);
+            ocp_soc[i]->MReqLast[0](MReqLast[i]);
+            ocp_soc[i]->MAddr[0](MAddr[i]);
+            ocp_soc[i]->MAddrSpace[0](MAddrSpace[i]);
+            ocp_soc[i]->MData[0](MData[i]);
+            ocp_soc[i]->MByteEn[0](MByteEn[i]);
+            ocp_soc[i]->MDataValid[0](MDataValid[i]);
+            ocp_soc[i]->SCmdAccept[0](SCmdAccept[i]);
+            ocp_soc[i]->SDataAccept[0](SDataAccept[i]);
+            ocp_soc[i]->SResp[0](SResp[i]);
+            ocp_soc[i]->SRespLast[0](SRespLast[i]);
+            ocp_soc[i]->SData[0](SData[i]);
+            ocp_soc[i]->MRespAccept[0](MRespAccept[i]);
+            ocp_soc[i]->MFlag[0](MFlag[i]);
+            ocp_soc[i]->SFlag[0](SFlag[i]);
+            ocp_soc[i]->SInterrupt[0](SInterrupt[i]);
+            for (j=0; j<NUMBER_OF_EXT; j++)
+              ocp_soc[i]->extint[j](extint[i*NUMBER_OF_EXT + j]);
+          }
+          else
+          {
+           if(CURRENT_ISS == SWARM){
+            sprintf(buffer, "ARM_%d", i);
+            soc[i] = new armsystem(buffer, (unsigned int)i, datascratch[i], queue[i]);
+            if (FREQSCALING || FREQSCALINGDEVICE)
+              soc[i]->clock(init_clock[i]);
+            else
+              soc[i]->clock(ClockGen_1);
+            soc[i]->pinout_ft_master[0](pinoutmast[i]);
+            soc[i]->ready_from_master[0](readymast[i]);
+            soc[i]->request_to_master[0](requestmast[i]);
+            for (j = 0; j < NUMBER_OF_EXT; j ++)
+              soc[i]->extint[j](extint[i * NUMBER_OF_EXT + j]);
+          }
+         }
+#endif
+     }
+      
+          
+      // ------------------ DMA devices ------------------
+      if (DMA)
+      {
+        amba_ahb_dma_control_scratch  *dmacont[N_CORES];
+        amba_ahb_dma_transfer_scratch *transf[N_CORES];
+
+        for (i = 0; i < N_CORES; i ++)
+        {
+          // DMA controller
+          sprintf(buffer, "DMA_Controller_%d", i);
+          dmacont[i] = new
+            amba_ahb_dma_control_scratch(buffer, i, INTERNAL_MAX_OBJ, 1, addresser->ReturnDMAPhysicalAddress());
+          if (FREQSCALING || FREQSCALINGDEVICE)
+            dmacont[i]->clock(init_clock[i]);
+          else
+            dmacont[i]->clock(ClockGen_1);
+      
+          // DMA transfer module
+          sprintf(buffer,"DMA_Transfer_%d", i);
+          transf[i] = new
+            amba_ahb_dma_transfer_scratch(buffer, i, INTERNAL_DIM_BURST, INTERNAL_MAX_OBJ, 1, datascratch[i]);
+          if (FREQSCALING || FREQSCALINGDEVICE)
+            transf[i]->clock(init_clock[i]);
+          else
+            transf[i]->clock(ClockGen_1);
+
+          // connect the DMA controller to a core
+#if defined(WITHOUT_OCP) && defined(SWARMBUILD)  // FIXME SWARM is not the only "soc" around
+          if (CURRENT_ISS == SWARM)              // (and how do you plug DMAs to LX?)
+          {
+            soc[i]->pinout_ft_master[1](pinoutwrappertodma[i]);
+            soc[i]->ready_from_master[1](readywrappertodma[i]);
+            soc[i]->request_to_master[1](requestwrappertodma[i]);
+          }
+#endif
+          
+          dmacont[i]->dmapin(pinoutwrappertodma[i]);
+          dmacont[i]->readydma(readywrappertodma[i]);
+          dmacont[i]->requestdma(requestwrappertodma[i]);
+
+          // connect the DMA controller to its DMA transfer module
+          dmacont[i]->datadma(datadmacontroltotransfer[i]);
+          dmacont[i]->finished(finishedtransfer[i]);
+          dmacont[i]->requestdmatransfer(requestcontroltotransfer[i]);
+          transf[i]->datadma(datadmacontroltotransfer[i]);
+          transf[i]->finished(finishedtransfer[i]);
+          transf[i]->requestdmatransfer(requestcontroltotransfer[i]);
+
+          // connect the DMA transfer module to a bus master
+          if (FREQSCALING || FREQSCALINGDEVICE)
+          {
+            transf[i]->pinout(pinoutmast_interconnect[N_CORES + i]);
+            transf[i]->ready_from_master(readymast_interconnect[N_CORES + i]);
+            transf[i]->request_to_master(requestmast_interconnect[N_CORES + i]);
+          }
+          else
+          {
+            transf[i]->pinout(pinoutmast[N_CORES + i]);
+            transf[i]->ready_from_master(readymast[N_CORES + i]);
+            transf[i]->request_to_master(requestmast[N_CORES + i]);
+          }
+        }
+      }
+      
+      // ------------------ Tracing for platform-wide signals ------------------
+      if (tracing)
+      {
+        sc_trace(tf, ClockGen_1, "ClockGen_1");
+        sc_trace(tf, ResetGen_1, "ResetGen_1");
+        if (FREQSCALING || FREQSCALINGDEVICE)
+        {
+          for (i = 0; i < N_BUSES; i ++)
+          {
+            sprintf(buffer, "%s_interconnect_clock_%d", name(), i);
+            sc_trace(tf, interconnect_clock[i], buffer);
+            sprintf(buffer, "%s_interconnect_div_%d", name(), i);
+            sc_trace(tf, interconnect_div[i], buffer);
+          }
+        }
+        
+        for (i = 0; i < N_MASTERS; i ++)
+        {
+          if ((FREQSCALING || FREQSCALINGDEVICE) && (i < N_FREQ_DEVICE))
+          {
+            sprintf(buffer, "%s_init_clock_%d", name(), i);
+            sc_trace(tf, init_clock[i], buffer);
+            sprintf(buffer, "%s_init_div_%d", name(), i);
+            sc_trace(tf, init_div[i], buffer);
+          }
+#ifdef SWARMBUILD  
+          if (USING_OCP || CURRENT_ISS == TG)
+          {
+            sprintf(buffer, "%s_master_%d_MCmd", name(), i);
+            sc_trace(tf, amba_ahb_ocp_m[i]->MCmd, buffer);
+            sprintf(buffer, "%s_master_%d_MAddr", name(), i);
+            sc_trace(tf, amba_ahb_ocp_m[i]->MAddr, buffer);
+            sprintf(buffer, "%s_master_%d_MData", name(), i);
+            sc_trace(tf, amba_ahb_ocp_m[i]->MData, buffer);
+            sprintf(buffer, "%s_master_%d_MByteEn", name(), i);
+            sc_trace(tf, amba_ahb_ocp_m[i]->MByteEn, buffer);
+            sprintf(buffer, "%s_master_%d_MDataValid", name(), i);
+            sc_trace(tf, amba_ahb_ocp_m[i]->MDataValid, buffer);
+            sprintf(buffer, "%s_master_%d_MBurstPrecise", name(), i);
+            sc_trace(tf, amba_ahb_ocp_m[i]->MBurstPrecise, buffer);
+            sprintf(buffer, "%s_master_%d_MBurstSingleReq", name(), i);
+            sc_trace(tf, amba_ahb_ocp_m[i]->MBurstSingleReq, buffer);
+            sprintf(buffer, "%s_master_%d_MBurstSeq", name(), i);
+            sc_trace(tf, amba_ahb_ocp_m[i]->MBurstSeq, buffer);
+            sprintf(buffer, "%s_master_%d_MBurstLength", name(), i);
+            sc_trace(tf, amba_ahb_ocp_m[i]->MBurstLength, buffer);
+            sprintf(buffer, "%s_master_%d_MReqLast", name(), i);
+            sc_trace(tf, amba_ahb_ocp_m[i]->MReqLast, buffer);
+            sprintf(buffer, "%s_master_%d_MRespAccept", name(), i);
+            sc_trace(tf, amba_ahb_ocp_m[i]->MRespAccept, buffer);
+            sprintf(buffer, "%s_master_%d_MFlag", name(), i);
+            sc_trace(tf, amba_ahb_ocp_m[i]->MFlag, buffer);
+            sprintf(buffer, "%s_master_%d_SCmdAccept", name(), i);
+            sc_trace(tf, amba_ahb_ocp_m[i]->SCmdAccept, buffer);
+            sprintf(buffer, "%s_master_%d_SDataAccept", name(), i);
+            sc_trace(tf, amba_ahb_ocp_m[i]->SDataAccept, buffer);
+            sprintf(buffer, "%s_master_%d_SResp", name(), i);
+            sc_trace(tf, amba_ahb_ocp_m[i]->SResp, buffer);
+            sprintf(buffer, "%s_master_%d_SRespLast", name(), i);
+            sc_trace(tf, amba_ahb_ocp_m[i]->SRespLast, buffer);
+            sprintf(buffer, "%s_master_%d_SData", name(), i);
+            sc_trace(tf, amba_ahb_ocp_m[i]->SData, buffer);
+            sprintf(buffer, "%s_master_%d_SFlag", name(), i);
+            sc_trace(tf, amba_ahb_ocp_m[i]->SFlag, buffer);
+            sprintf(buffer, "%s_master_%d_SInterrupt", name(), i);
+            sc_trace(tf, amba_ahb_ocp_m[i]->SInterrupt, buffer);
+          }
+          else
+          {
+            sprintf(buffer, "%s_master_%d_pinoutmast", name(), i);
+            sc_trace(tf, pinoutmast[i], buffer);
+            sprintf(buffer, "%s_master_%d_requestmast", name(), i);
+            sc_trace(tf, requestmast[i], buffer);
+            sprintf(buffer, "%s_master_%d_readymast", name(), i);
+            sc_trace(tf, readymast[i], buffer);
+            
+            sprintf(buffer, "%s_master_%d_pinoutmast_interconnect", name(), i);
+            sc_trace(tf, pinoutmast_interconnect[i], buffer);
+            sprintf(buffer, "%s_master_%d_requestmast_interconnect", name(), i);
+            sc_trace(tf, requestmast[i], buffer);
+            sprintf(buffer, "%s_master_%d_readymast_interconnect", name(), i);
+            sc_trace(tf, readymast_interconnect[i], buffer);
+          }
+#endif
+        }
+        
+        if (DMA)
+          for (i = 0; i < N_CORES; i ++)
+          {
+            sprintf(buffer, "%s_pinoutwrappertodma_%d", name(), i);
+            sc_trace(tf, pinoutwrappertodma[i], buffer);
+            sprintf(buffer, "%s_readywrappertodma_%d", name(), i);
+            sc_trace(tf, readywrappertodma[i], buffer);
+            sprintf(buffer, "%s_requestwrappertodma_%d", name(), i);
+            sc_trace(tf, requestwrappertodma[i], buffer);
+            sprintf(buffer, "%s_datadmacontroltotransfer_%d", name(), i);
+            sc_trace(tf, datadmacontroltotransfer[i], buffer);
+            sprintf(buffer, "%s_requestcontroltotransfer_%d", name(), i);
+            sc_trace(tf, requestcontroltotransfer[i], buffer);
+            sprintf(buffer, "%s_finishedtransfer_%d", name(), i);
+            sc_trace(tf, finishedtransfer[i], buffer);
+            sprintf(buffer, "%s_spinoutscratchdma_%d", name(), i);
+            sc_trace(tf, spinoutscratchdma[i], buffer);
+            sprintf(buffer, "%s_sreadyscratchdma_%d", name(), i);
+            sc_trace(tf, sreadyscratchdma[i], buffer);
+            sprintf(buffer, "%s_srequestscratchdma_%d", name(), i);
+            sc_trace(tf, srequestscratchdma[i], buffer);
+          }
+          
+        for (i = 0; i < N_CORES; i ++)
+          for (j = 0; j < NUMBER_OF_EXT; j ++)
+          {
+            sprintf(buffer, "%s_extint_core_%d_line_%d", name(), i, j);
+            sc_trace(tf, extint[i * NUMBER_OF_EXT + j], buffer);
+          }
+      }
+
+    } 
+};
+
+#endif // __AMBA_AHB_PLATFORM_H__
+
