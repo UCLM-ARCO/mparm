@@ -113,7 +113,7 @@ inline static int TEST_AND_SET(int ID);
 inline static void WAIT(int ID);
 inline static void SIGNAL(int ID);
 void send_interrupt(int ID);
-void interrupt_function() __attribute__((interrupt));
+//void interrupt_function() __attribute__((interrupt));
 void WAIT_FOR_INITIALIZATION();
 void INITIALIZATION_DONE();
 void BARINIT(int ID);
@@ -218,8 +218,12 @@ SIGNAL(int ID)
                             PR_CPUID, PR_STRING, PR_NEWL);                   \
                          DIE(0xdeadbeef);                                    \
                        }
+# define SHOW_DEBUG(x)     pr(x, PR_CPUID, PR_STRING, PR_NEWL)
+# define SHOW_DEBUG_INT(x) pr(x, PR_CPUID, PR_INT, PR_NEWL)
 #else
 # define ASSERT(cond)
+# define SHOW_DEBUG(x)
+# define SHOW_DEBUG_INT(x)
 #endif
 
 

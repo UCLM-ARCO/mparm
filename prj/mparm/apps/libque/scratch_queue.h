@@ -181,7 +181,7 @@ scratch_queue_getToken_write(register SCRATCH_QUEUE_PRODUCER *queue_p)
 
 /* this function "commit" the last "getToken" buffer in the queue must
    be used only sequentially after scratch_queue_getToken_write */
-inline void 
+static inline void 
 scratch_queue_putToken_write(register SCRATCH_QUEUE_PRODUCER *queue_p)
 {
   /* circular queue */
@@ -199,7 +199,7 @@ scratch_queue_putToken_write(register SCRATCH_QUEUE_PRODUCER *queue_p)
 
 /* write on queue specified data; this function has a suspensive
    semantic */
-inline void 
+static inline void 
 scratch_queue_write(register SCRATCH_QUEUE_PRODUCER *queue_p,
 		    register  char *data)
 {
@@ -227,7 +227,7 @@ scratch_queue_write(register SCRATCH_QUEUE_PRODUCER *queue_p,
 #ifdef DMALIB
 /* write on queue specified data USING DMA; this function has a
    suspensive semantic */
-inline void 
+static inline void 
 scratch_queue_write_dma(register SCRATCH_QUEUE_PRODUCER *queue_p,register  char *data)
 {
    char* tmp= scratch_queue_getToken_write(queue_p);
@@ -259,7 +259,7 @@ scratch_queue_write_dma(register SCRATCH_QUEUE_PRODUCER *queue_p,register  char 
 
 /* read from the queue and write into a buffer; this function has
    suspensive semantic */
-inline void 
+static inline void 
 scratch_queue_read(register SCRATCH_QUEUE_CONSUMER *queue_p,register char *buffer)
 {
   unsigned i, number;
@@ -303,34 +303,39 @@ scratch_queue_read(register SCRATCH_QUEUE_CONSUMER *queue_p,register char *buffe
 }
 
 
-inline void 
+static inline void 
 scratch_queue_read_and_measure(register SCRATCH_QUEUE_CONSUMER *queue_p,
 			       register char *buffer, 
 			       int op1, int op2 )
 {
   unsigned int i;
   
-  SHOW_TIME_START(op1);
+  time_start(op1);
+  
 #ifdef USEINTERRUPT
   ss_sem_wait(queue_p->semaphore_used);
 #else
   while(scratch_sem_wait(queue_p->semaphore_used)==0);
 #endif 
-  SHOW_TIME_STOP(op1);
+  time_stop(op1);
 
   /*read message from queue*/
-  SHOW_TIME_START(op2);
+  time_start(op2);
+
 #ifdef MEMCPY
   memcpy(buffer,&queue_p->fifo_p[queue_p->index_read*queue_p->message_size],queue_p->message_size);
+
 #else 
-  int* address = (int*)&(queue_p->fifo_p[queue_p->index_read*queue_p->message_size]);
-  unsigned int number = (queue_p->message_size/sizeof(int));
-  for(i=0; i<number; i++) 
-    ((int*)buffer)[i] = address[i];
-  /*Special iteration block used for memory transfer metrics */
-  /*{ start_metric(); ((int*)buffer)[i]=address[i]; stop_metric(); }*/
+  {
+    int* address = (int*)&(queue_p->fifo_p[queue_p->index_read*queue_p->message_size]);
+    unsigned int number = (queue_p->message_size/sizeof(int));
+    for(i=0; i<number; i++) 
+      ((int*)buffer)[i] = address[i];
+    /*Special iteration block used for memory transfer metrics */
+    /*{ start_metric(); ((int*)buffer)[i]=address[i]; stop_metric(); }*/
+  }
 #endif
-  SHOW_TIME_STOP(op2);
+  time_stop(op2);
   
   /*circular queue */
   ++queue_p->index_read;
@@ -378,7 +383,7 @@ scratch_queue_read_localbuf(register SCRATCH_QUEUE_CONSUMER *queue_p)
 
 #ifdef DMALIB
 /* read from the queue using the dma */
-inline void 
+static inline void 
 scratch_queue_read_dma(register SCRATCH_QUEUE_CONSUMER *queue_p,register char *buffer)
 {
 

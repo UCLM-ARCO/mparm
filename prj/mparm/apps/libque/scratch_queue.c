@@ -109,11 +109,11 @@ void scratch_queue_autoinit_system(unsigned int scra_start, unsigned int scra_si
   
   /* initialize base address on start of scratch and queue spaces */
   if(scra_start==0) 
-    scratch_start=scratch_base_address=(CORESLAVE_BASE + (CORESLAVE_SPACING*(get_id()-1)));
+    scratch_start=scratch_base_address=(CORESLAVE_BASE + (CORESLAVE_SPACING*(get_proc_id()-1)));
   else 
     scratch_start=scratch_base_address=scra_start;
 
-  sem_base_address=(QUEUE_BASE + (CORESLAVE_SPACING*(get_id()-1)));
+  sem_base_address=(QUEUE_BASE + (CORESLAVE_SPACING*(get_proc_id()-1)));
 
 #ifdef DEBUGSWI
   SHOW_DEBUG("Scratch_base,Scratch_size,Sem_base");
@@ -165,7 +165,7 @@ void scratch_queue_autoinit_system(unsigned int scra_start, unsigned int scra_si
   *shared_mutex=0;
    
 #ifdef DEBUG0
-  printf("id: %x\n",get_id()-1);
+  printf("id: %x\n",get_proc_id()-1);
   printf("shared base: %x\n", shared_base_address);
 #endif    
 
@@ -241,6 +241,11 @@ scratch_queue_autoinit_producer(int core_consumer_id,
 				int token_size, 
 				int bufferzone)
 {
+  unsigned int sem_prod_address;
+  unsigned int sem_cons_address;
+  unsigned int scratch_area_address;
+  volatile unsigned int queue_buffer_address=0;
+  
   tot_instaced_queue++;
 
   if(tot_instaced_queue>MAXQUEUE) {
@@ -248,11 +253,6 @@ scratch_queue_autoinit_producer(int core_consumer_id,
     SHOW_DEBUG_INT(tot_instaced_queue);
     exit(0);
   }
-  
-  unsigned int sem_prod_address;
-  unsigned int sem_cons_address;
-  unsigned int scratch_area_address;
-  volatile unsigned int queue_buffer_address=0;
   
   /*to align fifo address with 4 in order to match ARM constraint */
   if(token_size%4) token_size=token_size+(4-(token_size%4));
@@ -376,7 +376,7 @@ scratch_queue_autoinit_consumer(int queue_id, int allocate_local_buffer)
     exit(0);
   }
   
-  sem_init=(QUEUE_SEMAPHORE)(QUEUE_BASE+CORESLAVE_SPACING*(get_id()-1)+(2+MAXQUEUE+queue_id)*QUEUE_SEMAPHORE_SIZE);
+  sem_init=(QUEUE_SEMAPHORE)(QUEUE_BASE+CORESLAVE_SPACING*(get_proc_id()-1)+(2+MAXQUEUE+queue_id)*QUEUE_SEMAPHORE_SIZE);
 #ifdef USEINTERRUPT
   queue_prod=(SCRATCH_QUEUE_PRODUCER*)ss_sem_wait_read(sem_init);
 #else
