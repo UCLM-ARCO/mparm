@@ -1,8 +1,7 @@
 #!/bin/bash
 
-ARCH=arm-linux-uclibc
-UCLIBC=0.9.28
-
+V=4.7
+ARCH=-arm-rtems${V}
 
 pkg_extract() {
     if test ! -e $1 ; then return ; fi
@@ -54,7 +53,7 @@ pkg_copy() {
     BASE=$(basename "$1" \
 	| sed -e 's|\.tar\.bz2||' -e 's|\.tar\.gz||'  -e 's|\.tbz||'  -e 's|\.tgz||' )
     PKG=$(echo $BASE | sed -e 's/\([A-Z_a-z-]*\)-\([0-9][0-9.]*\)[-A-Z0-9]*/\1/g' )
-    DEST=$(echo $BASE | sed -e "s/\\([A-Z_a-z-]*\\)-\\([0-9][0-9.]*\\)[-A-Z0-9]*/\\1-$ARCH-\\2/g" )
+    DEST=$(echo $BASE | sed -e "s/\\([A-Z_a-z-]*\\)-\\([0-9][0-9.]*\\)[-A-Z0-9]*/\\1$ARCH-\\2/g" )
     VER=$(echo $BASE | sed -e 's/\([A-Z_a-z-]*\)\([0-9][0-9.]*\)[-A-Z0-9]*/\2/g' )
     ORIG=$(echo $DEST | sed -e 's/-\([0-9][0-9.]*\)/_\1.orig.tar.gz/g' )
 
@@ -66,67 +65,36 @@ pkg_copy() {
 EOF
 
     mkdir -p $DEST
-    while [ $# -gt 0 ] ; do
-        if test ! -e $1 ; then 
-	    echo "File does not exist: $1"
-	else
-	    ln -f $1 $DEST/
-	fi
-        shift
-    done
+    ln -f $1 $DEST/
     tar czf $ORIG $DEST
     rsync -aq --exclude=.svn $(dirname $0)/$PKG/ $DEST/debian
 }
 
-pkg_copy_date() {
-    echo "Copying date $* ... "
-    
-    PKG=$1
-    VER=$(date -I | tr - . )
-    DEST=${PKG}-${VER}
-    ORIG=${PKG}_${VER}.orig.tar.gz
+pkg_copy_gcc() {
+    if test ! -e $1 ; then return ; fi
+    echo "Copying gcc files from $1 ... "
+
+    COR=$(echo "$1" | sed -e 's/\([a-z]*\)-\([+a-z]*\)-\([0-9][0-9.]*\)/\1-core-\3/g' )
+    CPP=$(echo "$1" | sed -e 's/\([a-z]*\)-\([+a-z]*\)-\([0-9][0-9.]*\)/\1-g++-\3/g' )
+    NEWLIB=$(ls -1 $(dirname "$1")/newlib* | head -1 )
+    DIR=$(basename "$COR" .tar.bz2 )
+    PKG=$(echo "$DIR" | sed -e "s/\\([a-z]*\\)-core-\\([0-9][0-9.]*\\)/\\1$ARCH-\\2/g" )
+    ORIG=$(echo "$PKG" | sed -e 's/-\([0-9][0-9.]*\)/_\1.orig.tar.gz/g' )
 
     cat <<EOF
-	PKG  = $PKG
-	VER  = $VER
-	DEST = $DEST
-	ORIG = $ORIG
+	PKG        = $PKG
+	CORE       = $COR
+	CPLUSPLUS  = $CPP
+	NEWLIB     = $NEWLIB
+	ORIG       = $ORIG
 EOF
 
-    mkdir -p $DEST
-    while [ $# -gt 1 ] ; do
-        shift
-        if test ! -e $1 ; then echo "File does not exist: $1" ; continue ; fi
-        ln -f $1 $DEST/
-    done
-    tar czf $ORIG $DEST
-    rsync -aq --exclude=.svn $(dirname $0)/$PKG/ $DEST/debian
-}
-
-
-pkg_copy_uclibc() {
-    echo "Copying uclibc $* ... "
-    
-    PKG=uclibc
-    DEST=${ARCH}-$1
-    VER=$1
-    ORIG=${ARCH}_${VER}.orig.tar.gz
-
-    cat <<EOF
-	PKG  = $PKG
-	VER  = $VER
-	DEST = $DEST
-	ORIG = $ORIG
-EOF
-
-    mkdir -p $DEST
-    while [ $# -gt 1 ] ; do
-        shift
-        if test ! -e $1 ; then echo "File does not exist: $1" ; continue ; fi
-        ln -f $1 $DEST/
-    done
-    tar czf $ORIG $DEST
-    rsync -aq --exclude=.svn $(dirname $0)/$PKG/ $DEST/debian
+    mkdir -p $PKG
+    ln -f $COR $PKG/
+    ln -f $CPP $PKG/
+    ln -f $NEWLIB $PKG/
+    tar czf $ORIG $PKG
+    rsync -aq --exclude=.svn $(dirname $0)/gcc/ $PKG/debian
 }
 
 extract() {
@@ -136,9 +104,10 @@ extract() {
 		rm -rf $(ls -1 |grep -- "-[0-9][0-9.]*")
 		rm -f *.orig.tar.gz *.deb *.dsc *.changes *.build *.diff.gz *~ */*~
 		;;
-	    *binutils-*) pkg_copy "$i" $(dirname "$i")/elf2flt.* ;;
-	    *uClibc*)    pkg_copy_uclibc $UCLIBC "$i" $(dirname "$i")/linux-libc-headers*.tar.bz2 ;;
-	    *.tar.bz2)   pkg_copy "$i" ;;
+	    *binutils-*) pkg_copy "$i" ;;
+	    *rtems-*)    ARCH=${V} pkg_copy "$i" ;;
+	    *gcc-*)      pkg_copy_gcc "$i" ;;
+	    *.tar.bz2)   pkg_extract "$i" ;;
 	    *.tar.gz)    pkg_extract "$i" ;;
 	    *) echo "Unknown file format: $i" 1>&2 ;;
 	esac

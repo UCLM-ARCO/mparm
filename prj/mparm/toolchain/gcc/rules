@@ -1,27 +1,113 @@
 #!/usr/bin/make -f
+# Sample debian/rules that uses debhelper.
+# GNU copyright 1997 to 1999 by Joey Hess.
 
-TARGET := arm-linux-uclibc
+TARGET=arm-rtems4.7
+TARGET_ARCH=arm-rtems4.7
+PACKAGE=gcc-arm-rtems4.7
 
-DEB_BUILD_OPTIONS := nocheck nostrip
-DEB_TAR_SRCDIR := gcc-4.1.1
+ifeq (,$(DEB_BUILD_GNU_TYPE))
+  include /usr/share/dbs/dpkg-arch.mk
+endif
 
-export DEB_BUILD_OPTIONS
+CONFARGS = --verbose \
+        --target=$(TARGET) \
+        --prefix=/usr \
+        --with-newlib \
+        --with-system-zlib \
+        --disable-nls \
+	--enable-version-specific-runtime-libs \
+	--enable-threads=rtems \
+        --enable-languages=c,c++ \
+        --infodir=/usr/share/info \
+        --mandir=/usr/share/man
 
-include /usr/share/cdbs/1/rules/simple-patchsys.mk
-include /usr/share/cdbs/1/rules/tarball.mk
-include /usr/share/cdbs/1/rules/debhelper.mk
-include /usr/share/cdbs/1/class/autotools.mk
+srcdir=src
 
-DEB_CONFIGURE_EXTRA_FLAGS := --target=$(TARGET) --host=$(DEB_HOST_GNU_TYPE) \
-	--enable-shared --disable-__cxa_atexit --enable-target-optspace \
-	--with-gnu-ld --disable-nls --enable-threads --enable-multilib \
-	--with-float=soft --enable-languages=c,c++
+# Uncomment this to turn on verbose mode.
+export DH_VERBOSE=1
 
-binary-install/gcc-arm-linux-uclibc::
-	$(RM) -r debian/gcc-arm-linux-uclibc/usr/share/info
-	$(RM) -r debian/gcc-arm-linux-uclibc/usr/share/locale
-	$(RM) -r debian/gcc-arm-linux-uclibc/usr/share/man
-	mv debian/gcc-arm-linux-uclibc/usr/include/c++/4.1.1/arm-linux-uclibc /tmp
-	$(RM) -r debian/gcc-arm-linux-uclibc/usr/include/c++
-	mkdir -p debian/gcc-arm-linux-uclibc/usr/include/c++/4.1.1
-	mv /tmp/arm-linux-uclibc debian/gcc-arm-linux-uclibc/usr/include/c++/4.1.1/
+# This is the debhelper compatability version to use.
+export DH_COMPAT=4
+
+TAR_DIR=gcc-*
+include /usr/share/dbs/dbs-build.mk
+
+configure: configure-stamp
+configure-stamp: $(patched)
+	dh_testdir
+	mkdir objdir
+	rm -rf $(BUILD_TREE)/newlib
+	cd $(BUILD_TREE) && ln -s ../newlib*/newlib newlib
+	cd objdir && ../$(BUILD_TREE)/configure $(CONFARGS) 
+	touch configure-stamp
+
+build: configure-stamp build-stamp
+build-stamp: $(patched)
+	dh_testdir
+
+	# Add here commands to compile the package.
+	cd objdir && $(MAKE)
+	#/usr/bin/docbook-to-man debian/$(PACKAGE).sgml > $(PACKAGE).1
+
+	touch build-stamp
+
+clean:
+	dh_testdir
+	dh_testroot
+	rm -f build-stamp configure-stamp 
+
+	# Add here commands to clean up after the build process.
+	#-$(MAKE) clean
+	rm -rf $(STAMP_DIR) $(SOURCE_DIR) objdir
+
+	dh_clean
+
+install: build
+	dh_testdir
+	dh_testroot
+	dh_clean -k
+	dh_installdirs
+	cd objdir && $(MAKE) install DESTDIR=$(CURDIR)/debian/$(PACKAGE)/
+	cd debian/$(PACKAGE)/usr/ && \
+	rm -rf bin/gcov bin/gccbug share/man/man1/gcov.1* \
+	lib/libiberty.a share/info share/man/man7/gfdl.7* \
+	share/man/man7/gpl.7* share/man/man7/fsf-funding.7* \
+	share/locale bin/*c++filt
+
+# Build architecture-independent files here.
+binary-indep: build install
+# We have nothing to do by default.
+
+# Build architecture-dependent files here.
+binary-arch: build install
+	dh_testdir
+	dh_testroot
+#	dh_installdebconf	
+	dh_installdocs -n
+#	dh_installexamples
+#	dh_installmenu
+#	dh_installlogrotate
+#	dh_installemacsen
+#	dh_installpam
+#	dh_installmime
+#	dh_installinit
+#	dh_installcron
+	dh_installman
+	dh_installinfo
+	dh_undocumented arm-rtems-gcov.1
+	dh_installchangelogs 
+	dh_link
+	dh_strip -X.so -X.a -X.o
+	dh_compress 
+	dh_fixperms
+#	dh_makeshlibs
+	dh_installdeb
+#	dh_perl
+	dh_shlibdeps
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+
+binary: binary-indep binary-arch
+.PHONY: build clean binary-indep binary-arch binary install configure
