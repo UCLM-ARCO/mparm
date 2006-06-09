@@ -1,0 +1,21 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
+DEB_MAKE_CLEAN_TARGET := clean
+DEB_MAKE_BUILD_TARGET := all prefix=/usr
+DEB_MAKE_INSTALL_TARGET := install prefix=$(CURDIR)/debian/tmp/usr install_slicedir=$(CURDIR)/debian/tmp/usr/share/slice
+DEB_MAKE_CHECK_TARGET :=
+DEB_BUILD_OPTIONS := nocheck
+DEB_DH_INSTALL_SOURCEDIR := debian/tmp
+
+include /usr/share/cdbs/1/rules/debhelper.mk
+include /usr/share/cdbs/1/rules/simple-patchsys.mk
+include /usr/share/cdbs/1/class/makefile.mk
+
+DEB_MAKE_INVOKE := $(DEB_MAKE_ENVVARS) make OPTIMIZE_SPEED=yes LDPLATFORMFLAGS=
+
+pre-build::
+	-mkdir -p debian/tmp/usr/share
+
+binary-install/icee-slice::
+	chmod a-x debian/icee-slice/usr/share/slice/*/*.ice

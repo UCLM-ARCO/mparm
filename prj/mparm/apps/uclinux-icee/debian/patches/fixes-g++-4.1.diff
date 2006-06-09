@@ -1,0 +1,38 @@
+These patches fixes compilation problems of IceE with g++4.1.
+They have been reported upstream.
+
+diff -ur zeroc-icee-1.1.0/src/IceE/Communicator.cpp zeroc-icee-1.1.0-3/src/IceE/Communicator.cpp
+--- zeroc-icee-1.1.0/src/IceE/Communicator.cpp	2006-03-07 06:52:02.000000000 +0100
++++ zeroc-icee-1.1.0-3/src/IceE/Communicator.cpp	2006-04-13 13:25:35.000000000 +0200
+@@ -14,6 +14,8 @@
+ #include <IceE/ProxyFactory.h>
+ #include <IceE/LoggerUtil.h>
+ #include <IceE/LocalException.h>
++#include <IceE/Router.h>
++#include <IceE/Locator.h>
+ 
+ #ifndef ICEE_PURE_CLIENT
+ #   include <IceE/ObjectAdapterFactory.h>
+diff -ur zeroc-icee-1.1.0/src/IceE/Proxy.cpp zeroc-icee-1.1.0-3/src/IceE/Proxy.cpp
+--- zeroc-icee-1.1.0/src/IceE/Proxy.cpp	2006-03-06 14:31:30.000000000 +0100
++++ zeroc-icee-1.1.0-3/src/IceE/Proxy.cpp	2006-04-13 13:47:21.000000000 +0200
+@@ -7,6 +7,7 @@
+ //
+ // **********************************************************************
+ 
++#include <IceE/Communicator.h>
+ #include <IceE/Proxy.h>
+ #include <IceE/ProxyFactory.h>
+ #include <IceE/Outgoing.h>
+diff -ur zeroc-icee-1.1.0/src/IceE/ReferenceFactory.cpp zeroc-icee-1.1.0-3/src/IceE/ReferenceFactory.cpp
+--- zeroc-icee-1.1.0/src/IceE/ReferenceFactory.cpp	2006-03-06 14:31:30.000000000 +0100
++++ zeroc-icee-1.1.0-3/src/IceE/ReferenceFactory.cpp	2006-04-13 13:50:00.000000000 +0200
+@@ -8,6 +8,8 @@
+ // **********************************************************************
+ 
+ #include <IceE/ReferenceFactory.h>
++#include <IceE/Router.h>
++#include <IceE/Locator.h>
+ #include <IceE/LocalException.h>
+ #include <IceE/Instance.h>
+ #include <IceE/IdentityUtil.h>

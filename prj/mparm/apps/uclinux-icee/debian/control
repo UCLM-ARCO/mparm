@@ -1,0 +1,50 @@
+Source: zeroc-icee
+Section: libs
+Priority: optional
+Maintainer: Francisco Moya <francisco.moya@uclm.es>
+Build-Depends: cdbs (>= 0.4.27-1), debhelper (>= 4.2.0), slice2cppe (>= 1.1.0)
+Standards-Version: 3.6.2
+
+Package: zeroc-icee
+Architecture: all
+Section: devel
+Depends: libicee-dev, libicee-java, libicee-midp, icee-slice, icee-translators
+Description: Embedded edition of the ZeroC Ice
+ ZeroC Ice is a CORBA-like middleware solution. IceE is a subset of
+ Ice used in embedded systems. This is a dummy package that depends
+ on the full set of IceE packages.
+
+Package: libiceec11
+Architecture: any
+Section: libs
+Depends: ${shlibs:Depends}
+Description: ZeroC IceE for C++ client runtime libraries
+ ZeroC Ice is a CORBA-like middleware solution. IceE is a subset of
+ Ice used in embedded systems. This package installs the runtime
+ libraries needed for IceE C++ clients.
+
+Package: libicee11
+Architecture: any
+Section: libs
+Depends: ${shlibs:Depends}
+Description: ZeroC IceE for C++ server runtime libraries
+ ZeroC Ice is a CORBA-like middleware solution. IceE is a subset of
+ Ice used in embedded systems. This package installs the runtime
+ libraries needed for IceE C++ servers.
+
+Package: libicee-dev
+Architecture: any
+Section: libs
+Depends: libiceec11, libicee11, ${shlibs:Depends}
+Description: ZeroC IceE for C++ development libraries
+ ZeroC Ice is a CORBA-like middleware solution. IceE is a subset of
+ Ice used in embedded systems. This package installs the development
+ libraries and include files needed for IceE C++ development.
+
+Package: icee-slice
+Architecture: all
+Section: devel
+Description: Slice definitions for ZeroC IceE services
+ ZeroC Ice is a CORBA-like middleware solution. IceE is a subset of
+ Ice used in embedded systems. This package installs the Slice
+ definitions of standard IceE services on /usr/share/slice.
