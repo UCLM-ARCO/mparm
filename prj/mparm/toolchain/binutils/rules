@@ -1,110 +1,20 @@
 #!/usr/bin/make -f
-# Sample debian/rules that uses debhelper.
-# GNU copyright 1997 to 1999 by Joey Hess.
 
-PACKAGE=binutils-arm-rtems4.7
-TARGET=arm-rtems4.7
+TARGET := arm-rtems4.7
 
-ifeq (,$(DEB_BUILD_GNU_TYPE))
-  include /usr/share/dbs/dpkg-arch.mk
-endif
+DEB_BUILD_OPTIONS := nocheck
+DEB_TAR_SRCDIR := binutils-2.16.91.0.7
 
-CONFARGS = --prefix=/usr \
-           --target=$(TARGET)
+include /usr/share/cdbs/1/rules/simple-patchsys.mk
+include /usr/share/cdbs/1/rules/tarball.mk
+include /usr/share/cdbs/1/rules/debhelper.mk
+include /usr/share/cdbs/1/class/autotools.mk
 
-# Uncomment this to turn on verbose mode.
-#export DH_VERBOSE=1
+DEB_CONFIGURE_EXTRA_FLAGS := --target=$(TARGET) --host=$(DEB_HOST_GNU_TYPE) \
+	--disable-nls --enable-multilib --disable-werror --with-float=soft
 
-# This is the debhelper compatability version to use.
-export DH_COMPAT=4
-
-TAR_DIR=binutils-*
-include /usr/share/dbs/dbs-build.mk
-
-
-# the dbs rules
-#include /usr/src/toolchain/patches/binutils/dbs-build.mk
-#
-#unpack: unpack-stamp
-#unpack-stamp:
-#	tar xjf /usr/src/toolchain/binutils.tar.bz2
-#	mv binutils* src
-#	mkdir build
-#
-#	touch unpack-stamp
-
-
-
-configure: configure-stamp
-configure-stamp: $(patched)
-	dh_testdir
-
-	# Add here commands to configure the package.
-	cd $(BUILD_TREE) && ./configure $(CONFARGS)
-	touch configure-stamp
-
-build: configure-stamp build-stamp
-build-stamp: $(patched)
-	dh_testdir
-
-	# Add here commands to compile the package.
-	cd $(BUILD_TREE) && $(MAKE)
-
-	touch build-stamp
-
-clean:
-	dh_testdir
-	dh_testroot
-	rm -f build-stamp configure-stamp a.out
-	rm -rf $(STAMP_DIR) $(SOURCE_DIR)
-	dh_clean
-
-install: build
-	dh_testdir
-	dh_testroot
-	dh_clean -k
-	dh_installdirs
-	cd $(BUILD_TREE) && $(MAKE) install DESTDIR=$(CURDIR)/debian/$(PACKAGE)/
-	# Files also in main binutils pkg
-	cd debian/$(PACKAGE)/usr && \
-	rm -rf lib/libiberty.* lib/libbfd.* lib/libopcodes* \
-	include/bfd.h include/ansidecl.h include/bfdlink.h \
-	share/locale include/symcat.h include/dis-asm.h \
-	info
-
-# Build architecture-independent files here.
-binary-indep: build install
-# We have nothing to do by default.
-
-# Build architecture-dependent files here.
-binary-arch: build install
-	dh_testdir
-	dh_testroot
-#	dh_installdebconf	
-	dh_installdocs -n
-#	dh_installexamples
-#	dh_installmenu
-#	dh_installlogrotate
-#	dh_installemacsen
-#	dh_installpam
-#	dh_installmime
-#	dh_installinit
-#	dh_installcron
-	dh_installman
-#	dh_installinfo
-	dh_undocumented
-	dh_installchangelogs 
-	dh_link
-	dh_strip
-	dh_compress
-	dh_fixperms
-#	dh_makeshlibs
-	dh_installdeb
-#	dh_perl
-	dh_shlibdeps
-	dh_gencontrol
-	dh_md5sums
-	dh_builddeb
-
-binary: binary-indep binary-arch
-.PHONY: build clean binary-indep binary-arch binary install configure
+binary-install/binutils-$(TARGET)::
+	$(RM) debian/binutils-$(TARGET)/usr/lib/*.a
+	$(RM) -r debian/binutils-$(TARGET)/usr/share/info
+	$(RM) -r debian/binutils-$(TARGET)/usr/share/locale
+	$(RM) -r debian/binutils-$(TARGET)/usr/share/man

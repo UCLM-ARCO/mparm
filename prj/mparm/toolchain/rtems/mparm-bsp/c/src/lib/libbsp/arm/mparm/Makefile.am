@@ -2,8 +2,6 @@
 ## $Id$
 ##
 
-# SUBDIRS = startup irq clock dma shmsupp timer wrapup
-
 ACLOCAL_AMFLAGS = -I ../../../../aclocal
 
 include $(top_srcdir)/../../../../automake/compile.am

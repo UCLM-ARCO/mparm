@@ -1,3 +1,9 @@
+gcc-arm-rtems4.7 (1:4.1.1-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- Francisco Moya <francisco.moya@uclm.es>  Sat, 10 Jun 2006 09:57:45 +0200
+
 gcc-arm-rtems4.7 (1:4.1.0-1) unstable; urgency=low
 
   * New upstream release.

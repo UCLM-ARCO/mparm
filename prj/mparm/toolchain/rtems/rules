@@ -1,77 +1,38 @@
 #!/usr/bin/make -f
-# Sample debian/rules that uses debhelper.
-# GNU copyright 1997 to 1999 by Joey Hess.
 
-PACKAGE=arm-rtems4.7
-BSP=mparm edb7312 gba
+TARGET := arm-rtems
+BSP := mparm edb7312 gba
 
-ifeq (,$(DEB_BUILD_GNU_TYPE))
-  include /usr/share/dbs/dpkg-arch.mk
-endif
+DEB_TAR_SRCDIR := rtems-4.6.99
+DEB_BUILDDIR := build-tree/build
+DEB_BUILD_OPTIONS := nocheck nostrip
+DEB_CLEAN_EXCLUDE := cfg.P
 
-CONFARGS =  --enable-cxx --target=$(PACKAGE) --prefix=/usr/lib/rtems4.7 \
-            --enable-rtemsbsp="$(BSP)"
+CFLAGS_FOR_TARGET := -msoft-float
+CXXFLAGS_FOR_TARGET := -msoft-float
+LDFLAGS_FOR_TARGET := -msoft-float
 
-# Uncomment this to turn on verbose mode.
-#export DH_VERBOSE=1
+export DEB_BUILD_OPTIONS DEB_BUILD_DIR DEB_CLEAN_EXCLUDE
+export CFLAGS_FOR_TARGET CXXFLAGS_FOR_TARGET LDFLAGS_FOR_TARGET
 
-# This is the debhelper compatability version to use.
-export DH_COMPAT=4
+include /usr/share/cdbs/1/rules/simple-patchsys.mk
+include /usr/share/cdbs/1/rules/tarball.mk
+include /usr/share/cdbs/1/rules/debhelper.mk
+include /usr/share/cdbs/1/class/autotools.mk
 
-TAR_DIR=rtems-*
-include /usr/share/dbs/dbs-build.mk
+DEB_CONFIGURE_EXTRA_FLAGS := --enable-cxx --target=$(TARGET) \
+	--prefix=/usr/lib/rtems4.7 --with-float=soft \
+	--enable-posix --disable-networking --disable-itron \
+	--enable-rtemsbsp="$(BSP)"
 
+debian/stamp-bootstrap:
+	cp -r debian/mparm-bsp/* build-tree/$(DEB_TAR_SRCDIR)/
+	$(RM) -r build-tree/$(DEB_TAR_SRCDIR)/c/src/lib/libbsp/{i386,c4x,h8300,m68k,mips,sh,sparc,no_cpu,powerpc,bare,unix}
+	$(RM) -r build-tree/$(DEB_TAR_SRCDIR)/c/src/lib/libcpu/{i386,m68k,mips,sh,sparc,powerpc}
+	cd build-tree/$(DEB_TAR_SRCDIR) && ./bootstrap
+	touch $@
 
-configure: configure-stamp
-configure-stamp: $(patched)
-	dh_testdir
-	cp -r debian/mparm-bsp/* $(BUILD_TREE)/
-	rm -rf $(BUILD_TREE)/c/src/lib/libbsp/{i386,c4x,h8300,m68k,mips,sh,sparc,no_cpu,powerpc,bare,unix}
-	cd $(BUILD_TREE) && ./bootstrap
-	mkdir objdir
-	cd objdir && ../$(BUILD_TREE)/configure $(CONFARGS) 
-	touch configure-stamp
+pre-build:: debian/stamp-bootstrap
 
-build: configure-stamp build-stamp
-build-stamp: $(patched)
-	dh_testdir
-	cd objdir && $(MAKE)
-	touch build-stamp
-
-clean:
-	dh_testdir
-	dh_testroot
-	rm -f build-stamp configure-stamp a.out
-	rm -rf $(STAMP_DIR) $(SOURCE_DIR) objdir
-	dh_clean
-
-install: build
-	dh_testdir
-	dh_testroot
-	dh_clean -k
-	dh_installdirs
-	# cfg.P got lost after build!
-	for i in objdir/$(PACKAGE)/c/*/.deps ; do touch $$i/cfg.P ; done
-	cd objdir && $(MAKE) install DESTDIR=$(CURDIR)/debian/$(PACKAGE)/
-
-# Build architecture-independent files here.
-binary-indep: build install
-# We have nothing to do by default.
-
-# Build architecture-dependent files here.
-binary-arch: build install
-	dh_testdir
-	dh_testroot
-	dh_installdocs -n
-	dh_installman
-	dh_installchangelogs 
-	dh_link
-	dh_compress
-	dh_fixperms
-	dh_installdeb
-	dh_gencontrol
-	dh_md5sums
-	dh_builddeb
-
-binary: binary-indep binary-arch
-.PHONY: build clean binary-indep binary-arch binary install configure
+clean::
+	$(RM) debian/stamp-bootstrap

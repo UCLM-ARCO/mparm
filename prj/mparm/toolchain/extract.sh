@@ -1,7 +1,7 @@
 #!/bin/bash
 
 V=4.7
-ARCH=-arm-rtems${V}
+ARCH=-arm-rtems
 
 pkg_extract() {
     if test ! -e $1 ; then return ; fi
@@ -74,11 +74,10 @@ pkg_copy_gcc() {
     if test ! -e $1 ; then return ; fi
     echo "Copying gcc files from $1 ... "
 
-    COR=$(echo "$1" | sed -e 's/\([a-z]*\)-\([+a-z]*\)-\([0-9][0-9.]*\)/\1-core-\3/g' )
-    CPP=$(echo "$1" | sed -e 's/\([a-z]*\)-\([+a-z]*\)-\([0-9][0-9.]*\)/\1-g++-\3/g' )
+    GCC="$1"
     NEWLIB=$(ls -1 $(dirname "$1")/newlib* | head -1 )
-    DIR=$(basename "$COR" .tar.bz2 )
-    PKG=$(echo "$DIR" | sed -e "s/\\([a-z]*\\)-core-\\([0-9][0-9.]*\\)/\\1$ARCH-\\2/g" )
+    DIR=$(basename "$GCC" .tar.bz2 )
+    PKG=$(echo "$DIR" | sed -e "s/\\([a-z]*\\)-\\([0-9][0-9.]*\\)/\\1$ARCH-\\2/g" )
     ORIG=$(echo "$PKG" | sed -e 's/-\([0-9][0-9.]*\)/_\1.orig.tar.gz/g' )
 
     cat <<EOF
@@ -90,8 +89,7 @@ pkg_copy_gcc() {
 EOF
 
     mkdir -p $PKG
-    ln -f $COR $PKG/
-    ln -f $CPP $PKG/
+    ln -f $GCC $PKG/
     ln -f $NEWLIB $PKG/
     tar czf $ORIG $PKG
     rsync -aq --exclude=.svn $(dirname $0)/gcc/ $PKG/debian

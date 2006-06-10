@@ -3,7 +3,7 @@ Section: devel
 Priority: extra
 Maintainer: Francisco Moya <francisco.moya@uclm.es>
 Standards-Version: 3.5.3
-Build-Depends: m4, autoconf (>= 2.13), libtool, gawk, bzip2, binutils-arm-rtems4.7 (>= 2.16.1), bison, flex, gettext, texinfo, zlib1g-dev, debhelper (>= 4.2.10), tar (>= 1.13.18), automake1.9, dbs (>=0.22)
+Build-Depends: m4, autoconf (>= 2.13), libtool, gawk, bzip2, binutils-arm-rtems4.7 (>= 2.16.1), bison, flex, gettext, texinfo, zlib1g-dev, debhelper (>= 4.2.10), tar (>= 1.13.18), automake1.9, cdbs, patchutils
 Build-Conflicts: libgcc0, libgcc300
 
 Package: gcc-arm-rtems4.7
