@@ -1,0 +1,117 @@
+$ mpsim -c2
+
+             SystemC 2.0.1 --- May 23 2006 23:08:51
+        Copyright (c) 1996-2002 by all Contributors
+                    ALL RIGHTS RESERVED
+Uploaded Program Binary: TargetMem_1.mem
+Uploaded Program Binary: TargetMem_2.mem
+Processor 0 - ---Test: getting CPU ID and total---
+        Processor 1 - ---Test: getting CPU ID and total---
+Processor 0 - This is processor (ID from 1 onwards): 1
+        Processor 1 - This is processor (ID from 1 onwards): 2
+Processor 0 - Number of system processors: 2
+        Processor 1 - Number of system processors: 2
+Processor 0 - ---DONE---
+        Processor 1 - ---DONE---
+
+
+
+
+Processor 0 - ---Test: marking end of boot---
+        Processor 1 - ---Test: marking end of boot---
+Processor 0 - Just before boot @     2380.0
+        Processor 1 - Just before boot @     2430.0
+Processor 0 - Just after boot  @     2610.0
+        Processor 1 - Just after boot  @     2660.0
+Processor 0 - ---DONE---
+        Processor 1 - ---DONE---
+
+
+
+
+Processor 0 - ---Test: printing debug messages in various formats---
+Processor 0 - Test print decimal (10 should appear):          10
+        Processor 1 - ---Test: printing debug messages in various formats---
+        Processor 1 - Test print decimal (10 should appear):          10
+Processor 0 - Test print hex     (0x0000000a should appear):  0x0000000a
+        Processor 1 - Test print hex     (0x0000000a should appear):  0x0000000a
+Processor 0 - Test print char    (z should appear):           z
+Processor 0 - ---DONE---
+        Processor 1 - Test print char    (z should appear):           z
+        Processor 1 - ---DONE---
+
+
+
+
+Processor 0 - ---Test: getting argc/argv---
+        Processor 1 - ---Test: getting argc/argv---
+Processor 0 - argc value 0
+        Processor 1 - argc value 0
+Processor 0 - ---DONE---
+
+        Processor 1 - ---DONE---
+
+
+
+Processor 0 - ---Test: getting simulation time and cycle---
+        Processor 1 - ---Test: getting simulation time and cycle---
+Processor 0 - time low 4720
+        Processor 1 - time low 4770
+Processor 0 - time high 0
+        Processor 1 - time high 0
+Processor 0 - cycle low 971
+        Processor 1 - cycle low 981
+Processor 0 - cycle high 0
+        Processor 1 - cycle high 0
+Processor 0 - ---DONE---
+        Processor 1 - ---DONE---
+
+
+
+Processor 0 - ---Test: accessing semaphores---
+
+        Processor 1 - ---Test: accessing semaphores---
+        Processor 1 - ---DONE---
+
+
+        Processor 1 - ---Test: accessing shared memory---
+        Processor 1 - ---DONE---
+
+
+        Processor 1 - ---Test: starting and stopping statistics collection---
+        Processor 1 - Just before statistics start
+        Processor 1 starts measuring
+        Processor 1 - Statistics running
+        Processor 1 stops measuring
+        Processor 1 - Just after statistics stop
+        Processor 1 - ---DONE---
+
+
+        Processor 1 - ---SHUTTING DOWN---
+        Processor 1 shuts down
+        Processor 1 - ERROR in shutdown!
+Processor 0 - ---DONE---
+
+
+Processor 0 - ---Test: accessing shared memory---
+Processor 0 - ---DONE---
+
+
+Processor 0 - ---Test: starting and stopping statistics collection---
+Processor 0 - Just before statistics start
+Processor 0 starts measuring
+Processor 0 - Statistics running
+Processor 0 stops measuring
+Processor 0 - Just after statistics stop
+Processor 0 - ---DONE---
+
+
+Processor 0 - ---SHUTTING DOWN---
+Processor 0 shuts down
+
+
+Simulation ended
+
+
+SystemC: simulation stopped by user.
+

@@ -1,0 +1,8 @@
+The well known Hello World example without any OS.
+
+Note that the boot.s code is extremely simplistic. It does not 
+enable interrupts nor it does provide support for C++ constructors
+and destructors. It just calls main.
+
+Text output is done via special memory mapped device provided by the
+simulator. See mpsim.h for more information.

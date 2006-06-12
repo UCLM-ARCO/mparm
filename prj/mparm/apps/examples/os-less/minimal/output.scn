@@ -1,0 +1,18 @@
+$ mpsim -c2
+
+             SystemC 2.0.1 --- May 23 2006 23:08:51
+        Copyright (c) 1996-2002 by all Contributors
+                    ALL RIGHTS RESERVED
+Uploaded Program Binary: TargetMem_1.mem
+Uploaded Program Binary: TargetMem_2.mem
+Processor 0 - Hello, World!
+        Processor 1 - Hello, World!
+Processor 0 shuts down
+        Processor 1 shuts down
+
+
+Simulation ended
+
+
+SystemC: simulation stopped by user.
+

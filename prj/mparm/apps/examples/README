@@ -1,0 +1,23 @@
+This directory is meant to include complete fully functional examples
+for several mpsim setups.  
+
+Please, try to minimize the external dependencies of these examples.  
+They are meant to work out of the box by just checking out the individual 
+example directory.
+
+os-less:
+	These examples do not assume any special dependency. Just
+	the mpsim simulator and any suitable toolchain. Please, edit
+	the Makefile on each example to configure your particular 
+	toolchain (CROSS variable).
+
+rtems:
+	These examples assume you have an mpsim enabled version of
+	RTEMS. Today (2006-06-12) the only supported version is
+	RTEMS 4.6.0pre3 with the MPARM patches. Please, edit the
+	Makefile accordingly to set up the RTEMS_MAKEFILE_PATH variable.
+
+uclinux:
+	These examples assume you have an mpsim enabled version of
+	uClinux (e.g. vendor SWARM, product SWARM).
+

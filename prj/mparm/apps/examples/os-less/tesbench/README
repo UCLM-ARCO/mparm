@@ -1,0 +1,7 @@
+This is a collection of tests for the MPARM platform. These are not
+complete yet. Some test snippets are currently commented out because
+they depend on enabling specific mpsim features in the command line.
+
+This will gradually be decomposed into individual yes/no test cases
+automatically selected from the mpsim provided features.
+
