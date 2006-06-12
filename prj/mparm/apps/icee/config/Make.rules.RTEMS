@@ -1,0 +1,34 @@
+ifndef RTEMS_MAKEFILE_PATH
+  RTEMS_MAKEFILE_PATH := /usr/lib/rtems4.6/arm-rtems/arm_bare_bsp
+endif
+
+include $(RTEMS_MAKEFILE_PATH)/Makefile.inc
+include $(RTEMS_CUSTOM)
+
+USE_SPARC_ASM		= irrelevant
+MACHINE			= $(RTEMS_CPU)
+
+OPT_FLAGS		=
+ifeq ($(OPTIMIZE_SPEED),yes)
+  OPT_FLAGS		= -O3
+endif
+ifeq ($(OPTIMIZE_SIZE),yes)
+  OPT_FLAGS		= -Os
+endif
+
+CXXFLAGS		+= -ftemplate-depth-128 -Wall -D_REENTRANT \
+			   -DNDEBUG -I$(RTEMS_MAKEFILE_PATH)/lib/include \
+			   -Dsocklen_t=int -msoft-float -march=armv4
+CXXLIBS			=
+STATICLIBS		= yes
+
+BASELIBS		= -lpthread 
+LIBS			= -lIceE $(BASELIBS)
+MINLIBS			= -lIceEC $(BASELIBS)
+
+ICEUTIL_OS_LIBS		= 
+PLATFORM_HAS_READLINE	= no
+
+export LD_LIBRARY_PATH	:= $(libdir):$(LD_LIBRARY_PATH)
+mkshlib			:= $(shell echo Shared libs NOT supported on RTEMS) 
+mklib			= ar cr $(1) $(2)
