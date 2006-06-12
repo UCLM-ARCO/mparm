@@ -1,0 +1,35 @@
+$ mpsim -c1 -d
+
+
+
+******INITIALIZATION OF RTEMS ON SWARM (Poletti Francesco)******
+
+work_space_start = 0x00037400
+work_space_size = 0x0000D400
+irq_stack_size = 0x3C00
+heap address = 0x44800
+heap_size = 0x300000
+
+USER DEFINES
+
+microseconds_per_tick = 0x186A0
+ticks_per_timeslice = 0x32
+maximum_devices = 0x14
+number_of_device_drivers = 0x1
+device_driver_table = 0x34420
+Initialized console on port COM1 38400-8-N-1
+
+
+Console-Open device: 0
+Console-Open device: 0
+Console-Open device: 0
+Initialize driver dma
+
+
+*** HELLO WORLD TEST ***
+Hello World
+*** END OF HELLO WORLD TEST ***
+
+
+EXECUTIVE SHUTDOWN!
+
