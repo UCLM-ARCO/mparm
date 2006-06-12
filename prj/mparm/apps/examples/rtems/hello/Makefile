@@ -1,25 +1,10 @@
 RTEMS_MAKEFILE_PATH=/usr/lib/rtems4.6/arm-rtems/arm_bare_bsp
 
-EXEC=hello.exe
-PGM=${ARCH}/$(EXEC)
+EXE=hello.exe
 MANAGERS=io
 
-H_FILES=system.h
-
-CSRCS = init.c
-COBJS_ = $(CSRCS:.c=.o)
-COBJS = $(COBJS_:%=%)
-
-CXXSRCS =
-CXXOBJS_ = $(CXXSRCS:.cpp=.o)
-CXXOBJS = $(CXXOBJS_:%=%)
-
-ASSRCS =
-ASOBJS_ = $(ASSRCS:.s=.o)
-ASOBJS = $(ASOBJS_:%=%)
-
-# Libraries
-LIBS = -lrtemsall -lc
+CSRCS = hello.c
+COBJS = $(CSRCS:.c=.o)
 
 include $(RTEMS_MAKEFILE_PATH)/Makefile.inc
 include $(RTEMS_CUSTOM)
@@ -28,12 +13,12 @@ include $(PROJECT_ROOT)/make/leaf.cfg
 SRCS=$(H_FILES)
 OBJS= $(COBJS) $(CXXOBJS) $(ASOBJS)
 
-CLEAN_ADDITIONS = *.txt *.mem *~
+CLEAN_ADDITIONS = *.txt *.mem *~ *.exe $(EXE:.exe=)
 
-all:    ${ARCH} $(SRCS) $(PGM) 
-	ln -sf $(PGM) TargetMem_1.mem
-	ln -sf $(PGM) TargetMem_2.mem
+all: $(EXE) 
+	ln -sf $< TargetMem_1.mem
+	ln -sf $< TargetMem_2.mem
 
-$(PGM): $(OBJS) 
+%.exe: %.o
 	$(make-exe)
 
