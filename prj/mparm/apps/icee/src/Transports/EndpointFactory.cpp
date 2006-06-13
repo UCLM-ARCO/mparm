@@ -11,7 +11,9 @@
 #include <IceE/UnknownEndpoint.h>
 #include <IceE/LocalException.h>
 #include <IceE/BasicStream.h>
-#include <Transports/TcpEndpoint.h>
+#if ICEE_ENABLE_TCP
+# include <Transports/TcpEndpoint.h>
+#endif
 #include <Transports/QueEndpoint.h>
 
 using namespace std;
@@ -51,11 +53,14 @@ IceInternal::EndpointFactory::create(const std::string& str) const
 
     string protocol = str.substr(beg, end - beg);
 
+#if ICEE_ENABLE_TCP
     if(protocol == "default" || protocol == "tcp")
     {
 	return new TcpEndpoint(_instance, str.substr(end));
     }
-    else if(protocol == "que")
+    else 
+#endif
+    if(protocol == "que")
     {
 	return new QueEndpoint(_instance, str.substr(end));
     }
@@ -69,11 +74,14 @@ IceInternal::EndpointFactory::read(BasicStream* s) const
     Short type;
     s->read(type);
 
+#if ICEE_ENABLE_TCP
     if(type == TcpEndpointType)
     {
         return new TcpEndpoint(s);
     }
-    else if(type == QueEndpointType)
+    else 
+#endif
+    if(type == QueEndpointType)
     {
         return new QueEndpoint(s);
     }

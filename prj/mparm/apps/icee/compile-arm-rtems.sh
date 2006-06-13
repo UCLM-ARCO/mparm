@@ -1,1 +1,1 @@
-make CXX=arm-rtems-gcc UNAME=RTEMS
+make UNAME=RTEMS

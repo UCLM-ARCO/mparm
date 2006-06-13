@@ -11,6 +11,7 @@
 #include <IceE/Communicator.h>
 #include <IceE/Properties.h>
 #include <IceE/LocalException.h>
+#include <mpsim.h>
 
 using namespace std;
 using namespace Ice;
@@ -19,9 +20,12 @@ using namespace IceInternal;
 StringSeq
 Ice::argsToStringSeq(int argc, char* argv[])
 {
+    pr("Instantiate StrSeq with these args...", 0x0, PR_CPU_ID | PR_STRING | PR_NEWL);
     StringSeq result;
+
     for(int i = 0; i < argc; i++)
     {
+        pr(argv[i], 0x0, PR_CPU_ID | PR_STRING | PR_NEWL);
         result.push_back(argv[i]);
     }
     return result;
@@ -63,12 +67,14 @@ Ice::stringSeqToArgs(const StringSeq& args, int& argc, char* argv[])
 PropertiesPtr
 Ice::createProperties()
 {
+    pr("New properties...", 0x0, PR_CPU_ID | PR_STRING | PR_NEWL);
     return new Properties();
 }
 
 PropertiesPtr
 Ice::createProperties(StringSeq& args)
 {
+    pr("New properties...", 0x0, PR_CPU_ID | PR_STRING | PR_NEWL);
     return new Properties(args);
 }
 
@@ -116,8 +122,12 @@ Ice::getDefaultProperties(StringSeq& args)
 PropertiesPtr
 Ice::getDefaultProperties(int& argc, char* argv[])
 {
+    pr("args -> strSeq...", 0x0, PR_CPU_ID | PR_STRING | PR_NEWL);
     StringSeq args = argsToStringSeq(argc, argv);
+
     PropertiesPtr properties = getDefaultProperties(args);
+
+    pr("strSeq -> args...", 0x0, PR_CPU_ID | PR_STRING | PR_NEWL);
     stringSeqToArgs(args, argc, argv);
     return properties;
 }
@@ -125,6 +135,7 @@ Ice::getDefaultProperties(int& argc, char* argv[])
 CommunicatorPtr
 Ice::initialize(int& argc, char* argv[], Int version)
 {
+    pr("Get dfl properties...", 0x0, PR_CPU_ID | PR_STRING | PR_NEWL);
     PropertiesPtr properties = getDefaultProperties(argc, argv);
     return initializeWithProperties(argc, argv, properties, version);
 }
@@ -150,11 +161,19 @@ Ice::initializeWithProperties(int& argc, char* argv[], const PropertiesPtr& prop
     }
 #endif
 
+    pr("args -> strSeq...", 0x0, PR_CPU_ID | PR_STRING | PR_NEWL);
     StringSeq args = argsToStringSeq(argc, argv);
+
+    pr("Parse opts...", 0x0, PR_CPU_ID | PR_STRING | PR_NEWL);
     args = properties->parseIceCommandLineOptions(args);
+
+    pr("strSeq -> args...", 0x0, PR_CPU_ID | PR_STRING | PR_NEWL);
     stringSeqToArgs(args, argc, argv);
 
+    pr("New communicator...", 0x0, PR_CPU_ID | PR_STRING | PR_NEWL);
     CommunicatorPtr communicator = new Communicator(properties);
+
+    pr("finish Setup...", 0x0, PR_CPU_ID | PR_STRING | PR_NEWL);
     communicator->finishSetup(argc, argv);
     return communicator;
 }

@@ -1,4 +1,4 @@
-KERNEL_SWARM=kernel/uclinux-2.4-swarm-large
+KERNEL_SWARM=kernel/uclinux-2.4-swarm
 KERNEL_GDB=kernel/uclinux-2.4-armulator
 
 ROMFS_BASE = bin etc
