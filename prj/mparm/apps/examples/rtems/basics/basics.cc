@@ -5,6 +5,15 @@
 
 using namespace std;
 
+struct B {
+  B() {
+    pr("B ctor...", 0, PR_CPU_ID | PR_STRING | PR_NEWL);
+  }
+  ~B() {
+    pr("B dtor...", 0, PR_CPU_ID | PR_STRING | PR_NEWL);
+  }
+};
+
 struct A {
   A(int i): _i(i) {
     pr("A ctor...", _i, PR_CPU_ID | PR_STRING | PR_DEC | PR_NEWL);
@@ -13,9 +22,11 @@ struct A {
     pr("A dtor...", _i, PR_CPU_ID | PR_STRING | PR_DEC | PR_NEWL);
   }
   int _i;
+  static B b;
 };
 
-A inBss(1);
+A global(1);
+B A::b;
 
 int
 main()

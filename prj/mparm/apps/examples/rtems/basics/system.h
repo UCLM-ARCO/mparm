@@ -14,7 +14,7 @@ static inline rtems_task Init(rtems_task_argument);
 
 extern int main();
 
-#ifndef CORRECT_GCC_BEHAVIOR
+#ifndef CORRECT_INITFINI
 
 #if 1
 
@@ -24,37 +24,40 @@ extern int main();
   also.
 */
 
-typedef void (*voidfn)(void);
+extern "C" {
 
-static inline void
-_init()
-{
-  extern voidfn ___CTOR_LIST__[];
-  extern voidfn ___CTOR_END__[];
-  for (voidfn* ptr = ___CTOR_END__ - 1; ptr != ___CTOR_LIST__; --ptr) {
-    if (*ptr == 0 || *ptr == (voidfn)-1)
-      continue;
+  typedef void (*voidfn)(void);
+
+  static inline void
+  _init()
+  {
+    extern voidfn ___CTOR_LIST__[];
+    extern voidfn ___CTOR_END__[];
+    for (voidfn* ptr = ___CTOR_END__ - 1; ptr != ___CTOR_LIST__; --ptr) {
+      if (*ptr == 0 || *ptr == (voidfn)-1)
+	continue;
 #ifndef NDEBUG
-    pr("Global ctor at", (unsigned)*ptr,
-       PR_CPU_ID | PR_STRING | PR_HEX | PR_NEWL);
+      pr("Global ctor at", (unsigned)*ptr,
+	 PR_CPU_ID | PR_STRING | PR_HEX | PR_NEWL);
 #endif
-    (*ptr)();
+      (*ptr)();
+    }
   }
-}
 
-static inline void
-_fini()
-{
-  extern voidfn ___DTOR_LIST__[];
-  extern voidfn ___DTOR_END__[];
-  for (voidfn* ptr = ___DTOR_LIST__ + 1; ptr != ___DTOR_END__; ++ptr) {
-    if (*ptr == 0 || *ptr == (voidfn)-1)
-      continue;
+  static inline void
+  _fini()
+  {
+    extern voidfn ___DTOR_LIST__[];
+    extern voidfn ___DTOR_END__[];
+    for (voidfn* ptr = ___DTOR_LIST__ + 1; ptr != ___DTOR_END__; ++ptr) {
+      if (*ptr == 0 || *ptr == (voidfn)-1)
+	continue;
 #ifndef NDEBUG
-    pr("Global dtor at", (unsigned)*ptr,
-       PR_CPU_ID | PR_STRING | PR_HEX | PR_NEWL);
+      pr("Global dtor at", (unsigned)*ptr,
+	 PR_CPU_ID | PR_STRING | PR_HEX | PR_NEWL);
 #endif
-    (*ptr)();
+      (*ptr)();
+    }
   }
 }
 

@@ -6,20 +6,21 @@ MANAGERS=io msg signal event region partition
 CXXSRCS = basics.cc
 CXXOBJS = $(CXXSRCS:.cc=.o)
 
+all: $(EXE) 
+	ln -sf $< TargetMem_1.mem
+	ln -sf $< TargetMem_2.mem
+
+
 include $(RTEMS_MAKEFILE_PATH)/Makefile.inc
 include $(RTEMS_CUSTOM)
 include $(PROJECT_ROOT)/make/leaf.cfg
 
 SRCS=$(H_FILES)
-OBJS= $(COBJS) $(CXXOBJS) $(ASOBJS) crtend.o crti.o crtn.o
+OBJS= $(COBJS) $(CXXOBJS) $(ASOBJS)
 
 CLEAN_ADDITIONS = *.txt *.mem *~ *.exe $(EXE:.exe=)
 
 LINK_LIBS=-lstdc++
-
-all: $(EXE) 
-	ln -sf $< TargetMem_1.mem
-	ln -sf $< TargetMem_2.mem
 
 %.exe: %.o
 	$(LINK.cc) -qnolinkcmds -Tlinkcmds -o $(basename $@)\
