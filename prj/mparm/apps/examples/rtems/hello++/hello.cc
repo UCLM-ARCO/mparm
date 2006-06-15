@@ -17,6 +17,7 @@ public:
   }
 };
 
+
 rtems_task Init(rtems_task_argument ignored)
 {
   Hello app;

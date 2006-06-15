@@ -15,16 +15,15 @@ include $(RTEMS_MAKEFILE_PATH)/Makefile.inc
 include $(RTEMS_CUSTOM)
 include $(PROJECT_ROOT)/make/leaf.cfg
 
+GCCSPECS=-B. -specs bsp_specs -B$(PROJECT_RELEASE)/lib/ -T linkcmds
+
 SRCS=$(H_FILES)
 OBJS= $(COBJS) $(CXXOBJS) $(ASOBJS)
 
 CLEAN_ADDITIONS = *.txt *.mem *~ *.exe $(EXE:.exe=)
 
-LINK_LIBS=-lstdc++
-
 %.exe: %.o
-	$(LINK.cc) -qnolinkcmds -Tlinkcmds -o $(basename $@)\
-		$(LINK_OBJS) $(LINK_LIBS) 
+	$(LINK.cc) -o $(basename $@) $(LINK_OBJS) $(LINK_LIBS) -lrtems++
 	$(SIZE) $(basename $@)
 	$(OBJCOPY) -O binary $(basename $@) $(basename $@).exe	    
 
