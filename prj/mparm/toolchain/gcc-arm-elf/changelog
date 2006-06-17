@@ -1,20 +1,8 @@
-gcc-arm-rtems (1:4.1.1-1) unstable; urgency=low
-
-  * New upstream release.
-
- -- Francisco Moya <francisco.moya@uclm.es>  Sat, 10 Jun 2006 09:57:45 +0200
-
-gcc-arm-rtems (1:4.1.0-1) unstable; urgency=low
-
-  * New upstream release.
-
- -- Francisco Moya <francisco.moya@uclm.es>  Thu, 20 Apr 2006 20:06:26 +0200
-
-gcc-arm-rtems (1:4.0.3-1) unstable; urgency=low
+gcc-arm-elf (1:4.1.1-1) unstable; urgency=low
 
   * Initial Release.
 
- -- Francisco Moya <francisco.moya@uclm.es>  Sun, 16 Apr 2006 00:29:10 +0200
+ -- Francisco Moya <francisco.moya@uclm.es>  Sat, 17 Jun 2006 23:29:00 +0200
 
 Local variables:
 mode: debian-changelog

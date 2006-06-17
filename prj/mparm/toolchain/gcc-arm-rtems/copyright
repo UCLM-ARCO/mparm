@@ -1,5 +1,5 @@
-This is a debian pakcage of the GNU gcc compiler compiled as an avr
-crosscompiler. This package was downloaded from:
+This is a debian pakcage of the GNU gcc compiler compiled as an ARM
+crosscompiler for RTEMS. This package was downloaded from:
 
   ftp://ftp.funet.fi/pub/gnu/prep/gcc/gcc-4.1.1/
 
