@@ -1,14 +1,8 @@
-binutils-arm-rtems (2.16.91-1) unstable; urgency=low
-
-  * New upstream release
-
- -- Francisco Moya <francisco.moya@uclm.es>  Sat, 10 Jun 2006 10:32:23 +0200
-
-binutils-arm-rtems (2.16.1-1) unstable; urgency=low
+binutils-arm-elf (2.16.1-1) unstable; urgency=low
 
   * New upstream release (derived from binutils-avr)
 
- -- Francisco Moya <francisco.moya@uclm.es>  Sat, 15 Apr 2006 18:36:56 +0200
+ -- Francisco Moya <francisco.moya@uclm.es>  Sat, 17 Jun 2006 21:48:08 +0200
 
 Local variables:
 mode: debian-changelog

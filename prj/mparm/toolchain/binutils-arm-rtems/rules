@@ -1,6 +1,6 @@
 #!/usr/bin/make -f
 
-TARGET := arm-rtems4.7
+TARGET := arm-rtems
 
 DEB_BUILD_OPTIONS := nocheck
 DEB_TAR_SRCDIR := binutils-2.16.91.0.7

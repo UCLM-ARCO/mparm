@@ -1,6 +1,6 @@
 This is a debian pakcage of the GNU assembler, linker, and binary 
 utilities compiled for cross development for the ARM processor on
-RTEMS.
+ELF platforms.
 
 It is created from a cvs snapshot downloaded from:
 
