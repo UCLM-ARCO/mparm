@@ -48,7 +48,7 @@ EOF
 
 pkg_copy() {
     if test ! -e $1 ; then return ; fi
-    echo "Copying $1 ... "
+    echo "Copying $* ... "
     
     BASE=$(basename "$1" \
 	| sed -e 's|\.tar\.bz2||' -e 's|\.tar\.gz||'  -e 's|\.tbz||'  -e 's|\.tgz||' )
@@ -65,7 +65,7 @@ pkg_copy() {
 EOF
 
     mkdir -p $DEST
-    ln -f $1 $DEST/
+    ln -f "$@" $DEST/
     tar czf $ORIG $DEST
     rsync -aq --exclude=.svn $(dirname $0)/${PKG}${ARCH}/ $DEST/debian
 }
@@ -105,9 +105,9 @@ extract() {
 		rm -rf $(ls -1 |grep -- "-[0-9][0-9.]*")
 		rm -f *.orig.tar.gz *.deb *.dsc *.changes *.build *.diff.gz *~ */*~
 		;;
-	    *binutils-*) pkg_copy "$i" ;;
+	    *binutils-*) pkg_copy "$i" $(dirname "$i")/elf2flt*gz ;;
 	    *rtems-*)    ARCH=${V} pkg_copy "$i" ;;
-	    *gcc-*)      pkg_copy_gcc "$i" ;;
+	    *gcc-*)      pkg_copy "$i" $(dirname "$i")/newlib*gz ;;
 	    *.tar.bz2)   pkg_extract "$i" ;;
 	    *.tar.gz)    pkg_extract "$i" ;;
 	    *) echo "Unknown file format: $i" 1>&2 ;;

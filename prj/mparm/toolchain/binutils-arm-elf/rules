@@ -13,7 +13,18 @@ include /usr/share/cdbs/1/class/autotools.mk
 DEB_CONFIGURE_EXTRA_FLAGS := --target=$(TARGET) --host=$(DEB_HOST_GNU_TYPE) \
 	--disable-nls --enable-multilib --disable-werror --with-float=soft
 
+build/binutils-$(TARGET)::
+	cd build-tree/elf2flt && ./configure --target=$(TARGET) \
+		--prefix=/usr \
+		--with-libiberty=../$(DEB_TAR_SRCDIR)/libiberty/libiberty.a \
+		--with-libbfd=../$(DEB_TAR_SRCDIR)/bfd/libbfd.a \
+		--with-bfd-include-dir=../$(DEB_TAR_SRCDIR)/bfd \
+		--with-binutils-include-dir=../$(DEB_TAR_SRCDIR)/include \
+	&& $(MAKE)
+
 binary-install/binutils-$(TARGET)::
+	$(MAKE) -C build-tree/elf2flt install \
+		DESTDIR=$(CURDIR)/debian/binutils-$(TARGET)
 	$(RM) debian/binutils-$(TARGET)/usr/lib/*.a
 	$(RM) -r debian/binutils-$(TARGET)/usr/share/info
 	$(RM) -r debian/binutils-$(TARGET)/usr/share/locale
