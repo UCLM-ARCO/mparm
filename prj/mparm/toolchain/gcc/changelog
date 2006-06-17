@@ -1,22 +1,16 @@
-gcc-mparm (1:4.1.1-1) unstable; urgency=low
-
-  * Multi target implementation (also new name).
-
- -- Francisco Moya <francisco.moya@uclm.es>  Sat, 17 Jun 2006 17:02:57 +0200
-
-gcc-mparm (1:4.1.1-1) unstable; urgency=low
+gcc-arm-rtems (1:4.1.1-1) unstable; urgency=low
 
   * New upstream release.
 
  -- Francisco Moya <francisco.moya@uclm.es>  Sat, 10 Jun 2006 09:57:45 +0200
 
-gcc-mparm (1:4.1.0-1) unstable; urgency=low
+gcc-arm-rtems (1:4.1.0-1) unstable; urgency=low
 
   * New upstream release.
 
  -- Francisco Moya <francisco.moya@uclm.es>  Thu, 20 Apr 2006 20:06:26 +0200
 
-gcc-mparm (1:4.0.3-1) unstable; urgency=low
+gcc-arm-rtems (1:4.0.3-1) unstable; urgency=low
 
   * Initial Release.
 
