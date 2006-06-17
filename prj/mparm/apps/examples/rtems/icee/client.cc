@@ -1,7 +1,3 @@
-#define CONFIGURE_INIT
-#undef NDEBUG
-#include "system.h"
-#define NDEBUG
 #include "Application.h"
 #include "MyObj.h"
 #include <stdio.h>

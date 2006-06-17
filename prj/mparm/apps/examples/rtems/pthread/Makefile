@@ -6,12 +6,19 @@ MANAGERS=io
 CXXSRCS = threads.cc compat.cc
 CXXOBJS = $(CXXSRCS:.cc=.o)
 
+all: $(EXE)
+	ln -sf $< TargetMem_1.mem
+	ln -sf $< TargetMem_2.mem
+
+
 include $(RTEMS_MAKEFILE_PATH)/Makefile.inc
 include $(RTEMS_CUSTOM)
 include $(PROJECT_ROOT)/make/leaf.cfg
 
-LINK_OBJS+= $(COBJS) $(CXXOBJS) $(ASOBJS)
-LINK_LIBS+=
+GCCSPECS=-B. -specs bsp_specs -B$(PROJECT_RELEASE)/lib/ -T linkcmds
+
+SRCS=$(H_FILES)
+OBJS= $(COBJS) $(CXXOBJS) $(ASOBJS)
 
 LDFLAGS += -L../../../icee/lib
 CXXFLAGS += -ftemplate-depth-128 -Wall -D_REENTRANT \
@@ -26,8 +33,7 @@ all: $(EXE)
 	ln -sf threads.exe TargetMem_2.mem
 
 %.exe: %.o
-	$(LINK.cc) -qnolinkcmds -Tlinkcmds -D_REENTRANT -o $(basename $@)\
-		$(LINK_OBJS) $(LINK_LIBS) 
+	$(LINK.cc) -o $(basename $@) $(LINK_OBJS) $(LINK_LIBS) -lrtems++
 	$(SIZE) $(basename $@)
 	$(OBJCOPY) -O binary $(basename $@) $(basename $@).exe	    
 

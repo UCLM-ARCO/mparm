@@ -1,6 +1,6 @@
-#define CONFIGURE_INIT
-#include "system.h"
 #include "mpsim.h"
+#include <pthread.h>
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 

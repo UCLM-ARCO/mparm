@@ -3,7 +3,7 @@ RTEMS_MAKEFILE_PATH=/usr/lib/rtems4.6/arm-rtems/arm_bare_bsp
 EXE=basics.exe
 MANAGERS=io msg signal event region partition
 
-CXXSRCS = basics.cc
+CXXSRCS = basics.cc compat.cc
 CXXOBJS = $(CXXSRCS:.cc=.o)
 
 all: $(EXE) 
@@ -27,3 +27,4 @@ CLEAN_ADDITIONS = *.txt *.mem *~ *.exe $(EXE:.exe=)
 	$(SIZE) $(basename $@)
 	$(OBJCOPY) -O binary $(basename $@) $(basename $@).exe	    
 
+basics.exe: basics.o compat.o

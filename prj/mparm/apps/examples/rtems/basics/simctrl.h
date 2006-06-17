@@ -70,6 +70,8 @@
 
 #define MPSIM_FILE_WINDOW_SIZE 0x00004000
 
+static inline void stop_simulation() __attribute__((noreturn));
+
 static inline void start_metric()      { *MPSIM_START_METRIC = 1; }
 static inline void stop_metric()       { *MPSIM_STOP_METRIC = 1;  }
 static inline void time_start(int r)   { *MPSIM_DUMP_TIME_START = r; }

@@ -2,7 +2,7 @@ RTEMS_MAKEFILE_PATH=/usr/lib/rtems4.6/arm-rtems/arm_bare_bsp
 EXE=hello.exe
 MANAGERS=io
 
-CXXSRCS = hello.cc
+CXXSRCS = hello.cc compat.cc
 CXXOBJS = $(CXXSRCS:.cc=.o)
 
 include $(RTEMS_MAKEFILE_PATH)/Makefile.inc
@@ -25,3 +25,4 @@ all: $(EXE)
 	$(SIZE) $(basename $@)
 	$(OBJCOPY) -O binary $(basename $@) $(basename $@).exe	    
 
+hello.exe: hello.o compat.o

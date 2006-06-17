@@ -1,5 +1,3 @@
-#define CONFIGURE_INIT
-#include "system.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -17,8 +15,8 @@ public:
   }
 };
 
-
-rtems_task Init(rtems_task_argument ignored)
+int
+main()
 {
   Hello app;
   app.doHello();

@@ -1,8 +1,6 @@
-/*
-  This file is needed for compliance with libstdc++ interface when
-  using RTEMS 4.6.  This can be safely be removed as soon as RTEMS 4.7
-  is ported to MPSIM.
- */
+#define CONFIGURE_INIT
+#include "system.h"
+
 extern "C" {
   
   void rtems_gxx_mutex_init(void *mutex);
@@ -26,3 +24,4 @@ extern "C" {
     return rtems_gxx_mutex_unlock(mutex);
   }
 }
+

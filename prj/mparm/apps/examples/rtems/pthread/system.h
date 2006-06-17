@@ -1,3 +1,6 @@
+#ifndef SYSTEM_H
+#define SYSTEM_H
+
 #include <bsp.h>
 #include <pthread.h>
 #include <assert.h>
@@ -25,60 +28,12 @@ static inline void* POSIX_Init(void*_argument);
 //#include <rtems/confdefs.h> // RTEMS 4.7
 #include <confdefs.h> // RTEMS 4.6
 
-extern int main();
-
-#ifndef CORRECT_GCC_BEHAVIOR
-
-#ifndef HAS_INITFINI
-
-/*
-  The linker script should be able to properly setup the .init ELF
-  section. Symbols _init and _fini should be provided by the linker
-  also.
-*/
-
-typedef void (*voidfn)(void);
-
-static inline void
-_init()
-{
-  extern voidfn ___CTOR_LIST__[];
-  extern voidfn ___CTOR_END__[];
-  for (voidfn* ptr = ___CTOR_END__ - 1; ptr != ___CTOR_LIST__; --ptr) {
-    if (*ptr == 0 || *ptr == (voidfn)-1)
-      continue;
-#ifndef NDEBUG
-    pr("Global ctor at", (unsigned)*ptr,
-       PR_CPU_ID | PR_STRING | PR_HEX | PR_NEWL);
-#endif
-    (*ptr)();
-  }
-}
-
-static inline void
-_fini()
-{
-  extern voidfn ___DTOR_LIST__[];
-  extern voidfn ___DTOR_END__[];
-  for (voidfn* ptr = ___DTOR_LIST__ + 1; ptr != ___DTOR_END__; ++ptr) {
-    if (*ptr == 0 || *ptr == (voidfn)-1)
-      continue;
-#ifndef NDEBUG
-    pr("Global dtor at", (unsigned)*ptr,
-       PR_CPU_ID | PR_STRING | PR_HEX | PR_NEWL);
-#endif
-    (*ptr)();
-  }
-}
-
-#else
-
 extern "C" {
   void _init (void);
   void _fini (void);
 }
 
-#endif
+extern int main();
 
 static inline void*
 POSIX_Init(void* argument)
@@ -87,13 +42,6 @@ POSIX_Init(void* argument)
   _init();
   int status = main();
   exit(status);
-}
-
-#else
-
-static inline rtems_task
-POSIX_Init(rtems_task_argument argument) {
-  exit(main());
 }
 
 #endif

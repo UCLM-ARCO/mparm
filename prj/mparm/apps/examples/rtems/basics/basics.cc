@@ -1,6 +1,4 @@
-#define CONFIGURE_INIT
 #include "mpsim.h"
-#include "system.h"
 #include <stdio.h>
 
 using namespace std;

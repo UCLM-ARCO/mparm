@@ -1,23 +1,8 @@
-/*  system.h
- *
- *  This include file contains information that is included in every
- *  function in the test set.
- *
- *  COPYRIGHT (c) 1989-1999.
- *  On-Line Applications Research Corporation (OAR).
- *
- *  The license and distribution terms for this file may be
- *  found in the file LICENSE in this distribution or at
- *  http://www.rtems.com/license/LICENSE.
- *
- *  $Id: system.h,v 1.15 2004/04/01 15:16:23 ralf Exp $
- */
-
+#ifndef SYSTEM_H
+#define SYSTEM_H
 #include <rtems.h>
 
-/* functions */
-
-rtems_task Init(rtems_task_argument argument);
+static inline rtems_task Init(rtems_task_argument ignored);
 
 #include <bsp.h> /* for device driver prototypes */
 
@@ -29,3 +14,10 @@ rtems_task Init(rtems_task_argument argument);
 #include <confdefs.h>
 //#include <rtems/confdefs.h>
 
+#ifdef CONFIGURE_INIT
+#include <stdlib.h>
+extern int main();
+static inline rtems_task Init(rtems_task_argument ignored) { exit(main()); }
+#endif
+
+#endif

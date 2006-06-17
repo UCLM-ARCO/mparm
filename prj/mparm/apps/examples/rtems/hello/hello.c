@@ -1,9 +1,8 @@
-#define CONFIGURE_INIT
-#include "system.h"
 #include <stdio.h>
 #include <stdlib.h>
 
-rtems_task Init(rtems_task_argument ignored)
+int
+main()
 {
   printf( "\n\n*** HELLO WORLD TEST ***\n" );
   printf( "Hello World\n" );

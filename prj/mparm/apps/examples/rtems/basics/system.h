@@ -1,6 +1,8 @@
+#ifndef SYSTEM_H
+#define SYSTEM_H
+
 #include <rtems.h>
-#include <stdlib.h>
-#include <bsp.h> /* for device driver prototypes */
+#include <bsp.h>
 
 #define CONFIGURE_APPLICATION_NEEDS_CONSOLE_DRIVER
 #define CONFIGURE_MAXIMUM_TASKS            1
@@ -12,14 +14,14 @@ static inline rtems_task Init(rtems_task_argument);
 #include <confdefs.h>
 //#include <rtems/confdefs.h>
 
-extern int main();
-
-#ifndef CORRECT_INITFINI
+#include <stdlib.h>
 
 extern "C" {
   void _init (void);
   void _fini (void);
 }
+
+extern int main();
 
 static inline rtems_task
 Init(rtems_task_argument argument)
@@ -29,9 +31,5 @@ Init(rtems_task_argument argument)
   int status = main();
   exit(status);
 }
-
-#else
-
-static inline rtems_task Init(rtems_task_argument argument) { exit(main()); }
 
 #endif
