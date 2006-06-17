@@ -1,7 +1,7 @@
 #!/bin/bash
 
 V=4.7
-ARCH=-arm-rtems
+ARCH=-mparm
 
 pkg_extract() {
     if test ! -e $1 ; then return ; fi
