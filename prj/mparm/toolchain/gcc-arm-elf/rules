@@ -15,9 +15,9 @@ include /usr/share/cdbs/1/class/autotools.mk
 DEB_CONFIGURE_SCRIPT_ENV += CFLAGS_FOR_TARGET="-march=armv4 -g -Os" \
 			    CXXFLAGS_FOR_TARGET="-march=armv4 -g -Os"
 DEB_CONFIGURE_EXTRA_FLAGS := --target=$(TARGET) --host=$(DEB_HOST_GNU_TYPE) \
-        --with-newlib --with-system-zlib --disable-nls --disable-shared \
+        --with-newlib --with-system-zlib --disable-nls \
 	--enable-version-specific-runtime-libs --enable-target-optspace \
-	--enable-threads=rtems --disable-multilib \
+	--enable-threads=posix --disable-multilib \
 	--enable-softfloat --disable-fpu --disable-newlib-hw-fp \
 	--with-float=soft --enable-languages=c,c++
 
