@@ -1,7 +1,7 @@
 #!/bin/bash
 
-V=4.7
-ARCH=-mparm
+V=4.6
+ARCH=-arm-rtems
 
 pkg_extract() {
     if test ! -e $1 ; then return ; fi
@@ -43,7 +43,7 @@ EOF
         mv $DIR $DEST
     fi
     tar czf $ORIG $DEST
-    rsync -aq --exclude=.svn $(dirname $0)/$PKG/ $DEST/debian
+    rsync -aq --exclude=.svn $(dirname $0)/${PKG}${ARCH}/ $DEST/debian
 }
 
 pkg_copy() {
@@ -67,12 +67,12 @@ EOF
     mkdir -p $DEST
     ln -f $1 $DEST/
     tar czf $ORIG $DEST
-    rsync -aq --exclude=.svn $(dirname $0)/$PKG/ $DEST/debian
+    rsync -aq --exclude=.svn $(dirname $0)/${PKG}${ARCH}/ $DEST/debian
 }
 
 pkg_copy_gcc() {
     if test ! -e $1 ; then return ; fi
-    echo "Copying gcc files from $1 ... "
+    echo "Copying gcc files from $1 for arch $ARCH... "
 
     GCC="$1"
     NEWLIB=$(ls -1 $(dirname "$1")/newlib* | head -1 )
@@ -92,12 +92,15 @@ EOF
     ln -f $GCC $PKG/
     ln -f $NEWLIB $PKG/
     tar czf $ORIG $PKG
-    rsync -aq --exclude=.svn $(dirname $0)/gcc/ $PKG/debian
+    rsync -aq --exclude=.svn $(dirname $0)/gcc$ARCH/ $PKG/debian
 }
 
 extract() {
     for i in "$@" ; do
 	case "$i" in
+	    -arch=*)
+		ARCH="${i/arch=/}"
+		;;
 	    -clean) 
 		rm -rf $(ls -1 |grep -- "-[0-9][0-9.]*")
 		rm -f *.orig.tar.gz *.deb *.dsc *.changes *.build *.diff.gz *~ */*~

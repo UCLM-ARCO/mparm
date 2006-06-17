@@ -1,0 +1,18 @@
+Source: gcc-arm-rtems
+Section: devel
+Priority: extra
+Maintainer: Francisco Moya <francisco.moya@uclm.es>
+Standards-Version: 3.5.3
+Build-Depends: m4, autoconf (>= 2.13), libtool, gawk, bzip2, binutils-arm-rtems (>= 2.16.1), bison, flex, gettext, texinfo, zlib1g-dev, debhelper (>= 4.2.10), tar (>= 1.13.18), automake1.9, cdbs, patchutils
+Build-Conflicts: libgcc0, libgcc300
+
+Package: gcc-arm-rtems
+Architecture: any
+Section: devel
+Priority: extra
+Depends: ${shlibs:Depends}, binutils-arm-rtems (>= 2.16.1-1)
+Provides: c-compiler-arm-rtems
+Description: The GNU C compiler (cross compiler for ARM over RTEMS)
+ This is the GNU C compiler, a fairly portable optimizing compiler
+ which supports multiple languages.  This package includes support for
+ C and C++.

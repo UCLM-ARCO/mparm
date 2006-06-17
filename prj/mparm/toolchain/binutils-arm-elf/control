@@ -1,0 +1,18 @@
+Source: binutils-arm-rtems
+Section: devel
+Priority: extra
+Maintainer: Francisco Moya <francisco.moya@uclm.es>
+Standards-Version: 3.0.1.1
+Build-Depends: autoconf (>= 2.13), bison, flex, gettext, texinfo, binutils (>= 2.9.5.0.12), gcc (>= 2.95.2-1), debhelper (>= 3), tar (>= 1.13.18), bzip2, cdbs
+
+Package: binutils-arm-rtems
+Section: devel
+Architecture: any
+Priority: extra
+Depends: ${shlibs:Depends} 
+Suggests: binutils (>= ${Source-Version})
+Description: Binary utilities that support ARM/RTEMS targets.
+ The programs in this package are used to manipulate binary and object
+ files that may have been created for ARM architecture.  This package
+ is primarily for ARM developers and cross-compilers and is not needed
+ by normal users or developers.

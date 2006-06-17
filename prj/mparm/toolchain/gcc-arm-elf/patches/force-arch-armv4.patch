@@ -1,0 +1,73 @@
+diff -Nur gcc-4.1.1/Makefile.in gcc-4.1.1/Makefile.in
+--- gcc-4.1.1/Makefile.in	2006-04-04 23:03:05.000000000 +0200
++++ gcc-4.1.1/Makefile.in	2006-06-12 17:03:46.000000000 +0200
+@@ -193,10 +193,10 @@
+ 	AR="$(AR_FOR_TARGET)"; export AR; \
+ 	AS="$(COMPILER_AS_FOR_TARGET)"; export AS; \
+ 	CC="$(CC_FOR_TARGET)"; export CC; \
+-	CFLAGS="$(CFLAGS_FOR_TARGET)"; export CFLAGS; \
++	CFLAGS="-march=armv4 $(CFLAGS_FOR_TARGET)"; export CFLAGS; \
+ 	CONFIG_SHELL="$(SHELL)"; export CONFIG_SHELL; \
+ 	CPPFLAGS="$(CPPFLAGS_FOR_TARGET)"; export CPPFLAGS; \
+-	CXXFLAGS="$(CXXFLAGS_FOR_TARGET)"; export CXXFLAGS; \
++	CXXFLAGS="-march=armv4 $(CXXFLAGS_FOR_TARGET)"; export CXXFLAGS; \
+ 	GCJ="$(GCJ_FOR_TARGET)"; export GCJ; \
+ 	GFORTRAN="$(GFORTRAN_FOR_TARGET)"; export GFORTRAN; \
+ 	DLLTOOL="$(DLLTOOL_FOR_TARGET)"; export DLLTOOL; \
+diff -Nur gcc-4.1.1/libiberty/Makefile.in gcc-4.1.1/libiberty/Makefile.in
+--- gcc-4.1.1/libiberty/Makefile.in	2005-09-26 22:55:10.000000000 +0200
++++ gcc-4.1.1/libiberty/Makefile.in	2006-06-12 17:05:21.000000000 +0200
+@@ -59,7 +59,7 @@
+ AR_FLAGS = rc
+ 
+ CC = @CC@
+-CFLAGS = @CFLAGS@
++CFLAGS = -march=armv4 @CFLAGS@
+ LIBCFLAGS = $(CFLAGS)
+ RANLIB = @RANLIB@
+ MAKEINFO = @MAKEINFO@
+diff -Nur gcc-4.1.1/libssp/Makefile.in gcc-4.1.1/libssp/Makefile.in
+--- gcc-4.1.1/libssp/Makefile.in	2006-02-28 01:29:00.000000000 +0100
++++ gcc-4.1.1/libssp/Makefile.in	2006-06-12 17:06:12.000000000 +0200
+@@ -78,7 +78,7 @@
+ libssp_la_OBJECTS = $(am_libssp_la_OBJECTS)
+ am_libssp_nonshared_la_OBJECTS = libssp_nonshared_la-ssp-local.lo
+ libssp_nonshared_la_OBJECTS = $(am_libssp_nonshared_la_OBJECTS)
+-DEFAULT_INCLUDES = -I. -I$(srcdir) -I.
++DEFAULT_INCLUDES = -I. -I$(srcdir) -I. -march=armv4
+ depcomp = $(SHELL) $(top_srcdir)/../depcomp
+ am__depfiles_maybe = depfiles
+ COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
+diff -Nur gcc-4.1.1/libstdc++-v3/Makefile.in gcc-4.1.1/libstdc++-v3/Makefile.in
+--- gcc-4.1.1/libstdc++-v3/Makefile.in	2006-01-10 18:14:00.000000000 +0100
++++ gcc-4.1.1/libstdc++-v3/Makefile.in	2006-06-12 17:07:06.000000000 +0200
+@@ -106,7 +106,7 @@
+ CCODECVT_CC = @CCODECVT_CC@
+ CCOLLATE_CC = @CCOLLATE_CC@
+ CCTYPE_CC = @CCTYPE_CC@
+-CFLAGS = @CFLAGS@
++CFLAGS = -march=armv4 @CFLAGS@
+ CLOCALE_CC = @CLOCALE_CC@
+ CLOCALE_H = @CLOCALE_H@
+ CLOCALE_INTERNAL_H = @CLOCALE_INTERNAL_H@
+@@ -122,7 +122,7 @@
+ CTIME_H = @CTIME_H@
+ CXX = @CXX@
+ CXXCPP = @CXXCPP@
+-CXXFLAGS = @CXXFLAGS@
++CXXFLAGS = -march=armv4 @CXXFLAGS@
+ CYGPATH_W = @CYGPATH_W@
+ C_INCLUDE_DIR = @C_INCLUDE_DIR@
+ DEBUG_FLAGS = @DEBUG_FLAGS@
+diff -Nur ../../newlib-1.14.0/newlib/Makefile.in ../../newlib-1.14.0/newlib/Makefile.in
+--- ../../newlib-1.14.0/newlib/Makefile.in	2005-09-09 00:45:49.000000000 +0200
++++ ../../newlib-1.14.0/newlib/Makefile.in	2006-06-12 17:04:32.000000000 +0200
+@@ -88,7 +88,7 @@
+ MACHINE_OBJECTLIST = @MACHINE_OBJECTLIST@
+ MAINT = @MAINT@
+ MAKEINFO = @MAKEINFO@
+-NEWLIB_CFLAGS = @NEWLIB_CFLAGS@
++NEWLIB_CFLAGS = -march=armv4 @NEWLIB_CFLAGS@
+ OBJDUMP = @OBJDUMP@
+ OBJEXT = @OBJEXT@
+ PACKAGE = @PACKAGE@

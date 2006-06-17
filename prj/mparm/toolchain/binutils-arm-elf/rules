@@ -1,0 +1,20 @@
+#!/usr/bin/make -f
+
+TARGET := arm-rtems4.7
+
+DEB_BUILD_OPTIONS := nocheck
+DEB_TAR_SRCDIR := binutils-2.16.91.0.7
+
+include /usr/share/cdbs/1/rules/simple-patchsys.mk
+include /usr/share/cdbs/1/rules/tarball.mk
+include /usr/share/cdbs/1/rules/debhelper.mk
+include /usr/share/cdbs/1/class/autotools.mk
+
+DEB_CONFIGURE_EXTRA_FLAGS := --target=$(TARGET) --host=$(DEB_HOST_GNU_TYPE) \
+	--disable-nls --enable-multilib --disable-werror --with-float=soft
+
+binary-install/binutils-$(TARGET)::
+	$(RM) debian/binutils-$(TARGET)/usr/lib/*.a
+	$(RM) -r debian/binutils-$(TARGET)/usr/share/info
+	$(RM) -r debian/binutils-$(TARGET)/usr/share/locale
+	$(RM) -r debian/binutils-$(TARGET)/usr/share/man

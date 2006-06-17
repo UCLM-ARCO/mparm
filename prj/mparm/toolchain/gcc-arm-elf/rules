@@ -1,0 +1,35 @@
+#!/usr/bin/make -f
+
+TARGET := arm-rtems
+VER := 4.1.1
+DEB_TAR_SRCDIR := gcc-$(VER)
+
+DEB_BUILD_OPTIONS := nocheck nostrip
+export DEB_BUILD_OPTIONS
+
+include /usr/share/cdbs/1/rules/simple-patchsys.mk
+include /usr/share/cdbs/1/rules/tarball.mk
+include /usr/share/cdbs/1/rules/debhelper.mk
+include /usr/share/cdbs/1/class/autotools.mk
+
+DEB_CONFIGURE_SCRIPT_ENV += CFLAGS_FOR_TARGET="-march=armv4 -g -Os" \
+			    CXXFLAGS_FOR_TARGET="-march=armv4 -g -Os"
+DEB_CONFIGURE_EXTRA_FLAGS := --target=$(TARGET) --host=$(DEB_HOST_GNU_TYPE) \
+        --with-newlib --with-system-zlib --disable-nls --disable-shared \
+	--enable-version-specific-runtime-libs --enable-target-optspace \
+	--enable-threads=rtems --disable-multilib \
+	--enable-softfloat --disable-fpu --disable-newlib-hw-fp \
+	--with-float=soft --enable-languages=c,c++
+
+binary-install/gcc-$(TARGET)::
+	$(RM) -r debian/gcc-$(TARGET)/usr/share/info
+	$(RM) -r debian/gcc-$(TARGET)/usr/share/locale
+	$(RM) -r debian/gcc-$(TARGET)/usr/share/man
+	mv debian/gcc-$(TARGET)/usr/lib/*.a \
+	   debian/gcc-$(TARGET)/usr/$(TARGET)/lib/
+
+pre-build::
+	$(RM) -r build-tree/$(DEB_TAR_SRCDIR)/newlib
+	cd build-tree/$(DEB_TAR_SRCDIR) && ln -sf ../newlib*/newlib .
+	cd build-tree/$(DEB_TAR_SRCDIR) && ln -sf ../newlib*/libgloss .
+
