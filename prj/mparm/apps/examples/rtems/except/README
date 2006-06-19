@@ -1,0 +1,5 @@
+This example shows the basic setup of global C++ constructors and
+destructors in action.  There are horrible hacks (see system.h, and
+bsp_specs) to make them work on RTEMS 4.6 for MPARM.
+
+Most of them will be unnecessary when RTEMS 4.7 is ready for MPARM.

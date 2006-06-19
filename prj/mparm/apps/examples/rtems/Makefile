@@ -1,4 +1,4 @@
-SUBDIRS= hello hello++ basics pthread icee
+SUBDIRS= $(shell find . -maxdepth 1 -type d -a ! -name .\* )
 
 all:
 	for i in $(SUBDIRS) ; do $(MAKE) -C $$i ; done
