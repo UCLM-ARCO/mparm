@@ -1,0 +1,10 @@
+This example shows the basic setup of global C++ constructors and
+destructors in action.
+
+uClinux toolchains are an entire mess. This example is known to run well on
+arm-elf-tools-20040427.sh from Samsung.
+
+http://opensrc.sec.samsung.com/Getting_Familiar_with_uClinuxARM2_6.html
+
+Please, note that it uses HW-FP, therefore you need the FP emulator.
+
