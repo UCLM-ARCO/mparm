@@ -3,7 +3,7 @@ RTEMS_MAKEFILE_PATH=/usr/lib/rtems4.6/arm-rtems/arm_bare_bsp
 EXE=alloc.exe
 MANAGERS=io
 
-CSRCS = alloc.c
+CSRCS = alloc.c compat.c
 COBJS = $(CSRCS:.c=.o)
 
 include $(RTEMS_MAKEFILE_PATH)/Makefile.inc
@@ -22,3 +22,4 @@ all: $(EXE)
 %.exe: %.o
 	$(make-exe)
 
+alloc.exe: alloc.o compat.o

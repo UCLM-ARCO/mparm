@@ -1,0 +1,28 @@
+The following set of examples have been tested with GCC 4.1.1 and
+binutils 2.16.91.7 compiled as coded in
+
+svn+ssh://repo-arco.mine.nu/var/svn/mparm/prj/mparm/toolchain/
+
+hello:
+	This is the basic Hello World example.
+
+hello++:
+	C++ version of the Hello World example. It uses constructors
+	and destructors but it doesn't use 
+
+basics:
+	Some very basic C++ tests for global constructors, normal
+	constructors, operator new and delete
+
+except:
+	Basic C++ exception propagation.
+
+alloc:
+	Allocation tests. Uses malloc/free for all the available memory.
+
+pthread:
+	Pthreads test.
+
+icee:
+	Small IceE application.
+

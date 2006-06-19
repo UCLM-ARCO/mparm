@@ -1,5 +1,3 @@
-#define CONFIGURE_INIT
-#include "system.h"
 #include "mpsim.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -43,11 +41,4 @@ main()
       free(chunks[k]);
   }
   stop_metric();
-
-  exit(0);
-}
-
-rtems_task Init(rtems_task_argument ignored)
-{
-  main();
 }
