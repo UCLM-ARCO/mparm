@@ -1,0 +1,40 @@
+As of 2006/06/21 current ss_semaphores.h makes a few assumptions that
+are a bit optimistic:
+
+- They assume a single task may be blocked on a given semaphore.  This
+  is too restrictive, specially for multi-threaded applications.  It
+  is way too common to implement at least a two worker threads scheme.
+  While one thread is processing data the other is waiting for new data.
+
+- The task waiting for the semaphore is resumed as soon as the
+  semaphore interrupts the processor core.  The semantics of this
+  operation will actually depend on the scheduler implementation.  If
+  a resumed task is given the CPU inmediately then it may be a cause
+  of starvation.
+
+Both problems are actually easier (and I believe more efficient too)
+to avoid than it is to implement this semantics.
+
+A task blocked on a semaphore just needs to yield the CPU (using
+sleep(0), pthread_yield, or whatever the underlying OS provides).
+There is no need to keep a table since the OS (or the thread
+scheduler) already maintain such a table.
+
+When the interrupt arrives there is no need to search for the precise
+process, task or thread blocked on each semaphore.  We just need to
+invoke the scheduler (this is automatic in most OSs for every incoming
+interrupt).  The scheduler does not need to give control to the task
+waiting for that semaphore but this is indeed a desirable property for
+two reasons:
+
+- The scheduler should be aware of current tasks priorities.  If you
+  want the CPU as soon as possible you should ask for it, setting the
+  maximum priority.
+
+- There is no need to mask off the IRQ inside the interrupt handler.
+  Therefore you reduce the latency of realtime operations.
+
+From the point of view of the implementation it is even more
+maintainable since the preemptive version is identical to the
+non-preemptive version.  It is also easier to generalize the Que
+library to any supported OS or concurrency framework.
