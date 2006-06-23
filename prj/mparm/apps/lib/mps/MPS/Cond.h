@@ -14,8 +14,21 @@
 // intra-processor syncronization is also required then you should use
 // SCond (not yet ready).
 
+// They consume 3 contiguous semaphores each (plus 2 shared counters
+// in the case of external shared memories).  The user just need to
+// provide the first of these.  The condition variable must be
+// initialized once before it can be used (see init parameter to the
+// constructor).
+
+// This code is heavily based on IceUtil/Cond.h 
+
+// NOTE: timedWaitImpl, timedWaitImpl, and wake should probably be
+// outlined, but using inlined template member functions we get better
+// compatibility with older compilers.
+
 #include <MPS/Mutex.h>
 #include <IceUtil/Time.h>
+#include <MPS/Semaphore.h>
 
 namespace MPS {
 
@@ -65,7 +78,7 @@ namespace MPS {
 	}
 	    
     private:
-	friend template <typename M> class Monitor<M>;
+	friend template <typename M, typename C> class Monitor<M,C>;
 	    
 	BaseCond(const BaseCond&);		// disallow copy ctor
 	void operator=(const BaseCond&);	// disallow assignment operator
@@ -76,8 +89,11 @@ namespace MPS {
 	    _gate.wait();
 	    _blocked++;
 	    _gate.post();
-		
-	    mutex.unlock();
+
+	    typedef typename M::LockState LockState;
+
+	    LockState state;
+	    mutex.unlock(state);
 
 	    _queue.wait();
 	    _internal.lock();
@@ -95,7 +111,7 @@ namespace MPS {
 	    else
 		_internal.unlock();
 
-	    mutex.lock();
+	    mutex.lock(state);
 	}
 
 	template <typename M>
@@ -105,7 +121,10 @@ namespace MPS {
 	    _blocked++;
 	    _gate.post();
 		
-	    mutex.unlock();
+	    typedef typename M::LockState LockState;
+
+	    LockState state;
+	    mutex.unlock(state);
 		
 	    bool rc = _queue.timedWait(timeout);
 
@@ -127,7 +146,7 @@ namespace MPS {
 	    else
 		_internal.unlock();
 
-	    mutex.lock();
+	    mutex.lock(state);
 	    return rc;
 	}
 	    
@@ -168,73 +187,11 @@ namespace MPS {
 	//----------------------------------------------
 	// Condition variables using SHARED MEMORY 
 
-	// The semantics of current shared semaphores does only allow
-	// implementing mutexes. Therefore we need an additional
-	// shared memory counter.
-	
-	// POSIX style semaphores for SHARED MEMORY
-	class Semaphore
-	{
-	public:
-	    Semaphore(unsigned lock, unsigned counter, bool init = false,
-		      long value = 0)
-		: _lock(semaphore_base[lock]), _counter(memory_base[counter])
-	    {
-		if (init) {
-		    _lock = 0;
-		    _counter = value;
-		}
-	    }
-	    
-	    ~Semaphore()
-	    {
-	    }
-
-	    void wait() const
-	    {
-		for(;;) {
-		    Mutex::Lock lock(_mutex);
-		    int value = _counter;
-		    if (value) {
-			_counter = value - 1;
-			break;
-		    }
-		    sleep(0);	// yields the CPU
-		}
-	    }
-
-	    bool timedWait(const Time& t) const
-	    {
-		Time begin = Time::now();
-		for(;;) {
-		    Mutex::Lock lock(_mutex);
-		    int value = _counter;
-		    if (value) {
-			_counter = value - 1;
-			return true;
-		    }
-		    sleep(0);			// yields the CPU
-		    
-		    if (Time::now() - begin > t)
-			return false;		// timeout
-		}
-	    }
-
-	    void post(int inc = 1) const
-	    {
-		Mutex::Lock lock(_mutex);
-		_counter = _counter + inc;
-	    }
-
-	private:
-	    Mutex _mutex;
-	    mutable volatile int& _counter;
-	};
-
 	typedef typename MPS::BaseCond<Semaphore, Mutex> BaseCond;
 
 	// The actual Condition Variable class for SHARED MEMORY
-	class Cond : public BaseCond {
+	class Cond : public BaseCond
+	{
 	public:
 	    Cond(unsigned locks, unsigned counters, bool init = false)
 		: _gate(locks, counters, init, 1),
@@ -257,57 +214,11 @@ namespace MPS {
 	//----------------------------------------------
 	// Condition variables using SCRATCH MEMORY 
 
-	// The semantics of scratch semaphores fits quite nicely in
-	// the POSIX style implementation.  Therefore they are far
-	// more efficient than SHARED MEMORY semaphores.
-
-	// POSIX style semaphores for SCRATCH MEMORY
-	class Semaphore
-	{
-	public:
-	    Semaphore(unsigned core, unsigned id,
-		      bool init = false, long value = 0)
-		: _semaphore(semaphore_base(core)[id])
-	    {
-		if (init)
-		    _semaphore = value + 1;
-	    }
-	    
-	    ~Semaphore()
-	    {
-	    }
-
-	    void wait() const
-	    {
-		while (!_semaphore)
-		    sleep(0);			// yields the CPU
-	    }
-
-	    bool timedWait(const Time& t) const
-	    {
-		Time begin = Time::now();
-		while (!_semaphore) {
-		    sleep(0);			// yields the CPU
-		    if (Time::now() - begin > t)
-			return false;		// timeout
-		}
-		return true;
-	    }
-
-	    void post(int inc = 1) const
-	    {
-		_semaphore = 0;
-	    }
-
-	private:
-	    Mutex _mutex;
-	    mutable volatile int& _counter;
-	};
-
 	typedef typename MPS::BaseCond<Semaphore, Mutex> BaseCond;
 
 	// The actual Condition Variable class for SCRATCH MEMORY
-	class Cond : public BaseCond {
+	class Cond : public BaseCond
+	{
 	public:
 	    Cond(unsigned core, unsigned semaphores, bool init = false)
 		: _gate(core, semaphores, init, 1),

@@ -1,10 +1,51 @@
+SEMAPHORE SEMANTICS
+
+As of 2006/06/20 external shared memory semaphores have different
+semantics than scratchpad memories semaphores.  Both have strenghts
+and weakneses:
+
+- Shared memory semaphores are meant to be used as locks. They do not
+  increment or decrement. They can be used to store any value but it
+  would be pretty useless.  The semantics is as follows:
+
+  * Read: Writes 1 if there was a 0. Returns the previous value.
+
+  * Write: Simply writes whatever value into the semaphore.
+
+  The implementation of standard Dikjstra semaphores require a shared
+  memory counter and one of these semaphores as a lock.  Wait and
+  signal operations require both at least 2 reads and 1 write.
+
+  On the positive side locks implemented with these semaphores do not
+  need to be initialized.
+
+- Scratchpad memory semaphores implement the full semantics of a
+  Dikjstra semaphore and provide the aditional ability to interrupt
+  their parent core.  The semantics is as follows:
+
+  * Read: If (data != 0) decrement; else suspend_flag = 1.
+	  Returns the previous value.
+
+  * Write: If (data == 0) increment; else writes data - 1.
+	   If suspend_flag interrupt_core, suspend_flag = 0.
+    
+  If they are used for the implementation of standard locks, they must
+  be initialized to 1 by writing a 2. This may be inconvenient since
+  it would require initialization-free barriers. Current practice
+  seems to be busy-waiting for a specific magic value on certain
+  shared memory location.
+
+
+PREEMPTIVE SEMAPHORES
+
 As of 2006/06/21 current ss_semaphores.h makes a few assumptions that
 are a bit optimistic:
 
 - They assume a single task may be blocked on a given semaphore.  This
   is too restrictive, specially for multi-threaded applications.  It
   is way too common to implement at least a two worker threads scheme.
-  While one thread is processing data the other is waiting for new data.
+  While one thread is processing data the other is waiting for new
+  data. This scheme improves latencies even on a single processor.
 
 - The task waiting for the semaphore is resumed as soon as the
   semaphore interrupts the processor core.  The semantics of this
@@ -23,13 +64,13 @@ scheduler) already maintain such a table.
 When the interrupt arrives there is no need to search for the precise
 process, task or thread blocked on each semaphore.  We just need to
 invoke the scheduler (this is automatic in most OSs for every incoming
-interrupt).  The scheduler does not need to give control to the task
-waiting for that semaphore but this is indeed a desirable property for
-two reasons:
+interrupt) and signal foreign cores somehow.  The scheduler does not
+need to give control to the task waiting for that semaphore but this
+is indeed a desirable property for two reasons:
 
 - The scheduler should be aware of current tasks priorities.  If you
   want the CPU as soon as possible you should ask for it, setting the
-  maximum priority.
+  maximum priority or even busy-waiting for the signaling condition.
 
 - There is no need to mask off the IRQ inside the interrupt handler.
   Therefore you reduce the latency of realtime operations.

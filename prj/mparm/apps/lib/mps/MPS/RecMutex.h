@@ -25,7 +25,6 @@ namespace MPS {
 	// Recursive mutexes using SHARED MEMORY 
     
 	class Cond;	// See Cond.h
-	class SCond;
 
 	// Non thread-shareable mutex (to be instantiated on each thread)
 	class RecMutex
@@ -33,10 +32,10 @@ namespace MPS {
 	    friend class Cond;
 
 	public:
-	    typedef LockT<RecMutex> Lock;
-	    typedef TryLockT<RecMutex> TryLock;
+	    typedef IceUtil::LockT<RecMutex> Lock;
+	    typedef IceUtil::TryLockT<RecMutex> TryLock;
 
-	    RecMutex(unsigned id) : _semaphore(semaphore_base[id]), count(0)
+	    RecMutex(unsigned id) : _semaphore(semaphore_base[id]), _count(0)
 	    {
 	    }
 	
@@ -76,84 +75,23 @@ namespace MPS {
 	    void operator=(const RecMutex&);	// disallow assignment operator
 
 	    struct LockState {
-		volatile int* semaphore;
 		int count;
 	    };
 
 	    void unlock(LockState& state) const {
-		state.semaphore = &_semaphore;
 		state.count = _count;
+		_count = 0;
+		_semaphore = 0;
 	    }
 	
 	    void lock(LockState& state) const {
+		while(_semaphore)
+		    sleep(0);	// yields the CPU
+		_count = state.count;
 	    }
 
 	    mutable volatile int& _semaphore;
 	    mutable int _count;
-	};
-
-	// Thread-shareable mutex (to be instantiated on each thread)
-	class SRecMutex : public IceUtil::RecMutex
-	{
-	    friend class SCond;
-
-	public:
-	    typedef LockT<RecMutex> Lock;
-	    typedef TryLockT<RecMutex> TryLock;
-
-	    RecMutex(unsigned id) : _semaphore(semaphore_base[id])
-	    {
-	    }
-	
-	    ~RecMutex() {
-	    }
-
-	    void lock() const {
-		if (IceUtil::RecMutex::tryLock()) {
-		    while(_semaphore)
-			sleep(0);	// yields the CPU
-		}
-	    }
-
-	    bool tryLock() const {
-		if (!IceUtil::RecMutex::tryLock())
-		    return false;
-		else if (!_semaphore)
-		    return true;	// lock acquired
-		else {
-		    IceUtil::RecMutex::unlock();
-		    return false;	// already locked
-		}
-	    }
-
-	    void unlock() const {
-		_semaphore = 0;
-		IceUtil::RecMutex::unlock();
-	    }
-
-	    bool willUnlock() const {
-		return IceUtil::RecMutex::willUnlock();
-	    }
-
-	private:
-	    RecMutex(const RecMutex&);		// disallow copy ctor
-	    void operator=(const RecMutex&);	// disallow assignment operator
-
-	    struct LockState {
-		volatile int* semaphore;
-		IceUtil::RecMutex::LockState parent;
-	    };
-
-	    void unlock(LockState& state) const {
-		state.semaphore = &_semaphore;
-		IceUtil::RecMutex::unlock(state.parent);
-	    }
-	
-	    void lock(LockState& state) const {
-		IceUtil::RecMutex::lock(state.parent);
-	    }
-
-	    mutable volatile int& _semaphore;
 	};
 
     }
@@ -164,7 +102,6 @@ namespace MPS {
 	// Recursive mutexes using SCRATCH MEMORY 
     
 	class Cond;	// See Cond.h
-	class SCond;
 
 	// Non thread-shareable mutex (to be instantiated on each thread)
 	class RecMutex
@@ -172,11 +109,11 @@ namespace MPS {
 	    friend class Cond;
 
 	public:
-	    typedef LockT<RecMutex> Lock;
-	    typedef TryLockT<RecMutex> TryLock;
+	    typedef IceUtil::LockT<RecMutex> Lock;
+	    typedef IceUtil::TryLockT<RecMutex> TryLock;
 
 	    RecMutex(unsigned core, unsigned id, bool init = false)
-		: _semaphore(semaphore_base(core)[id]), count(0)
+		: _semaphore(semaphore_base(core)[id]), _count(0)
 	    {
 		if (init)
 		    _semaphore = 2;	// init to 1 (unlocked)
@@ -218,87 +155,23 @@ namespace MPS {
 	    void operator=(const RecMutex&);	// disallow assignment operator
 
 	    struct LockState {
-		volatile int* semaphore;
 		int count;
 	    };
 
 	    void unlock(LockState& state) const {
-		state.semaphore = &_semaphore;
 		state.count = _count;
+		_count = 0;
+		_semaphore = 0;
 	    }
 	
 	    void lock(LockState& state) const {
+		while(_semaphore)
+		    sleep(0);	// yields the CPU
+		_count = state.count;
 	    }
 
 	    mutable volatile int& _semaphore;
 	    mutable int _count;
-	};
-
-	// Thread-shareable mutex (to be instantiated on each thread)
-	class SRecMutex : public IceUtil::RecMutex
-	{
-	    friend class SCond;
-
-	public:
-	    typedef LockT<RecMutex> Lock;
-	    typedef TryLockT<RecMutex> TryLock;
-
-	    RecMutex(unsigned core, unsigned id, bool init = false)
-		: _semaphore(semaphore_base(core)[id])
-	    {
-		if (init)
-		    _semaphore = 2;	// init to 1 (unlocked)
-	    }
-	
-	    ~RecMutex() {
-	    }
-
-	    void lock() const {
-		if (IceUtil::RecMutex::tryLock()) {
-		    while(!_semaphore)
-			sleep(0);	// yields the CPU
-		}
-	    }
-
-	    bool tryLock() const {
-		if (!IceUtil::RecMutex::tryLock())
-		    return false;
-		else if (_semaphore)
-		    return true;	// lock acquired
-		else {
-		    IceUtil::RecMutex::unlock();
-		    return false;	// already locked
-		}
-	    }
-
-	    void unlock() const {
-		_semaphore = 0;
-		IceUtil::RecMutex::unlock();
-	    }
-
-	    bool willUnlock() const {
-		return IceUtil::RecMutex::willUnlock();
-	    }
-
-	private:
-	    RecMutex(const RecMutex&);		// disallow copy ctor
-	    void operator=(const RecMutex&);	// disallow assignment operator
-
-	    struct LockState {
-		volatile int* semaphore;
-		IceUtil::RecMutex::LockState parent;
-	    };
-
-	    void unlock(LockState& state) const {
-		state.semaphore = &_semaphore;
-		IceUtil::RecMutex::unlock(state.parent);
-	    }
-	
-	    void lock(LockState& state) const {
-		IceUtil::RecMutex::lock(state.parent);
-	    }
-
-	    mutable volatile int& _semaphore;
 	};
 
     }

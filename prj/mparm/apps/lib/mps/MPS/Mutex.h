@@ -71,6 +71,18 @@ namespace MPS {
 	    Mutex(const Mutex&);		// disallow copy ctor
 	    void operator=(const Mutex&);	// disallow assignment operator
 
+	    struct LockState {};
+	    
+	    void unlock(LockState& state) const
+	    {
+		unlock();
+	    }
+	
+	    void lock(LockState& state) const
+	    {
+		lock();
+	    }
+	    
 	    volatile int& _semaphore;
 	};
 

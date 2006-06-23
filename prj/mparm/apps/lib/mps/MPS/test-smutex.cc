@@ -3,7 +3,7 @@
 #include "simctrl.h"
 
 void*
-thread(void* th_id)
+smutex_thread(void* th_id)
 {
   int tid = reinterpret_cast<int>(th_id);
   
@@ -61,10 +61,10 @@ test_smutex()
   int status;
   pthread_t th1, th2;
 
-  status = pthread_create( &th1, 0, thread, (void*)0x10 );
+  status = pthread_create( &th1, 0, smutex_thread, (void*)0x10 );
   assert( !status );
 
-  status = pthread_create( &th2, 0, thread, (void*)0x20 );
+  status = pthread_create( &th2, 0, smutex_thread, (void*)0x20 );
   assert( !status );
 
   pthread_join(th1, 0);

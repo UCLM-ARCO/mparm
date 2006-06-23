@@ -1,6 +1,6 @@
 RTEMS_MAKEFILE_PATH=/usr/lib/rtems4.6/arm-rtems/arm_bare_bsp
 
-EXE= test-smutex.exe test-recmutex.exe test-mutex.exe
+EXE= test-recmutex.exe test-mutex.exe test-smutex.exe
 
 vpath %.cpp ../IceUtil
 
