@@ -1,6 +1,6 @@
 /*****************************************************************************
  * 
- * Copyright (C) 2001 C Hanish Menon [www.hanishkvc.com]
+ * Copyright (C) 2001, 2006 C Hanish Menon [www.hanishkvc.com]
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,7 +51,7 @@ class CUARTCtrl
 {
   // Constuctors and destructor
  public:
-  CUARTCtrl(const char *armname);
+  CUARTCtrl(const char *armname, const char *port);
   ~CUARTCtrl();
 
  public:
@@ -63,7 +63,7 @@ class CUARTCtrl
   int masterpty, slavepty;
   int bRxBufferFree;
 	
-  int GetPty();
+  int GetPty(const char* port);
   const char *name;
 };
 

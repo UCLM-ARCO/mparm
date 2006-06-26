@@ -110,7 +110,7 @@ class Mem_class
     
 ///////////////////////////////////////////////////////////////////////////////
 // Writes data to the memory.
-    virtual void Mem_class::Write(uint32_t addr, uint32_t data, uint8_t bw = MEM_WORD)
+    virtual void Write(uint32_t addr, uint32_t data, uint8_t bw = MEM_WORD)
     {
      addr = addressing(addr);
 

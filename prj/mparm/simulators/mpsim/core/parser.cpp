@@ -15,6 +15,7 @@
 #include <systemc.h>
 #include "globals.h"
 #include "config.h"
+#include "cfg_table.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
@@ -1104,6 +1105,8 @@ PLL_DELAY = NULL;
   extern int optind, opterr, optopt;
   static struct option long_options[] = {
                                           {"help",         0, 0,  'h'},
+                                          {"dump-cfg",     0, 0,  9000},
+                                          {"dump-cfg-hdr", 0, 0,  9001},
                                           {"ds",           1, 0,  301},
                                           {"is",           1, 0,  302},
                                           {"us",           1, 0,  303},
@@ -1146,6 +1149,12 @@ PLL_DELAY = NULL;
 
     switch (c)
     {
+      case 9000:   // --dump-cfg
+	cfg_table_dump();
+	exit(0);
+      case 9001:   // --dump-cfg-hdr
+	cfg_table_c_dump();
+	exit(0);
       case 301:    // --ds
         temp = atoi(optarg);
         if (temp < LOWER_CACHE_SIZE_BOUND || temp > UPPER_CACHE_SIZE_BOUND)

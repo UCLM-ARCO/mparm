@@ -88,7 +88,7 @@ SC_MODULE(ocpswarm)
   
   SC_HAS_PROCESS(ocpswarm);
 
-  ocpswarm::ocpswarm(sc_module_name nm, unsigned int ID, Mem_class *builderscratch, Mem_class *builderqueue) :
+  ocpswarm(sc_module_name nm, unsigned int ID, Mem_class *builderscratch, Mem_class *builderqueue) :
     sc_module(nm), ID(ID)
   {
     intforw = (int*) calloc(NUMBER_OF_EXT, sizeof(int));

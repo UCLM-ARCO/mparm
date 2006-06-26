@@ -165,9 +165,9 @@ CArmProc::CArmProc(const char *armname, Mem_class *builderscra, Mem_class *build
   m_pOSTimer = new COSTimer(name);
   m_pIntCtrl = new CIntCtrl(name);
   m_pLCDCtrl = new CLCDCtrl();
-  m_pUART0Ctrl = new CUARTCtrl(name);
+  m_pUART0Ctrl = new CUARTCtrl(name, "UART0");
   //Martino
-  m_pUART1Ctrl = new CUARTCtrl(name);
+  m_pUART1Ctrl = new CUARTCtrl(name, "UART1");
 
   m_nCycles = 0;
   m_nCacheHits = 0;
@@ -564,7 +564,7 @@ void CArmProc::Cycle(PINOUT* pinout,int* extint)
 
 			      m_dirtyAddr = (tagRAM << 2) & ~0x0000000F;
 		    
-			      for(int l=0;l < CACHE_LINE; l++) {
+			      for(unsigned l=0;l < CACHE_LINE; l++) {
 				m_cacheLine[l]=dataRAM[l];
 			      }
 		    

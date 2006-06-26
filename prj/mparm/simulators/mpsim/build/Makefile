@@ -15,7 +15,8 @@ CPPSRCS  += address.cpp clock_tree.cpp core_signal.cpp debug.cpp dmacontrol.cpp 
             dual_clock_fifo.cpp dual_clock_pinout_adapter.cpp dual_clock_pinout_master_if.cpp \
             dual_clock_pinout_slave_if.cpp freq_register.cpp globals.cpp main.cpp mem_class.cpp \
             ocp_memory.cpp ocp_slave.cpp ocp_tester.cpp parser.cpp power.cpp read_elf.cpp \
-            reset.cpp smartmem_signal.cpp sim_support.cpp stats.cpp transaction_gen.cpp
+            reset.cpp smartmem_signal.cpp sim_support.cpp stats.cpp transaction_gen.cpp \
+	    cfg_table.cpp
 CSRCS    +=
 CPPOBJS   = $(CPPSRCS:.cpp=.o)
 COBJS     = $(CSRCS:.c=.o)

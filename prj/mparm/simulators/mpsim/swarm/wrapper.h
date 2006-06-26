@@ -35,7 +35,7 @@ SC_MODULE(armsystem)
 
   SC_HAS_PROCESS(armsystem);
 
-  armsystem::armsystem(sc_module_name nm, unsigned int id, Mem_class *builderscratch, Mem_class *builderqueue) :
+  armsystem(sc_module_name nm, unsigned int id, Mem_class *builderscratch, Mem_class *builderqueue) :
     sc_module(nm)
   {
     ID = id;

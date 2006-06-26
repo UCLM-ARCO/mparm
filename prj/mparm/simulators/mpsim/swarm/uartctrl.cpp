@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////////////////////////
 // 
-// Copyright (C) 2001 C Hanish Menon [www.hanishkvc.com]
+// Copyright (C) 2001, 2006 C Hanish Menon [www.hanishkvc.com]
 // 
 // This program is free software; you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -43,7 +43,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 // ~CUARTCtrl - 
 //
-int CUARTCtrl::GetPty()
+int CUARTCtrl::GetPty(const char* port)
 {
 	char *namepty;
 	struct termios tiopty;
@@ -104,13 +104,14 @@ int CUARTCtrl::GetPty()
 		
                 if (SHOWPROMPT)
                 {
-		  printf(MODULE_NAME": Serial device Slave pts [%s]\n", namepty);
-		  char* console = getenv("SWARM_CONSOLE");
+		  char str[1024];
+		  printf(MODULE_NAME": Serial port %s connected to pts [%s]\n", port, namepty);
+		  sprintf(str, "SWARM_%s", port);
+		  char* console = getenv(str);
 		  if (0 != console) {
-		    char cmd[1024];
-		    sprintf(cmd, console, namepty);
-		    printf(MODULE_NAME": Running SWARM_CONSOLE [%s]\n", cmd);
-		    popen(cmd, "w");
+		    sprintf(str, console, name, namepty);
+		    printf(MODULE_NAME": Running [%s]\n", str);
+		    popen(str, "w");
 		  }
 		  else {
 		    printf(MODULE_NAME": Connect to Slave pts if required, and press ENTER key\n");
@@ -124,15 +125,15 @@ int CUARTCtrl::GetPty()
 ///////////////////////////////////////////////////////////////////////////////
 // CUARTCtrl - 
 //
-CUARTCtrl::CUARTCtrl(const char *armname)
+CUARTCtrl::CUARTCtrl(const char *armname, const char *port)
 {
 #ifndef QUIET	
 	printf(MODULE_NAME": In Constructor\n");
 #endif			
-	if(GetPty() < 0)
+	name = armname;
+	if(GetPty(port) < 0)
 		exit(1);
 	bRxBufferFree = 1;
-	name = armname;
 	Reset();
 }
 

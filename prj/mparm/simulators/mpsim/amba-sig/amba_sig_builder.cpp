@@ -68,7 +68,7 @@ void exit_proc(int code) //FIXME
 
 void buildAMBAAHBSigPlatform(int new_argc, char *new_argv[], char *new_envp[])
 {
-  int i,j,k;
+  unsigned i,j,k;
   char buffer[20];
   mast = new sc_signal<request> [N_MASTERS];
   address = new sc_signal<sc_uint<32> > [N_MASTERS];

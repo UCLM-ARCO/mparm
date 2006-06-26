@@ -14,7 +14,6 @@
 
 #ifndef __GLOBALS_H__
 #define __GLOBALS_H__
-#include "config.h"
 #include <string>
 
 #ifndef WIN32
@@ -193,5 +192,7 @@ extern int SNOOPING;
 extern SNOOP_POLICY_TYPE SNOOP_POLICY;
 extern CACHE_WRITE_POLICY_TYPE CACHE_WRITE_POLICY;
 extern unsigned short int DCACHE_DIRTY_BITS;
+
+#include "config.h"
 
 #endif // __GLOBALS_H__

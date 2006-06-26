@@ -25,33 +25,33 @@
 // Platform-specific includes. Don't include files for platforms we're
 // not building (such files may be not redistributable!)
 #ifdef AMBAOCCNBUILD
-  #include "amba_occn_trace.h"
-  #include "amba_occn_builder.h"
+# include "amba_occn_trace.h"
+# include "amba_occn_builder.h"
 #endif
 #ifdef AMBAAHBBUILD
-  #include "amba_ahb_platform.h"
+# include "amba_ahb_platform.h"
 #endif
 #ifdef AMBASIGBUILD
-  #include "amba_sig_trace.h"
-  #include "amba_sig_builder.h"
+# include "amba_sig_trace.h"
+# include "amba_sig_builder.h"
 #endif
 #ifdef AMBAAHBSYNBUILD
-  #include "ahb_shared.h"
-  //#include "ahb_multi_layering.h"
+# include "ahb_shared.h"
+//# include "ahb_multi_layering.h"
 #endif
 #ifdef AMBAAXISYNBUILD
-  #include "axi_syn.h"
+# include "axi_syn.h"
 #endif
 #ifdef STBUSBUILD
-  #include "st_trace.h"
-  #include "st_builder.h"
+# include "st_trace.h"
+# include "st_builder.h"
 #endif
 #ifdef XPIPESBUILD
-  #include "xpipes_platform.h"
+# include "xpipes_platform.h"
 #endif
 #ifdef WITH_POWER_NODE
-  #include "power_stbus_sysc_lib.h"
-  #include <SC_POWER_OBJECT.h>
+# include "power_stbus_sysc_lib.h"
+# include <SC_POWER_OBJECT.h>
 #endif
 
 int sc_main(int argc, char *argv[])

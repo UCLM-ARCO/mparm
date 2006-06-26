@@ -80,18 +80,20 @@ GP_DPHD_4096x32m16 (16 kB) (cycle time = 3.67 ns)
          size == 2048   ? 38.00  :    \
          size == 4096   ? 46.00  :    \
          size == 8192   ? 61.00  :    \
-         size == 16384  ? 83.00  : -1 \
+         size == 16384  ? 83.00  :    \
+				 size >= 32768  ? 120.00 : -1 \
         )
 #define mem_32bit_dualport_write_energy_pJ(size) \
         (                             \
-         size == 128    ? 36.23  :    \
+				 size == 128    ? 36.23  :    \
          size == 256    ? 37.15  :    \
          size == 512    ? 38.39  :    \
          size == 1024   ? 47.00  :    \
          size == 2048   ? 54.00  :    \
          size == 4096   ? 66.00  :    \
          size == 8192   ? 87.00  :    \
-         size == 16384  ? 118.00 : -1 \
+         size == 16384  ? 118.00 : 	  \
+				 size >= 32768  ? 120.00 : -1 \
         )
 
 
@@ -114,7 +116,7 @@ GP_SPHD_1024x128m4     (16 kB) (cycle time = 3.38 ns)
          size == 2048   ? 53.55  :    \
          size == 4096   ? 73.48  :    \
          size == 8192   ? 114.00 :    \
-         size == 16384  ? 130.00 : -1 \
+         size >= 16384  ? 130.00 : -1 \
         )
 #define mem_128bit_singleport_write_energy_pJ(size) \
         (                             \
@@ -125,7 +127,7 @@ GP_SPHD_1024x128m4     (16 kB) (cycle time = 3.38 ns)
          size == 2048   ? 72.99  :    \
          size == 4096   ? 90.24  :    \
          size == 8192   ? 158.00 :    \
-         size == 16384  ? 196.00 : -1 \
+         size >= 16384  ? 196.00 : -1 \
         )
 
 /*
@@ -149,7 +151,7 @@ LP_SPHS_1024x10m4_U   (cycle time = 4.03 ns)
          (rows == 128  && bits == 13) ? 7.06  :    \
          (rows == 256  && bits == 12) ? 9.44  :    \
          (rows == 512  && bits == 11) ? 18.93 :    \
-         (rows == 1024 && bits == 10) ? 47.35 : -1 \
+         (rows == 1024 && bits == 10) ? 47.35 : 50 \
         )
 #define tag_write_energy_pJ(rows, bits)            \
         (                                          \
@@ -161,8 +163,8 @@ LP_SPHS_1024x10m4_U   (cycle time = 4.03 ns)
          (rows == 128  && bits == 13) ? 7.91  :    \
          (rows == 256  && bits == 12) ? 10.66 :    \
          (rows == 512  && bits == 11) ? 26.86 :    \
-         (rows == 1024 && bits == 10) ? 52.94 : -1 \
-        )
+         (rows == 1024 && bits == 10) ? 52.94 : 55 \
+				)
         
 /*
 GP_SPUHD_2048x32m8_L         (8 kB)   (cycle time = 2.90 ns)
@@ -304,6 +306,12 @@ inline float ARMVoltageScaling(unsigned short int divider)
   //FIXME!!! assumes "ns" as the time unit...
   float clock_period = CLOCKPERIOD * divider;
   
+	// Per confrontare il consumo di energia in maniera omogenea con i risulatati di ILOG,
+	// simulo un consumo di energia nullo quando il processore è STALLED
+	if (divider > 10){
+		return 0;
+	}
+	
   // Data taken from:
   // "Dynamic voltage scaling on a low-power microprocessor"
   // Johan Pouwelse, Koen Langendoen, Henk Sips
@@ -405,8 +413,8 @@ double AMBAAHBEnergy(uint bus_ID, AHB_bus_activity monitor, BUS_ENERGY_LEVEL typ
       energy = AMBAHB_EnergyParameter(BASE_TYP, monitor.n_masters, monitor.n_slaves) +
                AMBAHB_EnergyParameter(HT_TYP,  monitor.n_masters, monitor.n_slaves) *
                    (
-                     ((double)((hmaster_count[bus_ID] + (int)monitor.htrans) * (hmaster_count[bus_ID] + (int)monitor.htrans)) / (double)(n_cycles[bus_ID] + 1.0) ) -
-                     ((double)(hmaster_count[bus_ID] * hmaster_count[bus_ID]) / (double)(n_cycles[bus_ID]))
+                     ((double)((hmaster_count[bus_ID] + (int)monitor.htrans) ^ 2) / (double)(n_cycles[bus_ID] + 1.0) ) -
+                     ((double)(hmaster_count[bus_ID] ^ 2) / (double)(n_cycles[bus_ID]))
                    ) +
                AMBAHB_EnergyParameter(HM_TYP,   monitor.n_masters, monitor.n_slaves) * (int)monitor.hmaster +
                AMBAHB_EnergyParameter(HR_TYP,   monitor.n_masters, monitor.n_slaves) * (int)monitor.hready;
@@ -416,8 +424,8 @@ double AMBAAHBEnergy(uint bus_ID, AHB_bus_activity monitor, BUS_ENERGY_LEVEL typ
       energy = AMBAHB_EnergyParameter(BASE_MIN, monitor.n_masters, monitor.n_slaves) +
                AMBAHB_EnergyParameter(HT_MIN,  monitor.n_masters, monitor.n_slaves) *
                    (
-                     ((double)((hmaster_count[bus_ID] + (int)monitor.htrans) * (hmaster_count[bus_ID] + (int)monitor.htrans)) / (double)(n_cycles[bus_ID] + 1.0) ) -
-                     ((double)(hmaster_count[bus_ID] * hmaster_count[bus_ID]) / (double)(n_cycles[bus_ID]))
+                     ((double)((hmaster_count[bus_ID] + (int)monitor.htrans) ^ 2) / (double)(n_cycles[bus_ID] + 1.0) ) -
+                     ((double)(hmaster_count[bus_ID] ^ 2) / (double)(n_cycles[bus_ID]))
                    ) +
                AMBAHB_EnergyParameter(HM_MIN,   monitor.n_masters, monitor.n_slaves) * (int)monitor.hmaster +
                AMBAHB_EnergyParameter(HR_MIN,   monitor.n_masters, monitor.n_slaves) * (int)monitor.hready;

@@ -831,7 +831,7 @@ void Statistics::InspectCacheAccess(uint32_t addr, bool reading, CACHETYPE type,
 void Statistics::inspectSWARMAccess(uint32_t addr, PPROC mode, bool hit, bool di, uint ID)
 {
   short int slave;
-  uint8_t rangeid;
+  uint8_t rangeid = 0;
   bool stall = false, is_ext_read = false, is_ext_write = false;
   
   //if (sc_simulation_time() - prev_time[ID] != 5.0 && sc_simulation_time() > 20.0)

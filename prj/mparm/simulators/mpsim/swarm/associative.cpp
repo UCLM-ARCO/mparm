@@ -224,7 +224,7 @@ void CAssociativeCache::WriteLine(uint32_t addr, uint32_t* pLine)
   
   m_pTagCAM[m_pLastAccess] = tag;
   m_pDirtyCAM[m_pLastAccess] = 0x0;
-  for (int j = 0; j < CACHE_LINE; j++)
+  for (unsigned j = 0; j < CACHE_LINE; j++)
     m_pDataRAM[((m_pLastAccess * CACHE_LINE) + j)] = pLine[j];
   
   // last miss is not valid any more because line has been filled

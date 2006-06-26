@@ -196,7 +196,7 @@ void CDirectCache::WriteLine(uint32_t addr, uint32_t* pLine)
 
   m_pTagRAM[tag_sel] = tag;
   m_pDirtyRAM[tag_sel] = 0x0;
-  for (int i = 0; i < CACHE_LINE; i++)
+  for (unsigned i = 0; i < CACHE_LINE; i++)
     m_pDataRAM[(tag_sel << 2) + i] = pLine[i];
 
   if (POWERSTATS)

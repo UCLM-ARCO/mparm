@@ -16,6 +16,8 @@
 #include <systemc.h>
 #include "globals.h"
 
+#define MAX_DIVIDER 6
+										
 SC_MODULE(clock_tree)
 {
   sc_in<bool>                         Clock_in;
@@ -25,8 +27,8 @@ SC_MODULE(clock_tree)
 
   unsigned short int *counter, *divider, *delay, outputs;
   bool *currentvalue;
-  
-  void clock_tree_process();
+  																																				
+	void clock_tree_process();
     
   // Constructor
   SC_CTOR(clock_tree);
@@ -40,7 +42,7 @@ SC_MODULE(clock_tree)
     divider      = new unsigned short int                [outputs];
     delay        = new unsigned short int                [outputs];
     currentvalue = new bool                              [outputs];
-  
+  																															
     SC_METHOD(clock_tree_process);
     sensitive << Clock_in;
   }

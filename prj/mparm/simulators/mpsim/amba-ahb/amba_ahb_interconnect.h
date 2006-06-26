@@ -124,7 +124,7 @@ class amba_ahb_interconnect : public ahb_interconnect_if, public sc_module
                           sc_trace_file *tf,
                           bool tracing);
 
-    void amba_ahb_interconnect::operate();
+    void operate();
 
   private:
     void decode();
