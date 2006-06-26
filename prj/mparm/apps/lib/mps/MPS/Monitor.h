@@ -10,7 +10,7 @@
 
 // This implementation is mostly taken from IceUtil/Monitor.h
 
-#include <IceUtil/Lock.h>
+#include <MPS/Lock.h>
 #include <MPS/Cond.h>
 
 namespace MPS {
@@ -172,7 +172,7 @@ namespace MPS {
 	    Monitor(unsigned core, unsigned semaphores,
 		    unsigned counter, bool init = false)
 		: _cond(core, semaphores, init),
-		  _mutex(core, semaphores+3, init, 1),
+		  _mutex(core, semaphores+3, init),
 		  BaseMonitor(_cond, _mutex, memory_base(core)[counter])
 	    {
 	    }
@@ -183,6 +183,7 @@ namespace MPS {
 	};
 
     }
+
 }
 
 #endif

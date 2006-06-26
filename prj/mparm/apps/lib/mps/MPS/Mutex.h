@@ -15,7 +15,7 @@
 // SMutex.
 
 #include <MPS/Config.h>
-#include <IceUtil/Lock.h>
+#include <MPS/Lock.h>
 
 namespace MPS {
 
@@ -32,8 +32,8 @@ namespace MPS {
 	    friend class Cond;
 
 	public:
-	    typedef IceUtil::LockT<Mutex> Lock;
-	    typedef IceUtil::TryLockT<Mutex> TryLock;
+	    typedef LockT<Mutex> Lock;
+	    typedef TryLockT<Mutex> TryLock;
 
 	    Mutex(unsigned id) : _semaphore(semaphore_base[id])
 	    {
@@ -101,8 +101,8 @@ namespace MPS {
 	    friend class Cond;
 
 	public:
-	    typedef IceUtil::LockT<Mutex> Lock;
-	    typedef IceUtil::TryLockT<Mutex> TryLock;
+	    typedef LockT<Mutex> Lock;
+	    typedef TryLockT<Mutex> TryLock;
 
 	    Mutex(unsigned core, unsigned id, bool init = false)
 		: _semaphore(semaphore_base(core)[id])

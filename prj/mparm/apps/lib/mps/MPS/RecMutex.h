@@ -15,7 +15,7 @@
 // use SRecMutex.
 
 #include <MPS/Config.h>
-#include <IceUtil/Lock.h>
+#include <MPS/Lock.h>
 
 namespace MPS {
 
@@ -32,8 +32,8 @@ namespace MPS {
 	    friend class Cond;
 
 	public:
-	    typedef IceUtil::LockT<RecMutex> Lock;
-	    typedef IceUtil::TryLockT<RecMutex> TryLock;
+	    typedef LockT<RecMutex> Lock;
+	    typedef TryLockT<RecMutex> TryLock;
 
 	    RecMutex(unsigned id) : _semaphore(semaphore_base[id]), _count(0)
 	    {
@@ -109,8 +109,8 @@ namespace MPS {
 	    friend class Cond;
 
 	public:
-	    typedef IceUtil::LockT<RecMutex> Lock;
-	    typedef IceUtil::TryLockT<RecMutex> TryLock;
+	    typedef LockT<RecMutex> Lock;
+	    typedef TryLockT<RecMutex> TryLock;
 
 	    RecMutex(unsigned core, unsigned id, bool init = false)
 		: _semaphore(semaphore_base(core)[id]), _count(0)

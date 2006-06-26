@@ -1,5 +1,5 @@
-#ifndef MPS_COND_H
-#define MPS_COND_H
+#ifndef MPS_SEMAPHORE_H
+#define MPS_SEMAPHORE_H
 
 //------------------------------------------------------------------------
 // Semaphore implementation for inter-processor synchronization
