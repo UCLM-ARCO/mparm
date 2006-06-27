@@ -35,6 +35,11 @@ namespace MPS {
 		sleep(0);
 	    }
 
+	    bool willUnlock() const
+	    {
+		return true;	// non-recursive mutexes will always unlock
+	    }
+	    
 	private:
 	    MutexState(const MutexState&);	// disallow copy ctor
 	    void operator=(const MutexState&);	// disallow assignment operator
@@ -142,7 +147,7 @@ namespace MPS {
 	//-----------------------------------------------
 	// Non-recursive mutexes using SCRATCH MEMORY 
 
-	typedef typename MPS::Mutex<MutexState> BaseMutex;
+	typedef typename MPS::BaseMutex<MutexState> BaseMutex;
 	
 	class Mutex: public BaseMutex
 	{
@@ -164,7 +169,7 @@ namespace MPS {
 	//----------------------------------------------
 	// Spin mutexes do not yield the CPU 
     
-	typedef typename MPS::Mutex<SpinMutexState> BaseSpinMutex;
+	typedef typename MPS::BaseMutex<SpinMutexState> BaseSpinMutex;
 	
 	class SpinMutex: public BaseSpinMutex
 	{
@@ -188,7 +193,7 @@ namespace MPS {
 	// traffic in the bus.  An unlock of a mutex generates remote
 	// notifications to all subscribed cores.
 
-	typedef typename MPS::Mutex<LocalMutexState> BaseLocalMutex;
+	typedef typename MPS::BaseMutex<LocalMutexState> BaseLocalMutex;
 	
 	class LocalMutex: public BaseLocalMutex {
 	public:

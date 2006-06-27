@@ -22,11 +22,16 @@ namespace MPS {
 		_semaphore = 0;
 	    }
 
+	    bool willUnlock() const
+	    {
+		return true;	// non-recursive mutexes will always unlock
+	    }
+
 	    void yield() const
 	    {
 		sleep(0);
 	    }
-
+	    
 	private:
 	    MutexState(const MutexState&);	// disallow copy ctor
 	    void operator=(const MutexState&);	// disallow assignment operator
@@ -46,7 +51,7 @@ namespace MPS {
 	//----------------------------------------------
 	// Non-recursive mutexes using SHARED MEMORY 
     
-	typedef typename MPS::Mutex<MutexState> BaseMutex;
+	typedef typename MPS::BaseMutex<MutexState> BaseMutex;
 
 	class Mutex : public BaseMutex
 	{
@@ -66,7 +71,7 @@ namespace MPS {
 	//----------------------------------------------
 	// Spin mutexes do not yield the CPU 
     
-	typedef typename MPS::Mutex<SpinMutexState> BaseSpinMutex;
+	typedef typename MPS::BaseMutex<SpinMutexState> BaseSpinMutex;
 
 	class SpinMutex : public BaseSpinMutex
 	{

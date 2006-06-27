@@ -30,10 +30,6 @@ namespace MPS {
 	{
 	}
 
-	~BaseMutex()
-	{
-	}
-
 	void lock() const
 	{
 	    while(!_state.tryLock())
@@ -52,7 +48,7 @@ namespace MPS {
 
 	bool willUnlock() const
 	{
-	    return true;	// non-recursive mutexes will always unlock
+	    return _state.willUnlock();
 	}
 
     private:

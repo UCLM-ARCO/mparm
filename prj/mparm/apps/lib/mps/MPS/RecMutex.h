@@ -10,167 +10,76 @@
 // Please see core/ext_mem.h and core/scratch_mem.h for information on
 // the precise semantics.
 
-#include <MPS/Config.h>
-#include <MPS/Lock.h>
-
 namespace MPS {
 
-    namespace ShMem {
+    template <class MutexState>
+    class BaseRecMutex
+    {
+	friend class Cond;
 
-	//----------------------------------------------
-	// Recursive mutexes using SHARED MEMORY 
-    
-	class Cond;	// See Cond.h
+    public:
+	typedef LockT<BaseRecMutex<MutexState> > Lock;
+	typedef TryLockT<BaseRecMutex<MutexState> > TryLock;
 
-	// Non thread-shareable mutex (to be instantiated on each thread)
-	class RecMutex
+	BaseRecMutex(MutexState& state)
+	    : _count(0), Mutex<MutexState>(state)
 	{
-	    friend class Cond;
-
-	public:
-	    typedef LockT<RecMutex> Lock;
-	    typedef TryLockT<RecMutex> TryLock;
-
-	    RecMutex(unsigned id) : _semaphore(semaphore_base[id]), _count(0)
-	    {
-	    }
+	}
 	
-	    ~RecMutex() {
+	void lock() const {
+	    if (_count)
+		++_count;
+	    else {
+		while(!_state.tryLock())
+		    _state.yield();
+		_count = 1;
 	    }
+	}
 
-	    void lock() const {
-		if (_count)
-		    ++_count;
-		else {
-		    while(_semaphore)
-			sleep(0);	// yields the CPU
-		    _count = 1;
-		}
+	bool tryLock() const {
+	    if (_state.tryLock()) {
+		_count = 1;
+		return true;	// lock acquired
 	    }
+	    else
+		return false;	// already locked
+	}
 
-	    bool tryLock() const {
-		if (!_semaphore) {
-		    _count = 1;
-		    return true;	// lock acquired
-		}
-		else
-		    return false;	// already locked
-	    }
+	void unlock() const {
+	    if (!--_count)
+		_state.unlock();
+	}
 
-	    void unlock() const {
-		if (!--_count)
-		    _semaphore = 0;
-	    }
+	bool willUnlock() const {
+	    return _count == 1;
+	}
 
-	    bool willUnlock() const {
-		return _count == 1;
-	    }
+    private:
+	BaseRecMutex(const BaseRecMutex&);	// disallow copy ctor
+	void operator=(const BaseRecMutex&);	// disallow assignment operator
 
-	private:
-	    RecMutex(const RecMutex&);		// disallow copy ctor
-	    void operator=(const RecMutex&);	// disallow assignment operator
-
-	    struct LockState {
-		int count;
-	    };
-
-	    void unlock(LockState& state) const {
-		state.count = _count;
-		_count = 0;
-		_semaphore = 0;
-	    }
-	
-	    void lock(LockState& state) const {
-		while(_semaphore)
-		    sleep(0);	// yields the CPU
-		_count = state.count;
-	    }
-
-	    mutable volatile int& _semaphore;
-	    mutable int _count;
+	struct LockState {
+	    int count;
 	};
 
-    }
-
-    namespace ScrMem {
-
-	//----------------------------------------------
-	// Recursive mutexes using SCRATCH MEMORY 
-    
-	class Cond;	// See Cond.h
-
-	// Non thread-shareable mutex (to be instantiated on each thread)
-	class RecMutex
-	{
-	    friend class Cond;
-
-	public:
-	    typedef LockT<RecMutex> Lock;
-	    typedef TryLockT<RecMutex> TryLock;
-
-	    RecMutex(unsigned core, unsigned id, bool init = false)
-		: _semaphore(semaphore_base(core)[id]), _count(0)
-	    {
-		if (init)
-		    _semaphore = 2;	// init to 1 (unlocked)
-	    }
+	void unlock(LockState& state) const {
+	    state.count = _count;
+	    _count = 0;
+	    _state.unlock();
+	}
 	
-	    ~RecMutex() {
-	    }
+	void lock(LockState& state) const {
+	    while(!_state.tryLock())
+		_state.yield();
+	    _count = state.count;
+	}
 
-	    void lock() const {
-		if (_count)
-		    ++_count;
-		else {
-		    while(!_semaphore)
-			sleep(0);	// yields the CPU
-		    _count = 1;
-		}
-	    }
-
-	    bool tryLock() const {
-		if (_semaphore) {
-		    _count = 1;
-		    return true;	// lock acquired
-		}
-		else
-		    return false;	// already locked
-	    }
-
-	    void unlock() const {
-		if (!--_count)
-		    _semaphore = 0;
-	    }
-
-	    bool willUnlock() const {
-		return _count == 1;
-	    }
-
-	private:
-	    RecMutex(const RecMutex&);		// disallow copy ctor
-	    void operator=(const RecMutex&);	// disallow assignment operator
-
-	    struct LockState {
-		int count;
-	    };
-
-	    void unlock(LockState& state) const {
-		state.count = _count;
-		_count = 0;
-		_semaphore = 0;
-	    }
-	
-	    void lock(LockState& state) const {
-		while(_semaphore)
-		    sleep(0);	// yields the CPU
-		_count = state.count;
-	    }
-
-	    mutable volatile int& _semaphore;
-	    mutable int _count;
-	};
-
-    }
-
+	MutexState& _state;
+	mutable int _count;
+    };
 }
+
+# include <MPS/ShMem/RecMutex.h>
+# include <MPS/ScrMem/RecMutex.h>
+
 #endif
