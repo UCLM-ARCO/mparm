@@ -16,130 +16,65 @@
 // higher level synchronization abstractions, and refer to the
 // documentation for hints on proper usage.
 
+# include <MPS/Config.h>
+# include <IceUtil/Time.h>
+
 namespace MPS {
 
-    namespace ShMem {
-
-	//-----------------------------------------------------------
-	// POSIX style semaphores for SHARED MEMORY
-
-	// The semantics of current shared semaphores does only allow
-	// implementing mutexes. Therefore we need an additional
-	// shared memory counter.
-	
-	class Semaphore
+    // Share Time implementation with IceUtil
+    typedef typename IceUtil::Time Time;
+    
+    // Common semaphore behaviour
+    template <class SemaphoreState>
+    class BaseSemaphore
+    {
+    public:
+	BaseSemaphore(SemaphoreState& state) : _state(state)
 	{
-	public:
-	    Semaphore(unsigned lock, unsigned counter, bool init = false,
-		      long value = 0)
-		: _lock(semaphore_base[lock]), _counter(memory_base[counter])
-	    {
-		if (init) {
-		    _lock = 0;
-		    _counter = value;
-		}
-	    }
+	}
 	    
-	    ~Semaphore()
-	    {
-	    }
+	~Semaphore()
+	{
+	}
 
-	    void wait() const
-	    {
-		for(;;) {
-		    Mutex::Lock lock(_mutex);
-		    int value = _counter;
-		    if (value) {
-			_counter = value - 1;
-			break;
-		    }
-		    sleep(0);	// yields the CPU
-		}
+	void wait() const
+	{
+	    for(;;) {
+		if (_state.dec())
+		    break;
+		_state.yield();
 	    }
-
-	    bool timedWait(const Time& t) const
-	    {
-		Time begin = Time::now();
-		for(;;) {
-		    Mutex::Lock lock(_mutex);
-		    int value = _counter;
-		    if (value) {
-			_counter = value - 1;
-			return true;
-		    }
-		    sleep(0);			// yields the CPU
+	}
+	
+	bool timedWait(const Time& t) const
+	{
+	    Time begin = Time::now();
+	    for(;;) {
+		if (_state.dec())
+		    return true;
+		_state.yield();
 		    
-		    if (Time::now() - begin > t)
-			return false;		// timeout
-		}
+		if (Time::now() - begin > t)
+		    return false;		// timeout
 	    }
+	}
 
-	    void post(int inc = 1) const
-	    {
-		Mutex::Lock lock(_mutex);
-		_counter = _counter + inc;
-	    }
-
-	private:
-	    Mutex _mutex;
-	    mutable volatile int& _counter;
-	};
-
-    }
-
-    namespace ScrMem {
-
-	//----------------------------------------------
-	// POSIX style semaphores for SCRATCH MEMORY
-
-	// The semantics of scratch semaphores fits quite nicely in
-	// the POSIX style implementation.  Therefore they are far
-	// more efficient than SHARED MEMORY semaphores.
-
-	class Semaphore
+	void post(int inc = 1) const
 	{
-	public:
-	    Semaphore(unsigned core, unsigned id,
-		      bool init = false, long value = 0)
-		: _semaphore(semaphore_base(core)[id])
-	    {
-		if (init)
-		    _semaphore = value + 1;
-	    }
-	    
-	    ~Semaphore()
-	    {
-	    }
+	    _state.inc(inc);
+	}
 
-	    void wait() const
-	    {
-		while (!_semaphore)
-		    sleep(0);			// yields the CPU
-	    }
+    private:
+	BaseSemaphore(const BaseSemaphore&);	// disallow copy ctor
+	void operator=(const BaseSemaphore&);	// disallow assignment operator
 
-	    bool timedWait(const Time& t) const
-	    {
-		Time begin = Time::now();
-		while (!_semaphore) {
-		    sleep(0);			// yields the CPU
-		    if (Time::now() - begin > t)
-			return false;		// timeout
-		}
-		return true;
-	    }
-
-	    void post(int inc = 1) const
-	    {
-		_semaphore = 0;
-	    }
-
-	private:
-	    Mutex _mutex;
-	    mutable volatile int& _counter;
-	};
-	
-    }
+    private:
+	SemaphoreState& _state;
+    };
     
 }
+
+# include <MPS/ShMem/Semaphore.h>
+# include <MPS/ScrMem/Semaphore.h>
 
 #endif

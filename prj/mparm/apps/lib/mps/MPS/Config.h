@@ -23,14 +23,17 @@ namespace MPS {
 	inline volatile int* const semaphore_base(int core)
 	{
 	    return reinterpret_cast<volatile int* const>
-		(CORESLAVE_BASE + CORESLAVE_SPACING*core + CORESLAVE_SIZE);
+		(CORESLAVE_BASE
+		 + CORESLAVE_SPACING * (core - 1)
+		 + CORESLAVE_SIZE);
 	}
 	
 	// Base address of ScrMem memory
 	inline volatile int* const memory_base(int core)
 	{
 	    return reinterpret_cast<volatile int* const>
-		(CORESLAVE_BASE + CORESLAVE_SPACING*core);
+		(CORESLAVE_BASE
+		 + CORESLAVE_SPACING * (core - 1));
 	}
 	
     }

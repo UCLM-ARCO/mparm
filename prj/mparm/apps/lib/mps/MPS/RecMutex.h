@@ -10,10 +10,6 @@
 // Please see core/ext_mem.h and core/scratch_mem.h for information on
 // the precise semantics.
 
-// RecMutex are meant to be used for inter-processor synchronization.
-// If intra-processor syncronization is also required then you should
-// use SRecMutex.
-
 #include <MPS/Config.h>
 #include <MPS/Lock.h>
 

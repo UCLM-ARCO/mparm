@@ -10,143 +10,74 @@
 // Please see core/ext_mem.h and core/scratch_mem.h for information on
 // the precise semantics.
 
-// Mutex are meant to be used for inter-processor synchronization.  If
-// intra-processor syncronization is also required then you should use
-// SMutex.
-
 #include <MPS/Config.h>
 #include <MPS/Lock.h>
 
 namespace MPS {
 
-    namespace ShMem {
+    class Cond;	// See Cond.h
 
-	//----------------------------------------------
-	// Non-recursive mutexes using SHARED MEMORY 
-    
-	class Cond;	// See Cond.h
+    template <class MutexState>
+    class BaseMutex
+    {
+	friend class Cond;
 
-	// Non thread-shareable mutex (to be instantiated on each thread)
-	class Mutex
+    public:
+	typedef LockT<BaseMutex<MutexState> > Lock;
+	typedef TryLockT<BaseMutex<MutexState> > TryLock;
+
+	BaseMutex(MutexState& state) : _state(state)
 	{
-	    friend class Cond;
+	}
 
-	public:
-	    typedef LockT<Mutex> Lock;
-	    typedef TryLockT<Mutex> TryLock;
+	~BaseMutex()
+	{
+	}
 
-	    Mutex(unsigned id) : _semaphore(semaphore_base[id])
-	    {
-	    }
+	void lock() const
+	{
+	    while(!_state.tryLock())
+		_state.yield();
+	}
 
-	    ~Mutex()
-	    {
-	    }
+	bool tryLock() const
+	{
+	    return _state.tryLock();
+	}
 
-	    void lock() const
-	    {
-		while(_semaphore)
-		    sleep(0);	// yields the CPU
-	    }
+	void unlock() const
+	{
+	    _state.unlock();
+	}
 
-	    bool tryLock() const
-	    {
-		if (!_semaphore)
-		    return true;	// lock acquired
-		else
-		    return false;	// already locked
-	    }
+	bool willUnlock() const
+	{
+	    return true;	// non-recursive mutexes will always unlock
+	}
 
-	    void unlock() const
-	    {
-		_semaphore = 0;
-	    }
+    private:
+	BaseMutex(const BaseMutex&);		// disallow copy ctor
+	void operator=(const BaseMutex&);	// disallow assignment operator
 
-	    bool willUnlock() const
-	    {
-		return true;	// non-recursive mutexes will always unlock
-	    }
-
-	private:
-	    Mutex(const Mutex&);		// disallow copy ctor
-	    void operator=(const Mutex&);	// disallow assignment operator
-
-	    struct LockState {};
+	struct LockState {};
 	    
-	    void unlock(LockState& state) const
-	    {
-		unlock();
-	    }
+	void unlock(LockState& state) const
+	{
+	    unlock();
+	}
 	
-	    void lock(LockState& state) const
-	    {
-		lock();
-	    }
-	    
-	    volatile int& _semaphore;
-	};
-
-    }
-
-    namespace ScrMem {
-
-	//-----------------------------------------------
-	// Non-recursive mutexes using SCRATCH MEMORY 
-
-	class Cond;	// See Cond.h
-
-	// Non thread-shareable mutex (to be instantiated on each thread)
-	class Mutex
+	void lock(LockState& state) const
 	{
-	    friend class Cond;
+	    lock();
+	}
 
-	public:
-	    typedef LockT<Mutex> Lock;
-	    typedef TryLockT<Mutex> TryLock;
-
-	    Mutex(unsigned core, unsigned id, bool init = false)
-		: _semaphore(semaphore_base(core)[id])
-	    {
-		if (init)
-		    _semaphore = 2;	// init to 1 (unlocked)
-	    }
-
-	    ~Mutex()
-	    {
-	    }
-
-	    void lock() const
-	    {
-		while(!_semaphore)
-		    sleep(0);	// yields the CPU
-	    }
-
-	    bool tryLock() const
-	    {
-		if (_semaphore)
-		    return true;	// lock acquired
-		else
-		    return false;	// already locked
-	    }
-
-	    void unlock() const
-	    {
-		_semaphore = 0;		// increment semaphore
-	    }
-
-	    bool willUnlock() const
-	    {
-		return true;	// non-recursive mutexes will always unlock
-	    }
-
-	private:
-	    Mutex(const Mutex&);		// disallow copy ctor
-	    void operator=(const Mutex&);	// disallow assignment operator
-
-	    volatile int& _semaphore;
-	};
-
-    }
+    private:
+	MutexState& _state;
+    };
     
 }
+
+# include <MPS/ShMem/Mutex.h>
+# include <MPS/ScrMem/Mutex.h>
+
 #endif
