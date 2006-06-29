@@ -22,7 +22,7 @@
 namespace MPS {
 
     // Share Time implementation with IceUtil
-    typedef typename IceUtil::Time Time;
+    typedef IceUtil::Time Time;
     
     // Common semaphore behaviour
     template <class SemaphoreState>
@@ -33,7 +33,7 @@ namespace MPS {
 	{
 	}
 	    
-	~Semaphore()
+	~BaseSemaphore()
 	{
 	}
 

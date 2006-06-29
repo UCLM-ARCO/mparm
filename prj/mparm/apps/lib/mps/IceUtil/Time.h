@@ -10,7 +10,7 @@
 #ifndef ICEE_TIME_H
 #define ICEE_TIME_H
 
-#include <IceE/Config.h>
+#include <IceUtil/Config.h>
 
 namespace IceUtil
 {

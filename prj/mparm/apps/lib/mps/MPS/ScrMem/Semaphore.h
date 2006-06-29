@@ -74,23 +74,25 @@ namespace MPS {
 				unsigned notify,   // Addr of subscribers
 				bool init = false, // Set an initial value?
 				long value = 0)    // Initial value
-		: _id(id), _notify(memory_base(get_cpu_id())[notify]),
-		  SemaphoreState(get_cpu_id(), id, init, value)
+		: SemaphoreState(get_proc_id(), id, init, value),
+		  _id(id), _notify(memory_base(get_proc_id())[notify])
 	    {
 	    }
 	    
 	    void inc(int add = 1)
 	    {
 		if (SemaphoreState::dec()) {
-		    SemaphoreState::inc(2);
+		    SemaphoreState::inc(add + 1);
 		}
 		else {  // will unblock, notify all
+		    SemaphoreState::inc(add);
 		    unsigned notify = _notify;
 		    for (int i = 0; i < 32; ++i) {
 			if (notify == 0)
 			    break;
-			if (notify & 1)
+			if (notify & 1) {
 			    semaphore_base(i + 1)[_id] = 2;
+			}
 			notify = notify >> 1;
 		    }
 		}
@@ -100,8 +102,8 @@ namespace MPS {
 	    LocalSemaphoreState(unsigned core,
 				unsigned id,
 				unsigned notify)
-		: _notify(memory_base(core)[notify]),
-		  SemaphoreState(core, id, false)
+		: SemaphoreState(core, id, false),
+		  _id(id), _notify(memory_base(core)[notify])
 	    {
 	    }
 
@@ -117,7 +119,7 @@ namespace MPS {
 
 	private:
 	    unsigned _id;
-	    volatile unsigned int& _notify;
+	    volatile int& _notify;
 	};
 
 	// Local/Remote semaphores cooperate to avoid unneeded polling
@@ -129,24 +131,26 @@ namespace MPS {
 	    RemoteSemaphoreState(unsigned core,
 				 unsigned id,
 				 unsigned notify)
-		: _local(semaphore_base(get_cpu_id())[id]),
-		  _waiting(false),
-		  LocalSemaphoreState(core, id, notify)
+		: LocalSemaphoreState(core, id, notify),
+		  _local(semaphore_base(get_proc_id())[id]),
+		  _waiting(false)
 	    {
 		_local = 1;	// write a 0, initially locked
-		addObserver(get_cpu_id());
+		addObserver(get_proc_id());
 	    }
 
 	    ~RemoteSemaphoreState()
 	    {
-		removeObserver(get_cpu_id());
+		removeObserver(get_proc_id());
 	    }
 	    
 	    bool dec()
 	    {
 		if (_waiting) {
-		    if (_local)
+		    if (_local) {
+			_waiting = false;
 			return SemaphoreState::dec();
+		    }
 		    return false;
 		}
 
@@ -166,6 +170,14 @@ namespace MPS {
 	// convenience for easier adaptation of HW semantics.
 	class SpinSemaphoreState: public SemaphoreState {
 	public:
+	    SpinSemaphoreState(unsigned core,
+			       unsigned id,
+			       bool init = false,
+			       long value = 0)
+		: SemaphoreState(core, id, init, value)
+	    {
+	    }
+	    
 	    void yield() { }	// Just overrides yield to avoid ctx switch
 	};
 
@@ -177,14 +189,14 @@ namespace MPS {
 	// the POSIX style implementation.  Therefore they are far
 	// more efficient than SHARED MEMORY semaphores.
 	
-	typedef typename MPS::BaseSemaphore<SemaphoreState> BaseSemaphore;
+	typedef MPS::BaseSemaphore<SemaphoreState> BaseSemaphore;
 
 	class Semaphore: public BaseSemaphore
 	{
 	public:
 	    Semaphore(unsigned core, unsigned id, bool init = false,
 		      long value = 0)
-		: _state(core, id, init, value), BaseSemaphore(_state)
+		: BaseSemaphore(_state), _state(core, id, init, value)
 	    {
 	    }
 	private:
@@ -196,22 +208,16 @@ namespace MPS {
 	// Local semaphores notify remote cores when a semaphore is
 	// unlocked
 	
-	typedef typename MPS::BaseSemaphore<LocalSemaphoreState>
-	BaseLocalSemaphore;
+	typedef MPS::BaseSemaphore<LocalSemaphoreState> BaseLocalSemaphore;
 
 	class LocalSemaphore: public BaseLocalSemaphore
 	{
 	public:
 	    LocalSemaphore(unsigned id, unsigned notify,
 			   bool init = false, long value = 0)
-		: _state(id, notify, init, value),
-		  BaseLocalSemaphore(_state)
+		: BaseLocalSemaphore(_state),
+		  _state(id, notify, init, value)
 	    {
-	    }
-	    
-	    void notify (unsigned notify)
-	    {
-		_state.notify(notify);
 	    }
 	    
 	private:
@@ -224,14 +230,13 @@ namespace MPS {
 	// They also notify remote cores when they unblock the
 	// semaphore.  Otherwise they behave as an standard Semaphore
 	
-	typedef typename MPS::BaseSemaphore<RemoteSemaphoreState>
-	BaseRemoteSemaphore;
+	typedef MPS::BaseSemaphore<RemoteSemaphoreState> BaseRemoteSemaphore;
 
 	class RemoteSemaphore: public BaseRemoteSemaphore
 	{
 	public:
 	    RemoteSemaphore(unsigned core, unsigned id, unsigned notify)
-		: _state(core, id, notify), BaseRemoteSemaphore(_state)
+		: BaseRemoteSemaphore(_state), _state(core, id, notify)
 	    {
 	    }
 	private:
@@ -242,15 +247,14 @@ namespace MPS {
 	// Spin semaphores do not yield the CPU while waiting for a
 	// locked semaphore
 	
-	typedef typename MPS::BaseSemaphore<SpinSemaphoreState>
-	BaseSpinSemaphore;
+	typedef MPS::BaseSemaphore<SpinSemaphoreState> BaseSpinSemaphore;
 
 	class SpinSemaphore: public BaseSpinSemaphore
 	{
 	public:
 	    SpinSemaphore(unsigned core, unsigned id, bool init = false,
-			  long value = 0)
-		: _state(core, id, init, value), BaseSpinSemaphore(_state)
+			  unsigned value = 0)
+		: BaseSpinSemaphore(_state), _state(core, id, init, value)
 	    {
 	    }
 	private:

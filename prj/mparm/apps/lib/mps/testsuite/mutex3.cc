@@ -1,5 +1,4 @@
 #include "TestCase.hh"
-#include <MPS/Mutex.h>
 #include <MPS/RecMutex.h>
 
 /*

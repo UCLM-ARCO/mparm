@@ -10,8 +10,7 @@
 // Please see core/ext_mem.h and core/scratch_mem.h for information on
 // the precise semantics.
 
-#include <MPS/Config.h>
-#include <MPS/Lock.h>
+#include <MPS/Mutex.h>
 
 namespace MPS {
 

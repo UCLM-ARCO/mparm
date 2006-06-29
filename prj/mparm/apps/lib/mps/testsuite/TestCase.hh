@@ -9,6 +9,8 @@
 class TestCase {
 public:
     static volatile int* const _stamp;
+    void stamp(int value, int id = 0) { _stamp[id] = value; }
+    void wait(int value, int id = 0) { while(_stamp[id] != value); }
     
 public:
     TestCase(const char* id): _id(id), _debug(false) {}

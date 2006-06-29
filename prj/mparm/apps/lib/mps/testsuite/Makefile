@@ -1,6 +1,6 @@
 RTEMS_MAKEFILE_PATH=/usr/lib/rtems4.6/arm-rtems/arm_bare_bsp
 
-EXE= mutex1.exe mutex2.exe mutex3.exe
+EXE= mutex1.exe mutex2.exe mutex3.exe sem1.exe
 
 vpath %.cpp ../IceUtil
 
@@ -29,3 +29,4 @@ CLEAN_ADDITIONS = *.txt *.mem *~ *.exe $(EXE:.exe=) *.scn
 mutex1.exe: mutex1.o TestCase.o compat.o
 mutex2.exe: mutex2.o TestCase.o compat.o
 mutex3.exe: mutex3.o TestCase.o compat.o
+sem1.exe:   sem1.o TestCase.o compat.o

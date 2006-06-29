@@ -120,8 +120,10 @@ namespace MPS {
 	    bool tryLock()
 	    {
 		if (_waiting) {
-		    if (_local)
+		    if (_local) {
+			_waiting = false;
 			return MutexState::tryLock();
+		    }
 		    return false;
 		}
 

@@ -17,11 +17,12 @@ namespace MPS {
 	    SemaphoreState(unsigned lock,     // HW lock to be used as a mutex
 			   unsigned counter,  // Shared counter
 			   bool init = false, // Set an initial value?
-			   long value = 0)
-		: _lock(semaphore_base[lock]), _counter(memory_base[counter])
+			   unsigned value = 0)
+		: _mutex(semaphore_base[lock]),
+		_counter(memory_base[counter])
 	    {
 		if (init) {
-		    _lock = 0;
+		    _mutex.unlock();
 		    _counter = value;
 		}
 	    }
@@ -55,6 +56,14 @@ namespace MPS {
 
 	class SpinSemaphoreState: public SemaphoreState {
 	public:
+	    SpinSemaphoreState(unsigned lock,
+			       unsigned counter,
+			       bool init = false,
+			       unsigned value = 0)
+		: SemaphoreState(lock, counter, init, value)
+	    {
+	    }
+	    
 	    void yield() { }	// Just overrides yield to avoid ctx switch
 	};
 
@@ -66,14 +75,14 @@ namespace MPS {
 	// implementing mutexes. Therefore we need an additional
 	// shared memory counter.
 	
-	typedef typename MPS::BaseSemaphore<SemaphoreState> BaseSemaphore;
+	typedef MPS::BaseSemaphore<SemaphoreState> BaseSemaphore;
 
 	class Semaphore: public BaseSemaphore
 	{
 	public:
 	    Semaphore(unsigned lock, unsigned counter, bool init = false,
-		      long value = 0)
-		: _state(lock, counter, init, value), BaseSemaphore(_state)
+		      unsigned value = 0)
+		: BaseSemaphore(_state), _state(lock, counter, init, value)
 	    {
 	    }
 	private:
@@ -84,15 +93,14 @@ namespace MPS {
 	// Spin semaphores do not yield the CPU while waiting for a
 	// locked semaphore
 	
-	typedef typename MPS::BaseSemaphore<SpinSemaphoreState>
-	BaseSpinSemaphore;
+	typedef MPS::BaseSemaphore<SpinSemaphoreState> BaseSpinSemaphore;
 
 	class SpinSemaphore: public BaseSpinSemaphore
 	{
 	public:
 	    SpinSemaphore(unsigned lock, unsigned counter, bool init = false,
-			  long value = 0)
-		: _state(lock, counter, init, value), BaseSpinSemaphore(_state)
+			  unsigned value = 0)
+		: BaseSpinSemaphore(_state), _state(lock, counter, init, value)
 	    {
 	    }
 	private:
