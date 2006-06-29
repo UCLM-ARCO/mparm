@@ -16,7 +16,7 @@ include $(PROJECT_ROOT)/make/leaf.cfg
 CXXFLAGS += -I.. -DNDEBUG
 MANAGERS=io msg signal event region partition timer sem
 GCCSPECS=-B. -specs bsp_specs -B$(PROJECT_RELEASE)/lib/ -T linkcmds
-CLEAN_ADDITIONS = *.txt *.mem *~ *.exe $(EXE:.exe=)
+CLEAN_ADDITIONS = *.txt *.mem *~ *.exe $(EXE:.exe=) */*~
 
 %.exe: %.o
 	$(LINK.cc) -o $(basename $@) $^ $(LINK_OBJS) -lrtems++

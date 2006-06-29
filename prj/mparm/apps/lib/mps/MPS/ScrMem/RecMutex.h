@@ -8,7 +8,7 @@ namespace MPS {
 	//----------------------------------------------
 	// Recursive mutexes using SCRATCH MEMORY 
     
-	typedef typename MPS::BaseRecMutex<MutexState> BaseRecMutex;
+	typedef MPS::BaseRecMutex<MutexState> BaseRecMutex;
 	
 	class RecMutex: public BaseRecMutex
 	{
@@ -16,7 +16,7 @@ namespace MPS {
 
 	public:
 	    RecMutex(unsigned core, unsigned id, bool init = false)
-		: _state(core, id, init), BaseRecMutex(_state)
+		: BaseRecMutex(_state), _state(core, id, init)
 	    {
 	    }
 
@@ -30,7 +30,7 @@ namespace MPS {
 	//----------------------------------------------
 	// Spin mutexes do not yield the CPU 
     
-	typedef typename MPS::BaseRecMutex<SpinMutexState> BaseSpinRecMutex;
+	typedef MPS::BaseRecMutex<SpinMutexState> BaseSpinRecMutex;
 	
 	class SpinRecMutex: public BaseSpinRecMutex
 	{
@@ -38,7 +38,7 @@ namespace MPS {
 
 	public:
 	    SpinRecMutex(unsigned core, unsigned id, bool init = false)
-		: _state(core, id, init), BaseSpinRecMutex(_state)
+		: BaseSpinRecMutex(_state), _state(core, id, init)
 	    {
 	    }
 
@@ -54,13 +54,12 @@ namespace MPS {
 	// traffic in the bus.  An unlock of a mutex generates remote
 	// notifications to all subscribed cores.
 
-	typedef typename MPS::BaseRecMutex<LocalMutexState> BaseLocalRecMutex;
+	typedef MPS::BaseRecMutex<LocalMutexState> BaseLocalRecMutex;
 	
 	class LocalRecMutex: public BaseLocalRecMutex {
 	public:
 	    LocalRecMutex(unsigned id, unsigned notify, bool init = false)
-		: _state(id, notify, init),
-		  BaseLocalRecMutex(_state)
+		: BaseLocalRecMutex(_state), _state(id, notify, init)
 	    {
 	    }
 
@@ -76,14 +75,13 @@ namespace MPS {
 	// They also notify remote cores when they unlock the
 	// mutex.  Otherwise they behave as an standard RecMutex
 	
-	typedef typename MPS::BaseRecMutex<RemoteMutexState>
-	BaseRemoteRecMutex;
+	typedef MPS::BaseRecMutex<RemoteMutexState> BaseRemoteRecMutex;
 
 	class RemoteRecMutex: public BaseRemoteRecMutex
 	{
 	public:
 	    RemoteRecMutex(unsigned core, unsigned id, unsigned notify)
-		: _state(core, id, notify), BaseRemoteRecMutex(_state)
+		: BaseRemoteRecMutex(_state), _state(core, id, notify)
 	    {
 	    }
 	    

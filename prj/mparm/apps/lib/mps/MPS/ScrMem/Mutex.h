@@ -13,16 +13,17 @@ namespace MPS {
 	class MutexState
 	{
 	public:
-	    MutexState(unsigned core, unsigned id, bool init = false)
+ 	    MutexState(unsigned core, unsigned id, bool init = false)
 		: _semaphore(semaphore_base(core)[id])
 	    {
-		if (init)
+		if (init) {
 		    _semaphore = 2;	// init to 1 (unlocked)
+		}
 	    }
 
 	    bool tryLock() const
 	    {
-		return (_semaphore != 0);
+		return (1 == _semaphore);
 	    }
 
 	    void unlock() const
@@ -54,20 +55,21 @@ namespace MPS {
 	    LocalMutexState(unsigned id,       // HW semaphore
 			    unsigned notify,   // Addr of subscribers
 			    bool init = false) // Initialize?
-		: _id(id), _notify(memory_base(get_cpu_id())[notify]),
-		  MutexState(get_cpu_id(), id, init)
+		: MutexState(get_proc_id(), id, init),
+		  _id(id), _notify(memory_base(get_proc_id())[notify])
 	    {
 	    }
 	    
-	    bool unlock() const
+	    void unlock() const
 	    {
 		MutexState::unlock();
 		unsigned notify = _notify;
 		for (int i = 0; i < 32; ++i) {
 		    if (notify == 0)
 			break;
-		    if (notify & 1)
+		    if (notify & 1) {
 			semaphore_base(i + 1)[_id] = 2;
+		    }
 		    notify = notify >> 1;
 		}
 	    }
@@ -76,8 +78,8 @@ namespace MPS {
 	    LocalMutexState(unsigned core,
 			    unsigned id,
 			    unsigned notify)
-		: _notify(memory_base(core)[notify]),
-		  MutexState(core, id, false)
+		: MutexState(core, id, false),
+		  _id(id), _notify(memory_base(core)[notify])
 	    {
 	    }
 
@@ -93,7 +95,7 @@ namespace MPS {
 
 	private:
 	    unsigned _id;
-	    volatile unsigned int& _notify;
+	    volatile int& _notify;
 	};
 
 	
@@ -102,17 +104,17 @@ namespace MPS {
 	    RemoteMutexState(unsigned core,
 			     unsigned id,
 			     unsigned notify)
-		: _local(semaphore_base(get_cpu_id())[id]),
-		  _waiting(false),
-		  LocalMutexState(core, id, notify)
+		: LocalMutexState(core, id, notify),
+		  _local(semaphore_base(get_proc_id())[id]),
+		  _waiting(false)
 	    {
 		_local = 1;	// write a 0, initially locked
-		addObserver(get_cpu_id());
+		addObserver(get_proc_id());
 	    }
 
 	    ~RemoteMutexState()
 	    {
-		removeObserver(get_cpu_id());
+		removeObserver(get_proc_id());
 	    }
 	    
 	    bool tryLock()
@@ -139,6 +141,9 @@ namespace MPS {
 	class SpinMutexState: public MutexState
 	{
 	public:
+	    SpinMutexState(unsigned core, unsigned id, bool init = false)
+		: MutexState(core, id, init) {}
+	    
 	    void yield() const
 	    {
 	    }
@@ -147,7 +152,7 @@ namespace MPS {
 	//-----------------------------------------------
 	// Non-recursive mutexes using SCRATCH MEMORY 
 
-	typedef typename MPS::BaseMutex<MutexState> BaseMutex;
+	typedef MPS::BaseMutex<MutexState> BaseMutex;
 	
 	class Mutex: public BaseMutex
 	{
@@ -155,7 +160,7 @@ namespace MPS {
 
 	public:
 	    Mutex(unsigned core, unsigned id, bool init = false)
-		: _state(core, id, init), BaseMutex(_state)
+		: BaseMutex(_state), _state(core, id, init)
 	    {
 	    }
 
@@ -169,7 +174,7 @@ namespace MPS {
 	//----------------------------------------------
 	// Spin mutexes do not yield the CPU 
     
-	typedef typename MPS::BaseMutex<SpinMutexState> BaseSpinMutex;
+	typedef MPS::BaseMutex<SpinMutexState> BaseSpinMutex;
 	
 	class SpinMutex: public BaseSpinMutex
 	{
@@ -177,7 +182,7 @@ namespace MPS {
 
 	public:
 	    SpinMutex(unsigned core, unsigned id, bool init = false)
-		: _state(core, id, init), BaseSpinMutex(_state)
+		: BaseSpinMutex(_state), _state(core, id, init)
 	    {
 	    }
 
@@ -193,13 +198,13 @@ namespace MPS {
 	// traffic in the bus.  An unlock of a mutex generates remote
 	// notifications to all subscribed cores.
 
-	typedef typename MPS::BaseMutex<LocalMutexState> BaseLocalMutex;
+	typedef MPS::BaseMutex<LocalMutexState> BaseLocalMutex;
 	
 	class LocalMutex: public BaseLocalMutex {
 	public:
 	    LocalMutex(unsigned id, unsigned notify, bool init = false)
-		: _state(id, notify, init),
-		  BaseLocalMutex(_state)
+		: BaseLocalMutex(_state),
+		  _state(id, notify, init)
 	    {
 	    }
 
@@ -215,14 +220,13 @@ namespace MPS {
 	// They also notify remote cores when they unlock the
 	// mutex.  Otherwise they behave as an standard Mutex
 	
-	typedef typename MPS::BaseMutex<RemoteMutexState>
-	BaseRemoteMutex;
+	typedef MPS::BaseMutex<RemoteMutexState> BaseRemoteMutex;
 
 	class RemoteMutex: public BaseRemoteMutex
 	{
 	public:
 	    RemoteMutex(unsigned core, unsigned id, unsigned notify)
-		: _state(core, id, notify), BaseRemoteMutex(_state)
+		: BaseRemoteMutex(_state), _state(core, id, notify)
 	    {
 	    }
 	    

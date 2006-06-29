@@ -10,6 +10,9 @@
 // Please see core/ext_mem.h and core/scratch_mem.h for information on
 // the precise semantics.
 
+#include <MPS/Config.h>
+#include <MPS/Lock.h>
+
 namespace MPS {
 
     template <class MutexState>
@@ -22,7 +25,7 @@ namespace MPS {
 	typedef TryLockT<BaseRecMutex<MutexState> > TryLock;
 
 	BaseRecMutex(MutexState& state)
-	    : _count(0), Mutex<MutexState>(state)
+	    : _state(state), _count(0)
 	{
 	}
 	

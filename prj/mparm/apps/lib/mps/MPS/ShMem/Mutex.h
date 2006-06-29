@@ -43,21 +43,23 @@ namespace MPS {
 	class SpinMutexState: public MutexState
 	{
 	public:
+	    SpinMutexState(unsigned id) : MutexState(id) {}
+	    
 	    void yield() const
 	    {
 	    }
-	}
+	};
 	
 	//----------------------------------------------
 	// Non-recursive mutexes using SHARED MEMORY 
     
-	typedef typename MPS::BaseMutex<MutexState> BaseMutex;
+	typedef MPS::BaseMutex<MutexState> BaseMutex;
 
 	class Mutex : public BaseMutex
 	{
 	public:
 	    Mutex(unsigned id)
-		: _state(semaphore_base[id]), BaseMutex(_state)
+		: BaseMutex(_state), _state(id)
 	    {
 	    }
 
@@ -65,19 +67,19 @@ namespace MPS {
 	    Mutex(const Mutex&);		// disallow copy ctor
 	    void operator=(const Mutex&);	// disallow assignment operator
 
-	    MutexState& _state;
+	    MutexState _state;
 	};
 
 	//----------------------------------------------
 	// Spin mutexes do not yield the CPU 
     
-	typedef typename MPS::BaseMutex<SpinMutexState> BaseSpinMutex;
+	typedef MPS::BaseMutex<SpinMutexState> BaseSpinMutex;
 
 	class SpinMutex : public BaseSpinMutex
 	{
 	public:
 	    SpinMutex(unsigned id)
-		: _state(semaphore_base[id]), BaseSpinMutex(_state)
+		: BaseSpinMutex(_state), _state(id)
 	    {
 	    }
 
@@ -85,7 +87,7 @@ namespace MPS {
 	    SpinMutex(const SpinMutex&);	// disallow copy ctor
 	    void operator=(const SpinMutex&);	// disallow assignment operator
 
-	    SpinMutexState& _state;
+	    SpinMutexState _state;
 	};
 
     }

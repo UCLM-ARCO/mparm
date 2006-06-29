@@ -15,8 +15,8 @@
 
 namespace MPS {
 
-    class ShMem::Cond;
-    class ScrMem::Cond;
+    namespace ShMem { class Cond; }
+    namespace ScrMem { class Cond; }
 
     template <typename T>
     class LockT

@@ -25,7 +25,7 @@ namespace MPS {
 	    return reinterpret_cast<volatile int* const>
 		(CORESLAVE_BASE
 		 + CORESLAVE_SPACING * (core - 1)
-		 + CORESLAVE_SIZE);
+		 + BUILTIN_DEFAULT_SCRATCH_SIZE);
 	}
 	
 	// Base address of ScrMem memory
