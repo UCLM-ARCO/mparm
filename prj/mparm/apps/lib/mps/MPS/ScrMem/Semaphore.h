@@ -64,10 +64,24 @@ namespace MPS {
 	    mutable volatile int& _semaphore;
 	};
 
+	class SpinSemaphoreState: public SemaphoreState {
+	public:
+	    SpinSemaphoreState(unsigned core,
+			       unsigned id,
+			       bool init = false,
+			       long value = 0)
+		: SemaphoreState(core, id, init, value)
+	    {
+	    }
+	    
+	    void yield() { }	// Just overrides yield to avoid ctx switch
+	};
+
 	// Local/Remote semaphores cooperate to avoid unneeded polling
 	// traffic in the bus.  An increment of a blocked semaphore
 	// generates remote notifications to all subscribed cores.
-	
+
+	/* FIXME: Notify is not updated atomically, Remote Ctors must be serialized */
 	class LocalSemaphoreState : public SemaphoreState {
 	public:
 	    LocalSemaphoreState(unsigned id,       // HW semaphore
@@ -122,10 +136,30 @@ namespace MPS {
 	    volatile int& _notify;
 	};
 
+	class LocalSpinSemaphoreState : public LocalSemaphoreState {
+	public:
+	    LocalSpinSemaphoreState(unsigned id,
+				    unsigned notify,
+				    bool init = false,
+				    long value = 0)
+		: LocalSemaphoreState(id, notify, init, value)
+	    {
+	    }
+
+	    void yield()
+	    {
+	    }
+	};
+	
 	// Local/Remote semaphores cooperate to avoid unneeded polling
 	// traffic in the bus.  A remote semaphore spins on a local
 	// lock when the semaphore is locked.
-	
+
+	/* FIXME: There is a potential race condition here.  Adjust
+	   _retries to avoid that.  The problem may arise if wait is
+	   called from a remote side at the begining of a post (just
+	   after checking it wouldn't block).  Remote sides would not
+	   be notified when the semaphore is locked. */
 	class RemoteSemaphoreState : public LocalSemaphoreState {
 	public:
 	    RemoteSemaphoreState(unsigned core,
@@ -133,7 +167,7 @@ namespace MPS {
 				 unsigned notify)
 		: LocalSemaphoreState(core, id, notify),
 		  _local(semaphore_base(get_proc_id())[id]),
-		  _waiting(false)
+		  _retries(2), _waiting(false)
 	    {
 		_local = 1;	// write a 0, initially locked
 		addObserver(get_proc_id());
@@ -148,6 +182,7 @@ namespace MPS {
 	    {
 		if (_waiting) {
 		    if (_local) {
+			_retries = 2;
 			_waiting = false;
 			return SemaphoreState::dec();
 		    }
@@ -157,30 +192,30 @@ namespace MPS {
 		if (SemaphoreState::dec())
 		    return true;
 
-		_waiting = true;
+		if (0 == --_retries)
+		    _waiting = true;
 		return false;
 	    }
 
 	private:
 	    mutable volatile int& _local;
+	    int _retries;
 	    bool _waiting;
 	};
-	
-	// This class is not meant to be used directly. It is just a
-	// convenience for easier adaptation of HW semantics.
-	class SpinSemaphoreState: public SemaphoreState {
+
+	class RemoteSpinSemaphoreState : public RemoteSemaphoreState {
 	public:
-	    SpinSemaphoreState(unsigned core,
-			       unsigned id,
-			       bool init = false,
-			       long value = 0)
-		: SemaphoreState(core, id, init, value)
+	    RemoteSpinSemaphoreState(unsigned core,
+				     unsigned id,
+				     unsigned notify)
+		: RemoteSemaphoreState(core, id, notify)
 	    {
 	    }
-	    
-	    void yield() { }	// Just overrides yield to avoid ctx switch
-	};
 
+	    void yield()
+	    {
+	    }
+	};
 	
 	//------------------------------------------------------------
 	// POSIX style semaphores for SCRATCH MEMORY
@@ -225,6 +260,23 @@ namespace MPS {
 	};
 
 	
+	typedef MPS::BaseSemaphore<LocalSpinSemaphoreState> BaseLocalSpinSemaphore;
+
+	class LocalSpinSemaphore: public BaseLocalSpinSemaphore
+	{
+	public:
+	    LocalSpinSemaphore(unsigned id, unsigned notify,
+			   bool init = false, long value = 0)
+		: BaseLocalSpinSemaphore(_state),
+		  _state(id, notify, init, value)
+	    {
+	    }
+	    
+	private:
+	    LocalSpinSemaphoreState _state;
+	};
+
+
 	//---------------------------------------------------------
 	// Remote semaphores spin on a local location while blocked.
 	// They also notify remote cores when they unblock the
@@ -241,6 +293,19 @@ namespace MPS {
 	    }
 	private:
 	    RemoteSemaphoreState _state;
+	};
+
+	typedef MPS::BaseSemaphore<RemoteSpinSemaphoreState> BaseRemoteSpinSemaphore;
+
+	class RemoteSpinSemaphore: public BaseRemoteSpinSemaphore
+	{
+	public:
+	    RemoteSpinSemaphore(unsigned core, unsigned id, unsigned notify)
+		: BaseRemoteSpinSemaphore(_state), _state(core, id, notify)
+	    {
+	    }
+	private:
+	    RemoteSpinSemaphoreState _state;
 	};
 
 	//----------------------------------------------

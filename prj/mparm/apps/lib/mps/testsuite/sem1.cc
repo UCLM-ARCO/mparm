@@ -35,19 +35,21 @@ Semaphore1<Semaphore>::run1()
     stamp(11);
     wait(12);
 
+    for (int i=0; i<10000; ++i);
     trace("About to wait (1.3)");
     _sem.wait();
     
     stamp(13);
     wait(14);
     
-    for (int i=0; i<100000; ++i);
+    for (int i=0; i<10000; ++i);
     trace("About to post (1.5)");
     _sem.post();
 
     trace("Done (1.5)");
     stamp(15);
 
+    wait(0);
     return true;
 }
 
@@ -68,6 +70,7 @@ Semaphore1<Semaphore>::run2()
     trace("Waiting wait (1.3)");
     wait(13);
 
+    for (int i=0; i<10000; ++i);
     trace("About to wait [blq] (1.4)");
     stamp(14);
     _sem.wait();
@@ -75,6 +78,7 @@ Semaphore1<Semaphore>::run2()
     trace("Waiting end (1.5)");
     wait(15);
 
+    stamp(0);
     return true;
 }
 
@@ -86,6 +90,8 @@ typedef Semaphore1<MPS::ScrMem::Semaphore> M1ScrSem;
 typedef Semaphore1<MPS::ScrMem::SpinSemaphore> M1ScrSpinSem;
 typedef Semaphore1<MPS::ScrMem::RemoteSemaphore> M1ScrRemoteSem;
 typedef Semaphore1<MPS::ScrMem::LocalSemaphore> M1ScrLocalSem;
+typedef Semaphore1<MPS::ScrMem::RemoteSpinSemaphore> M1ScrRemoteSpinSem;
+typedef Semaphore1<MPS::ScrMem::LocalSpinSemaphore> M1ScrLocalSpinSem;
 
 class CompositeSemaphore1: public CompositeTestCase
 {
@@ -100,12 +106,15 @@ class CompositeSemaphore1: public CompositeTestCase
     // These  are not instantiated on every process
     MPS::ScrMem::LocalSemaphore* _scrLocalSem;
     MPS::ScrMem::RemoteSemaphore* _scrRemoteSem;
+    MPS::ScrMem::LocalSpinSemaphore* _scrLocalSpinSem;
+    MPS::ScrMem::RemoteSpinSemaphore* _scrRemoteSpinSem;
 
     enum {
 	ID = 10,
 	SpinID,
 	RecID,
 	RemoteID,
+	RemoteSpinID
     };
 
 public:
@@ -117,7 +126,9 @@ public:
 	  _scrSem(1, ID, 1 == _core, 2),
 	  _scrSpinSem(1, SpinID, 1 == _core, 2),
 	  _scrLocalSem(0),
-	  _scrRemoteSem(0)
+	  _scrRemoteSem(0),
+	  _scrLocalSpinSem(0),
+	  _scrRemoteSpinSem(0)
     {
 
  	add(new M1ShSem(_shSem,"ShSem1"));
@@ -126,14 +137,16 @@ public:
  	add(new M1ScrSpinSem(_scrSpinSem, "ScrSpinSem1"));
 
 	if (1 == get_proc_id()) {
-	    _scrLocalSem
-		= new MPS::ScrMem::LocalSemaphore(RemoteID, RemoteID, true, 2);
+	    _scrLocalSem = new MPS::ScrMem::LocalSemaphore(RemoteID, RemoteID, true, 2);
+	    _scrLocalSpinSem = new MPS::ScrMem::LocalSpinSemaphore(RemoteSpinID, RemoteSpinID, true, 2);
 	    add(new M1ScrLocalSem(*_scrLocalSem, "ScrLocalSem1"));
+	    add(new M1ScrLocalSpinSem(*_scrLocalSpinSem, "ScrLocalSpinSem1"));
 	}
 	else {
-	    _scrRemoteSem
-		= new MPS::ScrMem::RemoteSemaphore(1, RemoteID, RemoteID);
+	    _scrRemoteSem = new MPS::ScrMem::RemoteSemaphore(1, RemoteID, RemoteID);
+	    _scrRemoteSpinSem = new MPS::ScrMem::RemoteSpinSemaphore(1, RemoteSpinID, RemoteSpinID);
 	    add(new M1ScrRemoteSem(*_scrRemoteSem, "ScrRemoteSem"));
+	    add(new M1ScrRemoteSpinSem(*_scrRemoteSpinSem, "ScrRemoteSpinSem"));
 	}
     }
 };

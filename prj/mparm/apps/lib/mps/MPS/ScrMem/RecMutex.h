@@ -69,6 +69,23 @@ namespace MPS {
 
 	    LocalMutexState _state;
 	};
+
+	
+	typedef MPS::BaseRecMutex<LocalSpinMutexState> BaseLocalSpinRecMutex;
+	
+	class LocalSpinRecMutex: public BaseLocalSpinRecMutex {
+	public:
+	    LocalSpinRecMutex(unsigned id, unsigned notify, bool init = false)
+		: BaseLocalSpinRecMutex(_state), _state(id, notify, init)
+	    {
+	    }
+
+	private:
+	    LocalSpinRecMutex(const LocalSpinRecMutex&);	// disallow copy ctor
+	    void operator=(const LocalSpinRecMutex&);	// disallow assignment operator
+
+	    LocalSpinMutexState _state;
+	};
 	
 	//---------------------------------------------------------
 	// Remote semaphores spin on a local location while blocked.
@@ -87,6 +104,21 @@ namespace MPS {
 	    
 	private:
 	    RemoteMutexState _state;
+	};
+
+	
+	typedef MPS::BaseRecMutex<RemoteSpinMutexState> BaseRemoteSpinRecMutex;
+
+	class RemoteSpinRecMutex: public BaseRemoteSpinRecMutex
+	{
+	public:
+	    RemoteSpinRecMutex(unsigned core, unsigned id, unsigned notify)
+		: BaseRemoteSpinRecMutex(_state), _state(core, id, notify)
+	    {
+	    }
+	    
+	private:
+	    RemoteSpinMutexState _state;
 	};
 
     }

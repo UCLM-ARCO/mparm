@@ -70,7 +70,36 @@ namespace MPS {
     private:
 	MutexState& _state;
     };
+
+    // Dummy mutexes are fake locks. They are used on containers to
+    // avoid having a specialized version without locking.
     
+    class DummyMutexState
+    {
+    public:
+	bool tryLock() const { return true; }
+	void unlock() const { }
+	bool willUnlock() const { return true; }
+	void yield() const { }
+    };
+
+    
+    typedef MPS::BaseMutex<DummyMutexState> BaseDummyMutex;
+
+    class DummyMutex : public BaseDummyMutex
+    {
+    public:
+	DummyMutex() : BaseDummyMutex(_state)
+	{
+	}
+
+    private:
+	DummyMutex(const DummyMutex&);		// disallow copy ctor
+	void operator=(const DummyMutex&);	// disallow assignment operator
+
+	DummyMutexState _state;
+    };
+
 }
 
 # include <MPS/ShMem/Mutex.h>

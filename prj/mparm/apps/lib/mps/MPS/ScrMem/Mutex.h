@@ -49,6 +49,18 @@ namespace MPS {
 	};
 
 
+	class SpinMutexState: public MutexState
+	{
+	public:
+	    SpinMutexState(unsigned core, unsigned id, bool init = false)
+		: MutexState(core, id, init) {}
+	    
+	    void yield() const
+	    {
+	    }
+	};
+	
+
 	class LocalMutexState: public MutexState
 	{
 	public:
@@ -99,6 +111,20 @@ namespace MPS {
 	};
 
 	
+	class LocalSpinMutexState: public LocalMutexState
+	{
+	public:
+	    LocalSpinMutexState(unsigned id,       // HW semaphore
+			    unsigned notify,   // Addr of subscribers
+			    bool init = false) // Initialize?
+		: LocalMutexState(id, notify, init) {}
+	    {
+	    }
+
+	    void yield() { }
+	};
+
+
 	class RemoteMutexState : public LocalMutexState {
 	public:
 	    RemoteMutexState(unsigned core,
@@ -140,15 +166,16 @@ namespace MPS {
 	};
 	
 	
-	class SpinMutexState: public MutexState
-	{
+	class RemoteSpinMutexState : public RemoteMutexState {
 	public:
-	    SpinMutexState(unsigned core, unsigned id, bool init = false)
-		: MutexState(core, id, init) {}
-	    
-	    void yield() const
+	    RemoteSpinMutexState(unsigned core,
+				 unsigned id,
+				 unsigned notify)
+		: RemoteMutexState(core, id, notify)
 	    {
 	    }
+
+	    void yield() {}
 	};
 	
 	//-----------------------------------------------
@@ -216,6 +243,24 @@ namespace MPS {
 
 	    LocalMutexState _state;
 	};
+
+	
+	typedef MPS::BaseMutex<LocalSpinMutexState> BaseLocalSpinMutex;
+	
+	class LocalSpinMutex: public BaseLocalSpinMutex {
+	public:
+	    LocalSpinMutex(unsigned id, unsigned notify, bool init = false)
+		: BaseLocalSpinMutex(_state),
+		  _state(id, notify, init)
+	    {
+	    }
+
+	private:
+	    LocalSpinMutex(const LocalSpinMutex&);	// disallow copy ctor
+	    void operator=(const LocalSpinMutex&);	// disallow assignment operator
+
+	    LocalSpinMutexState _state;
+	};
 	
 	//---------------------------------------------------------
 	// Remote semaphores spin on a local location while blocked.
@@ -234,6 +279,21 @@ namespace MPS {
 	    
 	private:
 	    RemoteMutexState _state;
+	};
+
+	
+	typedef MPS::BaseMutex<RemoteSpinMutexState> BaseRemoteSpinMutex;
+
+	class RemoteSpinMutex: public BaseRemoteSpinMutex
+	{
+	public:
+	    RemoteSpinMutex(unsigned core, unsigned id, unsigned notify)
+		: BaseRemoteSpinMutex(_state), _state(core, id, notify)
+	    {
+	    }
+	    
+	private:
+	    RemoteSpinMutexState _state;
 	};
 
     }
