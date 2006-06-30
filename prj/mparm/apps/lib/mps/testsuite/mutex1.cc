@@ -37,31 +37,31 @@ Mutex1<Mutex>::run1()
 	trace("About to lock (1.1)");
 	typename Mutex::Lock lock(_mutex);
 
-	_stamp[0] = 11;			// Done 1.1
+	stamp(11);			// Done 1.1
 	
 	trace("Waiting for p2 lock (1.2)");
-	while (_stamp[0] != 12); 	// Waits for 1.2
+	wait(12); 	// Waits for 1.2
 
 	trace("About to unlock (1.3)");
-	_stamp[0] = 13;			// Done 1.3
+	stamp(13);			// Done 1.3
     }
 
     trace("Waiting for p2 unlock (1.4)");
-    while (_stamp[0] != 14); 		// Waits for 1.4
+    wait(14); 		// Waits for 1.4
     
     // 2. p1 lock, p2 tryLock, p1 unlock, p2 tryLock
     {
 	trace("About to lock (2.1)");
 	typename Mutex::Lock lock(_mutex);
 
-	_stamp[0] = 21;			// Done 2.1
+	stamp(21);			// Done 2.1
 	
 	trace("Waiting for p2 tryLock (2.2)");
-	while (_stamp[0] != 22); 	// Waits for 2.2
+	wait(22); 	// Waits for 2.2
 
 	trace("About to unlock (2.3)");
     }
-    _stamp[0] = 23;			// Done 2.3
+    stamp(23);			// Done 2.3
 
     return true;
 }
@@ -72,36 +72,34 @@ Mutex1<Mutex>::run2()
 {
     // 1. p1 lock, p2 lock, p1 unlock, p2 unlock
     trace("Waiting for p1 lock (1.1)");
-    while (_stamp[0] != 11); 		// Waits for 1.1
+    wait(11); 		// Waits for 1.1
     {
 	trace("About to lock (1.2)");
-	_stamp[0] = 12;			// About to do 1.2
+	stamp(12);			// About to do 1.2
 	typename Mutex::Lock lock(_mutex);
 
-	if (_stamp[0] != 13) {
-	    failure(13, _stamp[0]);
+	if (!expect(13))
 	    return false; 		// Entered before 1.3
-	}
 
 	trace("About to unlock (1.3)");
-	_stamp[0] = 14;			// About to do 1.3
+	stamp(14);			// About to do 1.3
     }
     trace("Unlocked (1.4)");
     
     // 2. p1 lock, p2 tryLock, p1 unlock, p2 tryLock
     {
 	trace("Waiting for p1 lock (2.1)");
-	while (_stamp[0] != 21); 	// Waits for 2.1
+	wait(21); 	// Waits for 2.1
 	typename Mutex::TryLock lock(_mutex);
 
 	if (lock.acquired()) {
 	    failure("Got a locked lock (2.2)");
 	    return false;		// Entered before 2.2
 	}
-	_stamp[0] = 22;			// Done 2.2
+	stamp(22);			// Done 2.2
 
 	trace("Waiting for p1 unlock (2.3)");
-	while (_stamp[0] != 23); 	// Waits for 2.3
+	wait(23); 	// Waits for 2.3
 	
 	if (!lock.tryAcquire()) {
 	    failure("Didn't release the lock (2.3)");

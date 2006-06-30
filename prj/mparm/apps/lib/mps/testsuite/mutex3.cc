@@ -36,30 +36,30 @@ Mutex3<Mutex>::run1()
 	trace("About to lock (1.1)");
 	typename Mutex::Lock lock(_mutex);
 
-	_stamp[0] = 11;
+	stamp(11);
 	
 	trace("Waiting for p2 trylock (1.2)");
-	while (_stamp[0] != 12);
+	wait(12);
 
 	{
 	    trace("About to lock (1.3)");
 	    typename Mutex::Lock lock(_mutex);
 
-	    _stamp[0] = 13;
+	    stamp(13);
 	
 	    trace("Waiting for p2 trylock (1.4)");
-	    while (_stamp[0] != 14);
+	    wait(14);
 
 	    trace("About to unlock (1.5)");
 	}
-	_stamp[0] = 15;
+	stamp(15);
 
 	trace("Waiting for p2 trylock (1.6)");
-	while (_stamp[0] != 16);
+	wait(16);
 
 	trace("About to unlock (1.5)");
     }
-    _stamp[0] = 17;
+    stamp(17);
 
     return true;
 }
@@ -70,44 +70,44 @@ Mutex3<Mutex>::run2()
 {
     {
 	trace("Waiting for p1 lock (1.1)");
-	while (_stamp[0] != 11);
+	wait(11);
 	typename Mutex::TryLock lock(_mutex);
 
 	if (lock.acquired()) {
 	    failure("Got a locked lock (1.1)");
 	    return false;
 	}
-	_stamp[0] = 12;
+	stamp(12);
 
 	trace("Waiting for p1 lock (1.3)");
-	while (_stamp[0] != 13);
+	wait(13);
 	
 	if (lock.tryAcquire()) {
 	    failure("Got a locked lock (1.3)");
 	    return false;
 	}
 
-	_stamp[0] = 14;
+	stamp(14);
 
 	trace("Waiting for p1 unlock (1.5)");
-	while (_stamp[0] != 15);
+	wait(15);
 	
 	if (lock.tryAcquire()) {
 	    failure("Got a locked lock (1.5)");
 	    return false;
 	}
 
-	_stamp[0] = 16;
+	stamp(16);
 
 	trace("Waiting for p1 unlock (1.7)");
-	while (_stamp[0] != 17);
+	wait(17);
 	
 	if (!lock.tryAcquire()) {
 	    failure("Failed to release the lock (1.7)");
 	    return false;
 	}
     }
-    _stamp[0] = 18;
+    stamp(18);
     trace("Unlocked (1.8)");
 
     return true;
