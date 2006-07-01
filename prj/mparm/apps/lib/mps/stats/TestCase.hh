@@ -80,6 +80,7 @@ protected:
     void passed() const { showResult("PASSED"); }
     void trace(const char* str) const { if (_debug) showResult(str); }
     void failure(const char* str) const { showResult(str); }
+    void report(const char* str) const { showResult(str); }
 
     void failure(int expected, int got) const
     {

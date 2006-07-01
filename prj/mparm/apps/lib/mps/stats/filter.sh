@@ -2,7 +2,7 @@
 
 grep "Processor" | gawk --non-decimal-data '
 BEGIN {
-  print "Type\tMin\tMax\tAverage\tStdDev"
+  print "Type\tMin\tAverage\tMax\tStdDev"
 }
 {
   if ($3 == "shuts") {
@@ -26,7 +26,7 @@ BEGIN {
       }
       avg = sum / N
       stddev = sqrt(sqr) / sum
-      print min "\t" max "\t" avg "\t" stddev
+      print min "\t" avg "\t" max "\t" stddev
     }
   }
   else if ($2 == 0) {
