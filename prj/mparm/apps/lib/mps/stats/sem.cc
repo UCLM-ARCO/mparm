@@ -1,15 +1,9 @@
 #include "TestCase.hh"
 #include <MPS/Semaphore.h>
 
-/*
+// Meassurements of semaphores latency
 
-Simple test cases for semaphores. Uses most of the API and tests
-correct blocking on a locked semaphore.
-
-1. p1 init(2), p2 dec, p1 dec, p2 dec(blq), p1 inc
-
-*/
-
+#define N 20
 
 template<class Semaphore>
 class Semaphore1 : public TestCase {
@@ -29,27 +23,24 @@ template <class Semaphore>
 bool
 Semaphore1<Semaphore>::run1()
 {
-    wait(1);
+    for (int i = 0; i<N; ++i)  {
+	wait(0);
 
-    trace("Sem initialized (1.1)");
-    stamp(11);
-    wait(12);
+	time_start(i);
+	_sem.wait();
 
-    for (int i=0; i<10000; ++i);
-    trace("About to wait (1.3)");
-    _sem.wait();
-    
-    stamp(13);
-    wait(14);
-    
-    for (int i=0; i<10000; ++i);
-    trace("About to post (1.5)");
-    _sem.post();
+	trace("lock");
+	stamp(11);
+	wait(12);
 
-    trace("Done (1.5)");
-    stamp(15);
-
-    wait(0);
+	sleep(0);
+	
+	time_stop(i);
+	_sem.post();
+	
+	trace("unlock");
+	stamp(13);
+    }
     return true;
 }
 
@@ -57,28 +48,23 @@ template <class Semaphore>
 bool
 Semaphore1<Semaphore>::run2()
 {
-    stamp(1);
+    for (int i = 0; i<N; ++i)  {
+	wait(11);
 
-    trace("Waiting init (1.1)");
-    wait(11);
+	stamp(12);
 
-    trace("About to wait (1.2)");
-    _sem.wait();
+	time_start(i);
+	_sem.wait();
+	time_stop(i);
 
-    stamp(12);
-    
-    trace("Waiting wait (1.3)");
-    wait(13);
+	trace("lock");
 
-    for (int i=0; i<10000; ++i);
-    trace("About to wait [blq] (1.4)");
-    stamp(14);
-    _sem.wait();
-
-    trace("Waiting end (1.5)");
-    wait(15);
-
-    stamp(0);
+	_sem.post();
+	
+	trace("unlock");
+	wait(13);
+	stamp(0);
+    }
     return true;
 }
 
@@ -121,10 +107,10 @@ public:
     CompositeSemaphore1()
 	: CompositeTestCase("Sem1"),
 	  _core(get_proc_id()),
-	  _shSem(ID, ID, 1 == _core, 2),
-	  _shSpinSem(SpinID, SpinID, 1 == _core, 2),
-	  _scrSem(1, ID, 1 == _core, 2),
-	  _scrSpinSem(1, SpinID, 1 == _core, 2),
+	  _shSem(ID, ID, 1 == _core, 1),
+	  _shSpinSem(SpinID, SpinID, 1 == _core, 1),
+	  _scrSem(1, ID, 1 == _core, 1),
+	  _scrSpinSem(1, SpinID, 1 == _core, 1),
 	  _scrLocalSem(0),
 	  _scrRemoteSem(0),
 	  _scrLocalSpinSem(0),
@@ -137,8 +123,8 @@ public:
  	add(new M1ScrSpinSem(_scrSpinSem, "ScrSpinSem1"));
 
 	if (1 == get_proc_id()) {
-	    _scrLocalSem = new MPS::ScrMem::LocalSemaphore(RemoteID, RemoteID, true, 2);
-	    _scrLocalSpinSem = new MPS::ScrMem::LocalSpinSemaphore(RemoteSpinID, RemoteSpinID, true, 2);
+	    _scrLocalSem = new MPS::ScrMem::LocalSemaphore(RemoteID, RemoteID, true, 1);
+	    _scrLocalSpinSem = new MPS::ScrMem::LocalSpinSemaphore(RemoteSpinID, RemoteSpinID, true, 1);
 	    add(new M1ScrLocalSem(*_scrLocalSem, "ScrLocalSem1"));
 	    add(new M1ScrLocalSpinSem(*_scrLocalSpinSem, "ScrLocalSpinSem1"));
 	}

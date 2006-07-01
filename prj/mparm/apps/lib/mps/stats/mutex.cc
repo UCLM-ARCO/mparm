@@ -4,6 +4,7 @@
 
 // Meassurements of mutex latency
 
+#define N 20
 
 template<class Mutex>
 class MutexLatency : public TestCase {
@@ -18,8 +19,6 @@ public:
 private:
     Mutex& _mutex;
 };
-
-#define N 20
 
 template <class Mutex>
 bool
