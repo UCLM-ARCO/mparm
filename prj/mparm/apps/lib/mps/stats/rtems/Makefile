@@ -2,9 +2,9 @@ RTEMS_MAKEFILE_PATH=/usr/lib/rtems4.6/arm-rtems/arm_bare_bsp
 
 EXE= mutex.exe sem.exe old.exe ringbuf.exe raw.exe queue.exe
 
-vpath %.cpp ../IceUtil
-vpath %.cpp legacy
-vpath %.c legacy
+vpath %.cpp ../../IceUtil
+vpath %.cpp ../legacy
+vpath %.cc ..
 
 all: $(EXE:.exe=.scn)
 
@@ -12,7 +12,7 @@ include $(RTEMS_MAKEFILE_PATH)/Makefile.inc
 include $(RTEMS_CUSTOM)
 include $(PROJECT_ROOT)/make/leaf.cfg
 
-CXXFLAGS += -I.. -Ilegacy -DNDEBUG
+CXXFLAGS += -I../.. -I../legacy -DNDEBUG
 MANAGERS=io msg signal event region partition timer sem
 GCCSPECS=-B. -specs bsp_specs -B$(PROJECT_RELEASE)/lib/ -T linkcmds
 CLEAN_ADDITIONS = *.txt *.mem *~ *.exe $(EXE:.exe=) *.scn */*~
