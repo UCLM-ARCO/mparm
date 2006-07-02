@@ -24,18 +24,17 @@ template <int DataSize, int Iterations>
 bool
 RawThroughput<DataSize, Iterations>::run1()
 {
+#if 1
+    int *src = const_cast<int*>(&MPS::ScrMem::memory_base(1)[64]);
+#else
+    int *src = 0;
+#endif
+    int* dst = const_cast<int*>(&MPS::ScrMem::memory_base(2)[64]);
+
     time_start(DataSize);
     for (int i = 0; i < Iterations ; ++i) {
-#if 1
-	char buf[DataSize];
-	memcpy(const_cast<int*>(&MPS::ScrMem::memory_base(2)[64]),
-	       buf,
-	       DataSize);
-#else
-	memcpy(const_cast<int*>(&MPS::ScrMem::memory_base(2)[64]),
-	       const_cast<int*>(&MPS::ScrMem::memory_base(1)[64]),
-	       DataSize);
-#endif
+	memcpy(dst, src, DataSize);
+	src += DataSize; dst += DataSize;
     }
     time_stop(DataSize);
     
