@@ -10,30 +10,34 @@
 // Both, RingBuffer and Allocator will use contiguous memory
 // areas. Locking may be configured independently on each end.
 
+#include <MPS/RingBuffer.h>
+#include <MPS/Allocator.h>
+
 namespace MPS {
 
     namespace Queue {
 
-	template <class T, class Mutex, class Semaphore, class MemMutex, int N>
+	template <class T, class Mutex, class PSemaphore, class CSemaphore, class MemMutex, int N>
 	class Producer {
-	    typedef MPS::RingBuffer::Producer<T*, Mutex, Semaphore, N> ProducerBuffer;
-	    typedef MPS::Allocator<MemMutex, N * sizeof(T)> Allocator;
+	    typedef MPS::RingBuffer::Producer<volatile T*, Mutex, PSemaphore, CSemaphore, N> ProducerBuffer;
+	    typedef MPS::Allocator<MemMutex, N * (sizeof(T) + sizeof(int))> Allocator;
 	    
 	public:
-	    Producer(void* mem,			// Shared mem
-		     volatile unsigned& tail,	// Tail of RingBuffer
+	    Producer(volatile void* mem,	// Shared mem
+		     volatile int& tail,	// Tail of RingBuffer
 		     Mutex& tailMutex,		// Mutex for tail manipulation
-		     Semaphore& sem,		// Number of elements in buffer
-		     MemMutex& memMutex,		// Mutex for shared mem
+		     PSemaphore& semP,		// Number of elements in buffer
+		     CSemaphore& semC,		// Number of empty slots in buffer
+		     MemMutex& memMutex,	// Mutex for shared mem
 		     bool init = false)
-		: _buffer(static_cast<T**>(mem), tail, tailMutex, sem, init),
-		  _allocator(static_cast<T**>(mem) + N , memMutex)
+		: _buffer(static_cast<volatile T* volatile *>(mem), tail, tailMutex, semP, semC, init),
+		  _allocator(static_cast<volatile T* volatile *>(mem) + N , memMutex, init)
 	    {
 	    }
 	    
-	    T*    alloc() { return static_cast<T*>(_allocator.alloc(sizeof(T))); }
+	    volatile T* alloc() { return static_cast<volatile T*>(_allocator.alloc(sizeof(T))); }
 	    void* alloc(int size) { return _allocator.alloc(size); }
-	    void  put(T* data) { _buffer.put(data); }
+	    void  put(volatile T* data) { _buffer.put(data); }
 
 	private:
 	    ProducerBuffer _buffer;
@@ -41,20 +45,21 @@ namespace MPS {
 	};
 
 	
-	template <class Mutex, class Semaphore, class MemMutex, int N, int M>
+	template <class Mutex, class PSemaphore, class CSemaphore, class MemMutex, int N, int M>
 	class UntypedProducer {
-	    typedef MPS::RingBuffer::Producer<void*, Mutex, Semaphore, N> ProducerBuffer;
+	    typedef MPS::RingBuffer::Producer<volatile void*, Mutex, PSemaphore, CSemaphore, N> ProducerBuffer;
 	    typedef MPS::Allocator<MemMutex, M> Allocator;
 
 	public:
-	    UntypedProducer(void* mem,			// Shared mem
-			    volatile unsigned& tail,	// Tail of RingBuffer
+	    UntypedProducer(volatile void* mem,		// Shared mem
+			    volatile int& tail,		// Tail of RingBuffer
 			    Mutex& tailMutex,		// Mutex for tail manipulation
-			    Semaphore& sem,		// Number of elements in buffer
+			    PSemaphore& semP,		// Number of elements in buffer
+			    CSemaphore& semC,		// Number of empty slots in buffer
 			    MemMutex& memMutex,		// Mutex for shared mem
 			    bool init = false)
-		: _buffer(static_cast<void**>(mem), tail, tailMutex, sem, init),
-		  _allocator(static_cast<void**>(mem) + N , memMutex)
+		: _buffer(static_cast<volatile void* volatile *>(mem), tail, tailMutex, semP, semC, init),
+		  _allocator(static_cast<volatile void* volatile *>(mem) + N , memMutex)
 	    {
 	    }
 	    
@@ -67,24 +72,26 @@ namespace MPS {
 	};
 
 	
-	template <class T, class Mutex, class Semaphore, class MemMutex, int N>
+	template <class T, class Mutex, class PSemaphore, class CSemaphore, class MemMutex, int N>
 	class Consumer {
-	    typedef MPS::RingBuffer::Consumer<T*, Mutex, Semaphore, N> ConsumerBuffer;
-	    typedef MPS::Allocator<MemMutex, N * sizeof(T)> Allocator;
+	    typedef MPS::RingBuffer::Consumer<volatile T*, Mutex, PSemaphore, CSemaphore, N> ConsumerBuffer;
+	    typedef MPS::Allocator<MemMutex, N * (sizeof(T) + sizeof(int))> Allocator;
 
 	public:
-	    Consumer(void* mem,			// Shared mem
-		     volatile unsigned& head,	// Head of RingBuffer
+	    Consumer(volatile void* mem,	// Shared mem
+		     volatile int& head,	// Head of RingBuffer
 		     Mutex& headMutex,		// Mutex for head manipulation
-		     Semaphore& sem,		// Number of elements in buffer
-		     MemMutex& memMutex)	// Mutex for shared mem
-		: _buffer(static_cast<T**>(mem), head, headMutex, sem),
-		  _allocator(static_cast<T**>(mem) + N , memMutex)
+		     PSemaphore& semP,		// Number of elements in buffer
+		     CSemaphore& semC,		// Number of empty slots in buffer
+		     MemMutex& memMutex,	// Mutex for shared mem
+		     bool init = false)
+		: _buffer(static_cast<volatile T* volatile *>(mem), head, headMutex, semP, semC, init),
+		  _allocator(static_cast<volatile T* volatile *>(mem) + N , memMutex)
 	    {
 	    }
 	    
-	    void  free(T* addr) { _allocator.free(addr); }
-	    T* get() { return _buffer.get(); }
+	    void  free(volatile T* addr) { _allocator.free(addr); }
+	    volatile T* get() { return _buffer.get(); }
 
 	private:
 	    ConsumerBuffer _buffer;
@@ -92,24 +99,26 @@ namespace MPS {
 	};
 
 	
-	template <class Mutex, class Semaphore, class MemMutex, int N, int M>
+	template <class Mutex, class PSemaphore, class CSemaphore, class MemMutex, int N, int M>
 	class UntypedConsumer {
-	    typedef MPS::RingBuffer::Consumer<void*, Mutex, Semaphore, N> ConsumerBuffer;
+	    typedef MPS::RingBuffer::Consumer<volatile void*, Mutex, PSemaphore, CSemaphore, N> ConsumerBuffer;
 	    typedef MPS::Allocator<MemMutex, M> Allocator;
 
 	public:
-	    UntypedConsumer(void* mem,			// Shared mem
-			    volatile unsigned& head,	// Head of RingBuffer
+	    UntypedConsumer(volatile void* mem,		// Shared mem
+			    volatile int& head,		// Head of RingBuffer
 			    Mutex& headMutex,		// Mutex for head manipulation
-			    Semaphore& sem,		// Number of elements in buffer
-			    MemMutex& memMutex)		// Mutex for shared mem
-		: _buffer(static_cast<void**>(mem), head, headMutex, sem),
-		  _allocator(static_cast<void**>(mem) + N , memMutex)
+			    PSemaphore& semP,		// Number of elements in buffer
+			    CSemaphore& semC,		// Number of empty slots in buffer
+			    MemMutex& memMutex,		// Mutex for shared mem
+			    bool init = false)
+		: _buffer(static_cast<volatile void* volatile *>(mem), head, headMutex, semP, semC, init),
+		  _allocator(static_cast<volatile void* volatile *>(mem) + N , memMutex)
 	    {
 	    }
 	    
-	    void  free(void* addr) { _allocator.free(addr); }
-	    void* get() { return _buffer.get(); }
+	    void  free(volatile void* addr) { _allocator.free(addr); }
+	    volatile void* get() { return _buffer.get(); }
 
 	private:
 	    ConsumerBuffer _buffer;

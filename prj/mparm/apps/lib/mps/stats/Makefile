@@ -1,6 +1,6 @@
 RTEMS_MAKEFILE_PATH=/usr/lib/rtems4.6/arm-rtems/arm_bare_bsp
 
-EXE= mutex.exe sem.exe old.exe
+EXE= mutex.exe sem.exe old.exe ringbuf.exe raw.exe queue.exe
 
 vpath %.cpp ../IceUtil
 vpath %.cpp legacy
@@ -31,3 +31,5 @@ mutex.exe:   mutex.o TestCase.o compat.o
 sem.exe:     sem.o TestCase.o compat.o
 old.exe:     old.o TestCase.o compat.o appsupport.o ss_semaphore.o
 ringbuf.exe: ringbuf.o TestCase.o compat.o
+raw.exe:     raw.o TestCase.o compat.o
+queue.exe:   queue.o TestCase.o compat.o

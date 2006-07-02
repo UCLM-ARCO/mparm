@@ -41,7 +41,12 @@ namespace MPS {
 		: _semaphore(semaphore_base(core)[id])
 	    {
 		if (init)
-		    _semaphore = value + 1;
+		    initialize (value);
+	    }
+
+	    void initialize (int value)
+	    {
+		_semaphore = value + 1;
 	    }
 	    
 	    bool dec()
@@ -78,10 +83,9 @@ namespace MPS {
 	};
 
 	// Local/Remote semaphores cooperate to avoid unneeded polling
-	// traffic in the bus.  An increment of a blocked semaphore
-	// generates remote notifications to all subscribed cores.
+	// traffic in the bus.  An increment of a semaphore generates
+	// remote notifications to all subscribed cores.
 
-	/* FIXME: Notify is not updated atomically, Remote Ctors must be serialized */
 	class LocalSemaphoreState : public SemaphoreState {
 	public:
 	    LocalSemaphoreState(unsigned id,       // HW semaphore
@@ -95,20 +99,15 @@ namespace MPS {
 	    
 	    void inc(int add = 1)
 	    {
-		if (SemaphoreState::dec()) {
-		    SemaphoreState::inc(add + 1);
-		}
-		else {  // will unblock, notify all
-		    SemaphoreState::inc(add);
-		    unsigned notify = _notify;
-		    for (int i = 0; i < 32; ++i) {
-			if (notify == 0)
-			    break;
-			if (notify & 1) {
-			    semaphore_base(i + 1)[_id] = 2;
-			}
-			notify = notify >> 1;
+		SemaphoreState::inc(add);
+		unsigned notify = _notify;
+		for (int i = 0; i < 32; ++i) {
+		    if (notify == 0)
+			break;
+		    if (notify & 1) {
+			semaphore_base(i + 1)[_id] = 2;
 		    }
+		    notify = notify >> 1;
 		}
 	    }
 
@@ -155,11 +154,8 @@ namespace MPS {
 	// traffic in the bus.  A remote semaphore spins on a local
 	// lock when the semaphore is locked.
 
-	/* FIXME: There is a potential race condition here.  Adjust
-	   _retries to avoid that.  The problem may arise if wait is
-	   called from a remote side at the begining of a post (just
-	   after checking it wouldn't block).  Remote sides would not
-	   be notified when the semaphore is locked. */
+	// _retries is meant to avoid potential race conditions that
+	// may arise as a consequence of non-atomic notifications
 	class RemoteSemaphoreState : public LocalSemaphoreState {
 	public:
 	    RemoteSemaphoreState(unsigned core,
@@ -169,7 +165,6 @@ namespace MPS {
 		  _local(semaphore_base(get_proc_id())[id]),
 		  _retries(2), _waiting(false)
 	    {
-		_local = 1;	// write a 0, initially locked
 		addObserver(get_proc_id());
 	    }
 
@@ -192,8 +187,10 @@ namespace MPS {
 		if (SemaphoreState::dec())
 		    return true;
 
-		if (0 == --_retries)
+		if (0 == --_retries) {
+		    _local = 1;		// write a 0 (locked)
 		    _waiting = true;
+		}
 		return false;
 	    }
 

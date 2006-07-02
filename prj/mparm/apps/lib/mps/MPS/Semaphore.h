@@ -37,6 +37,11 @@ namespace MPS {
 	{
 	}
 
+	void init(int value) const
+	{
+	    _state.initialize(value);
+	}
+
 	void wait() const
 	{
 	    for(;;) {

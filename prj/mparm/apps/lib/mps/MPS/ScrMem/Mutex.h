@@ -117,7 +117,7 @@ namespace MPS {
 	    LocalSpinMutexState(unsigned id,       // HW semaphore
 			    unsigned notify,   // Addr of subscribers
 			    bool init = false) // Initialize?
-		: LocalMutexState(id, notify, init) {}
+		: LocalMutexState(id, notify, init)
 	    {
 	    }
 
@@ -132,9 +132,8 @@ namespace MPS {
 			     unsigned notify)
 		: LocalMutexState(core, id, notify),
 		  _local(semaphore_base(get_proc_id())[id]),
-		  _waiting(false)
+		  _retries(2), _waiting(false)
 	    {
-		_local = 1;	// write a 0, initially locked
 		addObserver(get_proc_id());
 	    }
 
@@ -147,6 +146,7 @@ namespace MPS {
 	    {
 		if (_waiting) {
 		    if (_local) {
+			_retries = 2;
 			_waiting = false;
 			return MutexState::tryLock();
 		    }
@@ -156,12 +156,16 @@ namespace MPS {
 		if (MutexState::tryLock())
 		    return true;
 
-		_waiting = true;
+		if (0 == --_retries) {
+		    _local = 1;		// write a 0, initially locked
+		    _waiting = true;
+		}
 		return false;
 	    }
 
 	private:
 	    mutable volatile int& _local;
+	    int _retries;
 	    bool _waiting;
 	};
 	

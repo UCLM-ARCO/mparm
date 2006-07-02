@@ -9,95 +9,108 @@
 // Allocated blocks are marked with a positive size, free blocks are
 // marked with the most significant bit of the size header set to 1.
 
-// Compaction occurs on every invocation of free.
+// It tries compaction on every invocation of free and if alloc cannot
+// find enough memory
 
 namespace MPS {
-    
+
     template <class Mutex, int N>
     class Allocator
     {
     public:
-	Allocator(void* mem, Mutex& mutex, bool init = false)
+	Allocator(volatile void* mem, Mutex& mutex, bool init = false)
 	    : _head(*static_cast<volatile int*>(mem)),
-	      _tail(&_head + 1),
-	      _mem(static_cast<char*>(&_tail + 1)),
+	      _tail(*(&_head + 1)),
+	      _mem(reinterpret_cast<volatile char*>(&_tail + 1)),
 	      _mutex(mutex)
 	{
 	    if (init)
 		_head = _tail = 0;
 	}
 
-	void* alloc(int size);
-	void free(void* data);
+	volatile void* alloc(int size);
+	void free(volatile void* data);
     
     private:
 	static int align(int v, int boundary) {
 	    return (v + (boundary - 1)) & ~(boundary - 1);
 	}
     
+	bool enoughSpace(int head, int tail, int sz);
 	void compact();
 	void fillEmptyBlock(int sz);
-	void* fillBlock(int sz);
+	volatile void* fillBlock(int sz);
     
     private:
 	volatile int& _head;
 	volatile int& _tail;
-	char* _mem;
-	Mutex _mutex;
+	volatile char* _mem;
+	Mutex& _mutex;
     };
 
 
     template <class Mutex, int N>
-    void*
+    volatile void*
     Allocator<Mutex,N>::alloc(int size)
     {
 	size = align(size, sizeof(int));
 	
-	Mutex::Lock lock(_mutex);
+	typename Mutex::Lock lock(_mutex);
 
 	int head = _head, tail = _tail, sz = size + sizeof(int);
-	
-	// Check if there is room
-	if (head > tail && head - tail < sz) {
-	    throw "Out of memory";
-	}
-	else if (N - tail < sz) {
-	    // Try wrapping around...
-	    if (head < sz) {
+
+	if (!enoughSpace(head, tail, sz)) {
+	    compact();
+	    if (!enoughSpace(head, tail, sz))
 		throw "Out of memory";
-	    }
-	    fillEmptyBlock(N - tail - sizeof(int));
 	}
 	return fillBlock(size);
     }
 
     template <class Mutex, int N>
     void
-    Allocator<Mutex,N>::free(void* data);
+    Allocator<Mutex,N>::free(volatile void* data)
     {
-	Mutex::Lock lock(_mutex);
-
 	volatile unsigned& _sz = *(static_cast<volatile unsigned*>(data) - 1);
 	int sz = _sz;
 	_sz = sz | 0x80000000;
-	compact();
+
+	typename Mutex::TryLock lock(_mutex);
+	if (lock.acquired())
+	    compact();
     }
 
+    template <class Mutex, int N>
+    bool
+    Allocator<Mutex,N>::enoughSpace(int head, int tail, int sz)
+    {
+	if (head > tail && head - tail < sz) {
+	    return false;
+	}
+	else if (N - tail < sz) {
+	    // Try wrapping around...
+	    if (head < sz)
+		return false;
+	    fillEmptyBlock(N - tail - sizeof(int));
+	}
+	return true;
+    }
+    
     template <class Mutex, int N>
     void
     Allocator<Mutex,N>::compact()
     {
 	for(;;) {
+	    if (_tail == _head)			// Reached the end
+		break;
 	    unsigned tail = _tail;
-	    volatile unsigned& _sz = static_cast<volatile int&>(_mem[tail]);
+	    volatile unsigned& _sz = *reinterpret_cast<volatile unsigned*>(&_mem[tail]);
 	    unsigned sz = _sz;
 	    if (0 == (sz & 0x80000000))		// Positive size, still active
 		break;
 	    sz = sz & (0x80000000 - 1);
 	    tail += sz + sizeof(int);
 	    _tail = tail % N;
-	    if (_tail == _head)			// Reached the end
-		break;
 	}
     }
 
@@ -105,16 +118,16 @@ namespace MPS {
     void
     Allocator<Mutex,N>::fillEmptyBlock(int sz)
     {
-	volatile unsigned& _sz = static_cast<volatile int&>(_mem[_head]);
+	volatile unsigned& _sz = *reinterpret_cast<volatile unsigned*>(&_mem[_head]);
 	fillBlock(sz);
 	_sz = sz | 0x80000000;
     }
     
     template <class Mutex, int N>
-    void*
+    volatile void*
     Allocator<Mutex,N>::fillBlock(int sz)
     {
-	volatile unsigned& _sz = static_cast<volatile int&>(_mem[_head]);
+	volatile unsigned& _sz = *reinterpret_cast<volatile unsigned*>(&_mem[_head]);
 	_sz = sz;
 	unsigned head = _head + sz + sizeof(int);
 	_head = head % N;

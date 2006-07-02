@@ -21,10 +21,14 @@ namespace MPS {
 		: _mutex(semaphore_base[lock]),
 		_counter(memory_base[counter])
 	    {
-		if (init) {
-		    _mutex.unlock();
-		    _counter = value;
-		}
+		if (init)
+		    initialize(value);
+	    }
+
+	    void initialize (int value)
+	    {
+		_mutex.unlock();
+		_counter = value;
 	    }
 	    
 	    bool dec()
