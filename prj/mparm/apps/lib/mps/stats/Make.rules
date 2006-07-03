@@ -1,13 +1,10 @@
 dat: throughput.dat sem.dat mutex.dat
 
-%.dat:
-	cat $^ | $(FILTER) > $@
-
-mutex.dat: FILTER=../filter-mutex-sem.sh
 mutex.dat: mutex.scn old.scn
+	cat $^ | ../filter-mutex-sem.sh > $@
 
-sem.dat:   FILTER=../filter-mutex-sem.sh
 sem.dat:   sem.scn old.scn
+	cat $^ | ../filter-mutex-sem.sh > $@
 
-throughput.dat: FILTER=../filter-throughput.sh
-throughput.dat: channel.dat queue.dat ringbuf.dat raw.dat
+throughput.dat: queue.scn ringbuf.scn raw.scn
+	cat $^ | ../filter-throughput.sh > $@

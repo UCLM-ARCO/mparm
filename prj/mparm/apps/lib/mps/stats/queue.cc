@@ -158,6 +158,9 @@ public:
     CompositeMQueue()
 	: CompositeTestCase("Throughput of MPS Queues")
     {
+   	add(new MQueue<4, 16384>("Queue"));
+   	add(new MQueue<8,  8192>("Queue"));
+   	add(new MQueue<16, 4096>("Queue"));
    	add(new MQueue<32, 2048>("Queue"));
    	add(new MQueue<64, 1024>("Queue"));
    	add(new MQueue<128, 512>("Queue"));

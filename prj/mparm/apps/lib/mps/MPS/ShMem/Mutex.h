@@ -1,6 +1,8 @@
 #ifndef MPS_SHMEM_MUTEX_H
 #define MPS_SHMEM_MUTEX_H
 
+# include <unistd.h> // sleep
+
 namespace MPS {
 
     namespace ShMem {
@@ -63,6 +65,11 @@ namespace MPS {
 	    {
 	    }
 
+	    // compatibility with ScrMem::Mutex
+	    Mutex(int core, unsigned id, bool init=false) : Mutex(id)
+	    {
+	    }
+	    
 	private:
 	    Mutex(const Mutex&);		// disallow copy ctor
 	    void operator=(const Mutex&);	// disallow assignment operator
@@ -83,6 +90,11 @@ namespace MPS {
 	    {
 	    }
 
+	    // compatibility with ScrMem::Mutex
+	    SpinMutex(int core, unsigned id, bool init=false) : SpinMutex(id)
+	    {
+	    }
+	    
 	private:
 	    SpinMutex(const SpinMutex&);	// disallow copy ctor
 	    void operator=(const SpinMutex&);	// disallow assignment operator

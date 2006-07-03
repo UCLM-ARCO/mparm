@@ -147,6 +147,8 @@ public:
  	add(new RingBuf<256, 256>("RingBuffer"));
  	add(new RingBuf<512, 128>("RingBuffer"));
  	add(new RingBuf<1024, 64>("RingBuffer"));
+ 	add(new RingBuf<2048, 32>("RingBuffer"));
+ 	add(new RingBuf<4096, 16>("RingBuffer"));
     }
 };
 

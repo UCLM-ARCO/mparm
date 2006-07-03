@@ -37,12 +37,17 @@ namespace MPS {
 		  _tail(tail), _tailMutex(tailMutex),
 		  _semP(semP), _semC(semC)
 	    {
-		if (init) {
-		    _semP.init(0);
+		if (init)
 		    _tail = 0;
-		}
 	    }
-	
+
+	    void activate() {
+		_semC.init(N - 1); // we can optimize Consumer::get by
+				   // just leaving 1 free slot
+		_semP.init(0);
+		_tail = 0;
+	    }
+	    
 	    void put(const T& t)
 	    {
 		_semC.wait();
@@ -76,12 +81,21 @@ namespace MPS {
 		     bool init = false)
 		: _data(data), _head(head), _headMutex(headMutex), _semP(semP), _semC(semC)
 	    {
-		if (init) {
-		    _semC.init(N - 1); // we can optimize get by just leaving 1 free slot
+		if (init)
 		    _head = 0;
-		}
 	    }
-	
+
+	    void deactivate() {
+		_semC.init(0);     // inhibit further puts
+	    }
+
+	    void activate() {
+		_semC.init(N - 1); // we can optimize Consumer::get by
+				   // just leaving 1 free slot
+		_semP.init(0);
+		_head = 0;
+	    }
+	    
 	    T get()
 	    {
 		_semP.wait();
@@ -90,7 +104,8 @@ namespace MPS {
 		int head = _head;
 		_head = (head + 1) % N;
 
-		_semC.post();
+		_semC.post();	// No problem to post now, the last
+				// slot will never be touched
 		return const_cast<const T&>(_data[head]);
 	    }
         

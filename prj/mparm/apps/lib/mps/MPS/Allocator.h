@@ -1,18 +1,67 @@
 #ifndef MPS_ALLOCATOR_H
 #define MPS_ALLOCATOR_H
 
-// Naive sequential allocator for arbitrary sized chunks of data
-
-// Size is a template parameter because modulo operations may be
-// highly optimized by the compiler if N is a power of two
-
-// Allocated blocks are marked with a positive size, free blocks are
-// marked with the most significant bit of the size header set to 1.
-
-// It tries compaction on every invocation of free and if alloc cannot
-// find enough memory
+// Several simple allocators for MPS
 
 namespace MPS {
+
+    // Simple fixed-size allocator
+
+    // A nice property of this allocator is that you do not really
+    // need the original allocator to be able to free buffers
+
+    // Size is a template parameter because modulo operations may be
+    // highly optimized by the compiler if N is a power of two
+
+    template <class T, class Mutex, int N>
+    class FixedSizeAllocator
+    {
+	struct ItemType {
+	    int header;
+	    T   data;
+	};
+	
+    public:
+	FixedSizeAllocator(volatile void* mem, Mutex& mutex, bool init = false)
+	    : _mem(reinterpret_cast<volatile ItemType*>(mem)),
+	      _mutex(mutex)
+	{
+	    if (init) {
+		for (int i=0; i<N; ++i)
+		    _mem[i].header = 0;
+	    }
+	}
+
+	volatile T* alloc()
+	{
+	    typename Mutex::Lock lock(_mutex);
+	    for (int i=0; i<N; ++i) {
+		if (0 == _mem[i].header)
+		    return &_mem[i].data;
+	    }
+	    throw "Out of memory";
+	}
+	
+	void free(volatile T* data)
+	{
+	    volatile int* header = static_cast<volatile int*>(data) - 1;
+	    *header = 0;
+	}
+    
+    private:
+	volatile ItemType* _mem;
+	Mutex& _mutex;
+    };
+
+    
+    // Naive sequential allocator for arbitrary sized chunks of data
+
+    // Allocated blocks are marked with a positive size, free blocks
+    // are marked with the most significant bit of the size header set
+    // to 1.
+
+    // It tries compaction on every invocation of free and if alloc
+    // cannot find enough memory
 
     template <class Mutex, int N>
     class Allocator
