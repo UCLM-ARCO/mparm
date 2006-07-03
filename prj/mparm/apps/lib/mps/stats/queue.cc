@@ -14,6 +14,10 @@
 
 const int BufferSize = 32;
 
+// Semaphore to signal end condition
+MPS::ScrMem::Semaphore end1(1,61,get_proc_id() == 1,0);
+MPS::ScrMem::Semaphore end2(2,61,get_proc_id() == 1,0);
+
 template <int DataSize = 4, int Iterations = 16384>
 class MQueue : public TestCase {
 
@@ -69,14 +73,11 @@ MQueue<DataSize, Iterations>::run1()
     // Semaphore counting consumed slots must be local
     MPS::ScrMem::SpinSemaphore semC(1,62);
     
-    // Semaphore to wait for end condition
-    MPS::ScrMem::Semaphore end1(1,61,true,0);
-    MPS::ScrMem::Semaphore end2(2,61);
-
     // Mutex for memory allocator
     MPS::ScrMem::SpinMutex memMutex(1,60,true);
 
     Producer prod(data, tail, mutex, semP, semC, memMutex, true);
+    prod.activate(); // Only on one side
 
     end1.wait();
     end2.post();
@@ -126,10 +127,6 @@ MQueue<DataSize, Iterations>::run2()
     // Semaphore counting consumed slots must be local
     MPS::ScrMem::SpinSemaphore semC(1,62);
     
-    // Semaphore to signal end condition
-    MPS::ScrMem::Semaphore end1(1,61);
-    MPS::ScrMem::Semaphore end2(2,61,true,0);
-
     // Mutex for memory allocator
     MPS::ScrMem::SpinMutex memMutex(1,60);
 
@@ -161,14 +158,14 @@ public:
     CompositeMQueue()
 	: CompositeTestCase("Throughput of MPS Queues")
     {
-  	add(new MQueue<32, 2048>("Queue32"));
-  	add(new MQueue<64, 1024>("Queue64"));
-  	add(new MQueue<128, 512>("Queue128"));
-  	add(new MQueue<256, 256>("Queue256"));
-  	add(new MQueue<512, 128>("Queue512"));
-  	add(new MQueue<1024, 64>("Queue1024"));
-  	add(new MQueue<2048, 32>("Queue2048"));
-  	add(new MQueue<4096, 16>("Queue4096"));
+   	add(new MQueue<32, 2048>("Queue"));
+   	add(new MQueue<64, 1024>("Queue"));
+   	add(new MQueue<128, 512>("Queue"));
+   	add(new MQueue<256, 256>("Queue"));
+  	add(new MQueue<512, 128>("Queue"));
+  	add(new MQueue<1024, 64>("Queue"));
+  	add(new MQueue<2048, 32>("Queue"));
+  	add(new MQueue<4096, 16>("Queue"));
     }
 };
 
@@ -178,7 +175,6 @@ main()
 {
     CompositeMQueue test;
 
-    //test.debug(true);
     test.run();
     stop_simulation();
 }

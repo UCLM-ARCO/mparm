@@ -117,22 +117,22 @@ public:
 	  _scrRemoteSpinSem(0)
     {
 
- 	add(new M1ShSem(_shSem,"ShSem1"));
- 	add(new M1ShSpinSem(_shSpinSem, "ShSpinSem1"));
- 	add(new M1ScrSem(_scrSem, "ScrSem1"));
- 	add(new M1ScrSpinSem(_scrSpinSem, "ScrSpinSem1"));
+ 	add(new M1ShSem(_shSem,"ShMem::Sem"));
+ 	add(new M1ShSpinSem(_shSpinSem, "ShMem::SpinSem"));
+ 	add(new M1ScrSem(_scrSem, "ScrMem::Sem"));
+ 	add(new M1ScrSpinSem(_scrSpinSem, "ScrMem::SpinSem"));
 
 	if (1 == get_proc_id()) {
 	    _scrLocalSem = new MPS::ScrMem::LocalSemaphore(RemoteID, RemoteID, true, 1);
 	    _scrLocalSpinSem = new MPS::ScrMem::LocalSpinSemaphore(RemoteSpinID, RemoteSpinID, true, 1);
-	    add(new M1ScrLocalSem(*_scrLocalSem, "ScrLocalSem1"));
-	    add(new M1ScrLocalSpinSem(*_scrLocalSpinSem, "ScrLocalSpinSem1"));
+	    add(new M1ScrLocalSem(*_scrLocalSem, "ScrMem::LocalSem"));
+	    add(new M1ScrLocalSpinSem(*_scrLocalSpinSem, "ScrMem::LocalSpinSem"));
 	}
 	else {
 	    _scrRemoteSem = new MPS::ScrMem::RemoteSemaphore(1, RemoteID, RemoteID);
 	    _scrRemoteSpinSem = new MPS::ScrMem::RemoteSpinSemaphore(1, RemoteSpinID, RemoteSpinID);
-	    add(new M1ScrRemoteSem(*_scrRemoteSem, "ScrRemoteSem"));
-	    add(new M1ScrRemoteSpinSem(*_scrRemoteSpinSem, "ScrRemoteSpinSem"));
+	    add(new M1ScrRemoteSem(*_scrRemoteSem, "ScrMem::RemoteSem"));
+	    add(new M1ScrRemoteSpinSem(*_scrRemoteSpinSem, "ScrMem::RemoteSpinSem"));
 	}
     }
 };

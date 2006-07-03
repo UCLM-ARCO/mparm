@@ -1,10 +1,15 @@
 #include "TestCase.hh"
 #include <MPS/Mutex.h>
 #include <MPS/RecMutex.h>
+#include <MPS/Semaphore.h>
 
 // Meassurements of mutex latency
 
 #define N 20
+
+// Semaphore to signal end condition
+MPS::ScrMem::Semaphore end1(1,61);
+MPS::ScrMem::Semaphore end2(2,61,get_proc_id() == 1,0);
 
 template<class Mutex>
 class MutexLatency : public TestCase {
@@ -25,18 +30,18 @@ bool
 MutexLatency<Mutex>::run1()
 {
     for (int i = 0; i<N; ++i)  {
-	wait(0);
+	end1.wait();
 	{
 	    time_start(i);
 	    typename Mutex::Lock lock(_mutex);
 	    trace("lock");
-	    stamp(11);
-	    wait(12);
+	    end2.post();
+	    end1.wait();
 	    sleep(0);
 	    time_stop(i);
 	}
 	trace("unlock");
-	stamp(13);
+	end2.post();
     }
     return true;
 }
@@ -46,17 +51,17 @@ bool
 MutexLatency<Mutex>::run2()
 {
     for (int i = 0; i<N; ++i)  {
-	wait(11);
+	end1.post();
+	end2.wait();
 	{
-	    stamp(12);
+	    end1.post();
 	    time_start(i);
 	    typename Mutex::Lock lock(_mutex);
 	    time_stop(i);
 	    trace("lock");
 	}
 	trace("unlock");
-	wait(13);
-	stamp(0);
+	end2.wait();
     }
     return true;
 }
@@ -141,14 +146,14 @@ public:
 	  _scrRemoteSpinRecMutex(0)
     {
 
-	add(new M1ShMutex(_shMutex,"ShMutex"));
-	add(new M1ShSpinMutex(_shSpinMutex, "ShSpinMutex"));
-	add(new M1ScrMutex(_scrMutex, "ScrMutex"));
-	add(new M1ScrSpinMutex(_scrSpinMutex, "ScrSpinMutex"));
-	add(new M1ShRecMutex(_shRecMutex, "ShRecMutex"));
-	add(new M1ShSpinRecMutex(_shSpinRecMutex, "ShSpinRecMutex"));
-	add(new M1ScrRecMutex(_scrRecMutex, "ScrRecMutex"));
-	add(new M1ScrSpinRecMutex(_scrSpinRecMutex, "ScrSpinRecMutex"));
+	add(new M1ShMutex(_shMutex,"ShMem::Mutex"));
+	add(new M1ShSpinMutex(_shSpinMutex, "ShMem::SpinMutex"));
+	add(new M1ScrMutex(_scrMutex, "ScrMem::Mutex"));
+	add(new M1ScrSpinMutex(_scrSpinMutex, "ScrMem::SpinMutex"));
+	add(new M1ShRecMutex(_shRecMutex, "ShMem::RecMutex"));
+	add(new M1ShSpinRecMutex(_shSpinRecMutex, "ShMem::SpinRecMutex"));
+	add(new M1ScrRecMutex(_scrRecMutex, "ScrMem::RecMutex"));
+	add(new M1ScrSpinRecMutex(_scrSpinRecMutex, "ScrMem::SpinRecMutex"));
 
 	if (1 == get_proc_id()) {
 	    _scrLocalMutex        = new MPS::ScrMem::LocalMutex(RemoteID, RemoteID, true);
@@ -156,10 +161,10 @@ public:
 	    _scrLocalRecMutex     = new MPS::ScrMem::LocalRecMutex(RemoteRecID, RemoteRecID, true);
 	    _scrLocalSpinRecMutex = new MPS::ScrMem::LocalSpinRecMutex(RemoteSpinRecID, RemoteSpinRecID, true);
 	    
-	    add(new M1ScrLocalMutex(*_scrLocalMutex, "ScrLocalMutex"));
-	    add(new M1ScrLocalSpinMutex(*_scrLocalSpinMutex, "ScrLocalSpinMutex"));
-	    add(new M1ScrLocalRecMutex(*_scrLocalRecMutex, "ScrLocalRecMutex"));
-	    add(new M1ScrLocalSpinRecMutex(*_scrLocalSpinRecMutex, "ScrLocalSpinRecMutex"));
+	    add(new M1ScrLocalMutex(*_scrLocalMutex, "ScrMem::LocalMutex"));
+	    add(new M1ScrLocalSpinMutex(*_scrLocalSpinMutex, "ScrMem::LocalSpinMutex"));
+	    add(new M1ScrLocalRecMutex(*_scrLocalRecMutex, "ScrMem::LocalRecMutex"));
+	    add(new M1ScrLocalSpinRecMutex(*_scrLocalSpinRecMutex, "ScrMem::LocalSpinRecMutex"));
 	}
 	else {
 	    _scrRemoteMutex        = new MPS::ScrMem::RemoteMutex(1, RemoteID, RemoteID);
@@ -167,10 +172,10 @@ public:
 	    _scrRemoteRecMutex     = new MPS::ScrMem::RemoteRecMutex(1, RemoteRecID, RemoteRecID);
 	    _scrRemoteSpinRecMutex = new MPS::ScrMem::RemoteSpinRecMutex(1, RemoteSpinRecID, RemoteSpinRecID);
 	    
-	    add(new M1ScrRemoteMutex(*_scrRemoteMutex, "ScrRemoteMutex"));
-	    add(new M1ScrRemoteSpinMutex(*_scrRemoteSpinMutex, "ScrRemoteSpinMutex"));
-	    add(new M1ScrRemoteRecMutex(*_scrRemoteRecMutex, "ScrRemoteRecMutex"));
-	    add(new M1ScrRemoteSpinRecMutex(*_scrRemoteSpinRecMutex, "ScrRemoteSpinRecMutex"));
+	    add(new M1ScrRemoteMutex(*_scrRemoteMutex, "ScrMem::RemoteMutex"));
+	    add(new M1ScrRemoteSpinMutex(*_scrRemoteSpinMutex, "ScrMem::RemoteSpinMutex"));
+	    add(new M1ScrRemoteRecMutex(*_scrRemoteRecMutex, "ScrMem::RemoteRecMutex"));
+	    add(new M1ScrRemoteSpinRecMutex(*_scrRemoteSpinRecMutex, "ScrMem::RemoteSpinRecMutex"));
 	}
     }
 };

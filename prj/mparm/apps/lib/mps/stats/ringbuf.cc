@@ -67,6 +67,7 @@ RingBuf<DataSize, Iterations>::run1()
     MPS::ScrMem::Semaphore end2(2,61);
 
     Producer prod(data, tail, mutex, semP, semC, true);
+    prod.activate(); // Only on one side
 
     stamp(11);
     wait(12);
@@ -137,15 +138,15 @@ public:
     CompositeRingBuf()
 	: CompositeTestCase("Throughput of MPS RingBuf")
     {
- 	add(new RingBuf<4, 16384>("RingBuf4"));
- 	add(new RingBuf<8,  8192>("RingBuf8"));
- 	add(new RingBuf<16, 4096>("RingBuf16"));
- 	add(new RingBuf<32, 2048>("RingBuf32"));
- 	add(new RingBuf<64, 1024>("RingBuf64"));
- 	add(new RingBuf<128, 512>("RingBuf128"));
- 	add(new RingBuf<256, 256>("RingBuf256"));
- 	add(new RingBuf<512, 128>("RingBuf512"));
- 	add(new RingBuf<1024, 64>("RingBuf1024"));
+ 	add(new RingBuf<4, 16384>("RingBuffer"));
+ 	add(new RingBuf<8,  8192>("RingBuffer"));
+ 	add(new RingBuf<16, 4096>("RingBuffer"));
+ 	add(new RingBuf<32, 2048>("RingBuffer"));
+ 	add(new RingBuf<64, 1024>("RingBuffer"));
+ 	add(new RingBuf<128, 512>("RingBuffer"));
+ 	add(new RingBuf<256, 256>("RingBuffer"));
+ 	add(new RingBuf<512, 128>("RingBuffer"));
+ 	add(new RingBuf<1024, 64>("RingBuffer"));
     }
 };
 

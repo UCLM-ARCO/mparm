@@ -1,8 +1,16 @@
-#include <MPS/Config.h>
 #include "TestCase.hh"
 #include "scratch_semaphore.h"
-#include "ss_semaphore.h"
 #include "appsupport.h"
+#ifdef __rtems__
+# include "ss_semaphore.h"
+#endif
+#include <MPS/Semaphore.h>
+
+#include <unistd.h>
+
+// Semaphore to signal end condition
+MPS::ScrMem::Semaphore end1(1,61);
+MPS::ScrMem::Semaphore end2(2,61,get_proc_id() == 1,0);
 
 // Meassurements of legacy semaphores latency
 
@@ -25,15 +33,13 @@ bool
 ShSemLegacy::run1()
 {
     for (int i = 0; i<N; ++i)  {
-	wait(0);
-
 	time_start(i);
 	WAIT(_sem);
 
 	trace("lock");
 
-	stamp(11);
-	wait(12);
+	end2.post();
+	end1.wait();
 
 	sleep(0);
 
@@ -41,7 +47,8 @@ ShSemLegacy::run1()
 	SIGNAL(_sem);
 	
 	trace("unlock");
-	stamp(13);
+	end2.post();
+	end1.wait();
     }
     return true;
 }
@@ -50,9 +57,9 @@ bool
 ShSemLegacy::run2()
 {
     for (int i = 0; i<N; ++i)  {
-	wait(11);
-	stamp(12);
-
+	end2.wait();
+	end1.post();
+	
 	time_start(i);
 	WAIT(_sem);
 	time_stop(i);
@@ -62,8 +69,8 @@ ShSemLegacy::run2()
 	SIGNAL(_sem);
 	
 	trace("unlock");
-	wait(13);
-	stamp(0);
+	end2.wait();
+	end1.post();
     }
     return true;
 }
@@ -89,15 +96,13 @@ bool
 ScrSemLegacy::run1()
 {
     for (int i = 0; i<N; ++i)  {
-	wait(0);
-
 	time_start(i);
 	while (!scratch_sem_wait(_sem));
 
 	trace("lock");
 
-	stamp(11);
-	wait(12);
+	end2.post();
+	end1.wait();
 
 	sleep(0);
 
@@ -105,7 +110,8 @@ ScrSemLegacy::run1()
 	scratch_sem_signal(_sem);
 	
 	trace("unlock");
-	stamp(13);
+	end2.post();
+	end1.wait();
     }
     return true;
 }
@@ -114,8 +120,8 @@ bool
 ScrSemLegacy::run2()
 {
     for (int i = 0; i<N; ++i)  {
-	wait(11);
-	stamp(12);
+	end2.wait();
+	end1.post();
 
 	time_start(i);
 	while(!scratch_sem_wait(_sem));
@@ -126,11 +132,13 @@ ScrSemLegacy::run2()
 	scratch_sem_signal(_sem);
 	
 	trace("unlock");
-	wait(13);
-	stamp(0);
+	end2.wait();
+	end1.post();
     }
     return true;
 }
+
+#ifdef __rtems__
 
 class ScrSSemLegacy : public TestCase {
 public:
@@ -198,6 +206,7 @@ ScrSSemLegacy::run2()
     return true;
 }
 
+#endif
 
 class CompositeLegacyLatency: public CompositeTestCase
 {
@@ -213,9 +222,11 @@ public:
 	: CompositeTestCase("Legacy semaphores latencies"),
 	  _core(get_proc_id())
     {
-	add(new ShSemLegacy(ID, "ShSemLegacy"));
-	add(new ScrSemLegacy(ScratchID, "ScrSemLegacy"));
-	add(new ScrSSemLegacy(SScratchID, "ScrSSemLegacy"));
+	add(new ShSemLegacy(ID, "appsupport"));
+	add(new ScrSemLegacy(ScratchID, "scratch_semaphore"));
+#ifdef __rtems__
+	add(new ScrSSemLegacy(SScratchID, "ss_semaphore"));
+#endif
     }
 };
 

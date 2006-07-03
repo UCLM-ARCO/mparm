@@ -1,13 +1,14 @@
 #!/bin/sh
 
 grep "Processor" | gawk --non-decimal-data '
-BEGIN {
-  print "Size\tThroughput"
-}
 {
   if ($3 == "shuts") {
   }
   else if ($4 == "Test") {
+    if (!pass[$5]) {
+      print "Size\t" $5
+      pass[$5] = 1
+    }
     if ($5 != "MPS" && $2 == 0) {
       print sz "\t" 65536000 / (stop - start)
     }
@@ -19,5 +20,32 @@ BEGIN {
     if ($5 == "stop_time:")
       stop = $6
   }
+}' | gawk --non-decimal-data '
+{
+  if ($1 == "Size") {
+    title = $2
+    titles[$2] = $2
+    if (!main) main = $2
+  }
+  else {
+    val[title,$1] = $2
+    if (title == main) sizes[$1] = $1
+  }
 }
-' | sed -e 's/://g' -e 's/Latency//g' -e 's/^Sh/ShMem::/g' -e 's/^Scr/ScrMem::/g'
+END {
+  n = asort(titles)
+  m = asort(sizes)
+
+  printf "Size"
+  for (j=1; j<=n; ++j)
+    printf "\t" titles[j]
+  printf "\n"
+
+  for (i=1; i<=m; ++i) {
+    printf sizes[i]
+    for (j=1; j<=n; ++j) {
+      printf "\t" val[titles[j],sizes[i]]
+    }
+    printf "\n"
+  }
+}'

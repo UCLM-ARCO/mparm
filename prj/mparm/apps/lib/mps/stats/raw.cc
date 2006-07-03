@@ -12,24 +12,23 @@ class RawThroughput : public TestCase {
     };
     
 public:
-    RawThroughput(const char* id) : TestCase(id)
+    RawThroughput(const char* id, int* src) : TestCase(id), _src(src)
     {
     }
     
     bool run1();
     bool run2();
+
+private:
+    int* _src;
 };
 
 template <int DataSize, int Iterations>
 bool
 RawThroughput<DataSize, Iterations>::run1()
 {
-#if 1
-    int *src = const_cast<int*>(&MPS::ScrMem::memory_base(1)[64]);
-#else
-    int *src = 0;
-#endif
     int* dst = const_cast<int*>(&MPS::ScrMem::memory_base(2)[64]);
+    int* src = _src;
 
     time_start(DataSize);
     for (int i = 0; i < Iterations ; ++i) {
@@ -57,20 +56,38 @@ class CompositeRawThroughput: public CompositeTestCase
 {
 public:
     CompositeRawThroughput()
-	: CompositeTestCase("Throughput of MPS RingBuf")
+	: CompositeTestCase("Throughput of MPS RingBuf"),
+	  _srcScr(const_cast<int*>(&MPS::ScrMem::memory_base(1)[64])),
+	  _srcPriv(0)
     {
- 	add(new RawThroughput<4, 16384>("RawThroughput4"));
- 	add(new RawThroughput<8,  8192>("RawThroughput8"));
- 	add(new RawThroughput<16, 4096>("RawThroughput16"));
- 	add(new RawThroughput<32, 2048>("RawThroughput32"));
- 	add(new RawThroughput<64, 1024>("RawThroughput64"));
- 	add(new RawThroughput<128, 512>("RawThroughput128"));
- 	add(new RawThroughput<256, 256>("RawThroughput256"));
- 	add(new RawThroughput<512, 128>("RawThroughput512"));
- 	add(new RawThroughput<1024, 64>("RawThroughput1024"));
- 	add(new RawThroughput<2048, 32>("RawThroughput2048"));
- 	add(new RawThroughput<4096, 16>("RawThroughput4096"));
+ 	add(new RawThroughput<4, 16384>("MemcpyPriv", _srcPriv));
+ 	add(new RawThroughput<8,  8192>("MemcpyPriv", _srcPriv));
+ 	add(new RawThroughput<16, 4096>("MemcpyPriv", _srcPriv));
+ 	add(new RawThroughput<32, 2048>("MemcpyPriv", _srcPriv));
+ 	add(new RawThroughput<64, 1024>("MemcpyPriv", _srcPriv));
+ 	add(new RawThroughput<128, 512>("MemcpyPriv", _srcPriv));
+ 	add(new RawThroughput<256, 256>("MemcpyPriv", _srcPriv));
+ 	add(new RawThroughput<512, 128>("MemcpyPriv", _srcPriv));
+ 	add(new RawThroughput<1024, 64>("MemcpyPriv", _srcPriv));
+ 	add(new RawThroughput<2048, 32>("MemcpyPriv", _srcPriv));
+ 	add(new RawThroughput<4096, 16>("MemcpyPriv", _srcPriv));
+
+ 	add(new RawThroughput<4, 16384>("MemcpyScratch", _srcScr));
+ 	add(new RawThroughput<8,  8192>("MemcpyScratch", _srcScr));
+ 	add(new RawThroughput<16, 4096>("MemcpyScratch", _srcScr));
+ 	add(new RawThroughput<32, 2048>("MemcpyScratch", _srcScr));
+ 	add(new RawThroughput<64, 1024>("MemcpyScratch", _srcScr));
+ 	add(new RawThroughput<128, 512>("MemcpyScratch", _srcScr));
+ 	add(new RawThroughput<256, 256>("MemcpyScratch", _srcScr));
+ 	add(new RawThroughput<512, 128>("MemcpyScratch", _srcScr));
+ 	add(new RawThroughput<1024, 64>("MemcpyScratch", _srcScr));
+ 	add(new RawThroughput<2048, 32>("MemcpyScratch", _srcScr));
+ 	add(new RawThroughput<4096, 16>("MemcpyScratch", _srcScr));
     }
+    
+private:
+    int* _srcScr;
+    int* _srcPriv;
 };
 
 #ifndef COMBINED_TEST_CASES

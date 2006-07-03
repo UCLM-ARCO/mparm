@@ -8,11 +8,12 @@ vpath %.cc ..
 
 all: $(EXE:.exe=.scn)
 
+include ../Make.rules
 include $(RTEMS_MAKEFILE_PATH)/Makefile.inc
 include $(RTEMS_CUSTOM)
 include $(PROJECT_ROOT)/make/leaf.cfg
 
-CXXFLAGS += -I../.. -I../legacy -DNDEBUG
+CXXFLAGS += -I. -I../.. -I../legacy -DNDEBUG
 MANAGERS=io msg signal event region partition timer sem
 GCCSPECS=-B. -specs bsp_specs -B$(PROJECT_RELEASE)/lib/ -T linkcmds
 CLEAN_ADDITIONS = *.txt *.mem *~ *.exe $(EXE:.exe=) *.scn */*~
@@ -33,3 +34,4 @@ old.exe:     old.o TestCase.o compat.o appsupport.o ss_semaphore.o
 ringbuf.exe: ringbuf.o TestCase.o compat.o
 raw.exe:     raw.o TestCase.o compat.o
 queue.exe:   queue.o TestCase.o compat.o
+

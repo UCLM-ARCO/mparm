@@ -62,7 +62,10 @@ char **get_envp();
 unsigned long long int get_time();
 unsigned long long int get_cycle();
 unsigned long int access_file(char *filename, unsigned long int mode);
+
+#ifndef __linux__
 void _exit(int status);
+#endif
 
 // ---------------------------
 // Frequency scaling functions
@@ -86,7 +89,11 @@ int TEST_AND_SET(int ID);
 void WAIT(int ID);
 void SIGNAL(int ID);
 void send_interrupt(int ID);
+
+#ifndef __linux__
 void interrupt_function() __attribute__((interrupt));
+#endif
+
 void WAIT_FOR_INITIALIZATION();
 void INITIALIZATION_DONE();
 void BARINIT(int ID);

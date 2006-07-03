@@ -1,0 +1,7 @@
+These test cases are used to measure performance of MPS abstractions.
+
+They are not necessarily clean examples of MPS usage.  Look in the
+examples subdirectory for cleaner and more realistic code.
+
+All MPS tests should work in uClinux and RTEMS, but this is not the
+case with legacy code (ss_semaphore).
