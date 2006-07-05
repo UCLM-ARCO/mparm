@@ -9,7 +9,7 @@
 #include <unistd.h>
 
 // Semaphore to signal end condition
-MPS::ScrMem::Semaphore end1(1,61);
+MPS::ScrMem::Semaphore end1(1,61,get_proc_id() == 1,0);
 MPS::ScrMem::Semaphore end2(2,61,get_proc_id() == 1,0);
 
 // Meassurements of legacy semaphores latency
@@ -163,15 +163,13 @@ bool
 ScrSSemLegacy::run1()
 {
     for (int i = 0; i<N; ++i)  {
-	wait(0);
-
 	time_start(i);
 	ss_sem_wait(_sem);
 
 	trace("lock");
 
-	stamp(11);
-	wait(12);
+	end2.post();
+	end1.wait();
 
 	sleep(0);
 
@@ -179,7 +177,8 @@ ScrSSemLegacy::run1()
 	ss_sem_signal(_sem);
 	
 	trace("unlock");
-	stamp(13);
+	end2.post();
+	end1.wait();
     }
     return true;
 }
@@ -188,8 +187,8 @@ bool
 ScrSSemLegacy::run2()
 {
     for (int i = 0; i<N; ++i)  {
-	wait(11);
-	stamp(12);
+	end2.wait();
+	end1.post();
 
 	time_start(i);
 	ss_sem_wait(_sem);
@@ -200,8 +199,8 @@ ScrSSemLegacy::run2()
 	ss_sem_signal(_sem);
 	
 	trace("unlock");
-	wait(13);
-	stamp(0);
+	end2.wait();
+	end1.post();
     }
     return true;
 }

@@ -5,6 +5,10 @@
 
 #define N 20
 
+// Semaphores to wait for end condition
+MPS::ScrMem::Semaphore end1(1,61,get_proc_id() == 1,0);
+MPS::ScrMem::Semaphore end2(2,61,get_proc_id() == 1,0);
+
 template<class Semaphore>
 class Semaphore1 : public TestCase {
 public:
@@ -24,14 +28,12 @@ bool
 Semaphore1<Semaphore>::run1()
 {
     for (int i = 0; i<N; ++i)  {
-	wait(0);
-
 	time_start(i);
 	_sem.wait();
 
 	trace("lock");
-	stamp(11);
-	wait(12);
+	sem2.post();
+	sem1.wait();
 
 	sleep(0);
 	
@@ -39,7 +41,8 @@ Semaphore1<Semaphore>::run1()
 	_sem.post();
 	
 	trace("unlock");
-	stamp(13);
+	sem2.post();
+	sem1.wait();
     }
     return true;
 }
@@ -49,9 +52,8 @@ bool
 Semaphore1<Semaphore>::run2()
 {
     for (int i = 0; i<N; ++i)  {
-	wait(11);
-
-	stamp(12);
+	sem2.wait()
+	sem1.post();
 
 	time_start(i);
 	_sem.wait();
@@ -62,8 +64,8 @@ Semaphore1<Semaphore>::run2()
 	_sem.post();
 	
 	trace("unlock");
-	wait(13);
-	stamp(0);
+	sem2.wait();
+	sem1.post();
     }
     return true;
 }

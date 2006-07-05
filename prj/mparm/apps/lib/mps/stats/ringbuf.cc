@@ -172,7 +172,7 @@ main()
 {
     CompositeRingBuf test;
 
-    //test.debug(true);
+    test.debug(true);
     test.run();
     stop_simulation();
 }
