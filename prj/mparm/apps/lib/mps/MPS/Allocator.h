@@ -34,12 +34,8 @@ namespace MPS {
 
 	volatile T* alloc()
 	{
-	    typename Mutex::Lock lock(_mutex);
-	    for (int i=0; i<N; ++i) {
-		if (0 == _mem[i].header)
-		    return &_mem[i].data;
-	    }
-	    throw "Out of memory";
+	    int index;
+	    return alloc(index);
 	}
 	
 	void free(volatile T* data)
@@ -47,7 +43,20 @@ namespace MPS {
 	    volatile int* header = static_cast<volatile int*>(data) - 1;
 	    *header = 0;
 	}
-    
+
+    protected:
+	volatile T* alloc(int& index)
+	{
+	    typename Mutex::Lock lock(_mutex);
+	    for (int i=0; i<N; ++i) {
+		if (0 == _mem[i].header) {
+		    index = i;
+		    return &_mem[i].data;
+		}
+	    }
+	    return reinterpret_cast<T*>(-1); // out of memory
+	}
+	
     private:
 	volatile ItemType* _mem;
 	Mutex& _mutex;
@@ -111,7 +120,7 @@ namespace MPS {
 	if (!enoughSpace(head, tail, sz)) {
 	    compact();
 	    if (!enoughSpace(head, tail, sz))
-		throw "Out of memory";
+		return reinterpret_cast<void*>(-1); // out of memory
 	}
 	return fillBlock(size);
     }

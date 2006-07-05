@@ -64,7 +64,7 @@ unsigned long long int get_cycle();
 unsigned long int access_file(char *filename, unsigned long int mode);
 
 #ifndef __linux__
-void _exit(int status);
+//void _exit(int status);
 #endif
 
 // ---------------------------

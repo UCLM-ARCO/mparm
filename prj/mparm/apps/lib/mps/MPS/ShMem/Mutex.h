@@ -66,7 +66,8 @@ namespace MPS {
 	    }
 
 	    // compatibility with ScrMem::Mutex
-	    Mutex(int core, unsigned id, bool init=false) : Mutex(id)
+	    Mutex(int core, unsigned id, bool init=false)
+		: BaseMutex(_state), _state(id)
 	    {
 	    }
 	    
@@ -91,7 +92,8 @@ namespace MPS {
 	    }
 
 	    // compatibility with ScrMem::Mutex
-	    SpinMutex(int core, unsigned id, bool init=false) : SpinMutex(id)
+	    SpinMutex(int core, unsigned id, bool init=false)
+		: BaseSpinMutex(_state), _state(id)
 	    {
 	    }
 	    

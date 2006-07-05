@@ -77,7 +77,7 @@ namespace MPS {
 		     volatile int& head,	// Head index
 		     Mutex& headMutex,		// Mutex for head manipulation
 		     PSemaphore& semP,		// Number of elements in buffer
-		     PSemaphore& semC,		// Number of empty slots in buffer
+		     CSemaphore& semC,		// Number of empty slots in buffer
 		     bool init = false)
 		: _data(data), _head(head), _headMutex(headMutex), _semP(semP), _semC(semC)
 	    {

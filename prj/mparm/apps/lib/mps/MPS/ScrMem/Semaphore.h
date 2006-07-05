@@ -23,6 +23,8 @@
 //	sem.wait();
 //	... consume data ...
 
+#include <MPS/ScrMem/Suspend.h>
+
 namespace MPS {
 
     namespace ScrMem {
@@ -82,10 +84,30 @@ namespace MPS {
 	    void yield() { }	// Just overrides yield to avoid ctx switch
 	};
 
+#ifdef __rtems__
+	// Suspensive semaphores (platform specific)
+	class SSemaphoreState: public SemaphoreState, public Suspend {
+	public:
+	    SSemaphoreState(unsigned core,
+			    unsigned id,
+			    bool init = false,
+			    long value = 0)
+		: SemaphoreState(core, id, init, value)
+	    {
+	    }
+	    
+	    void yield()
+	    {
+		Suspend::yield();
+	    }
+	};
+#endif
+
 	// Local/Remote semaphores cooperate to avoid unneeded polling
 	// traffic in the bus.  An increment of a semaphore generates
 	// remote notifications to all subscribed cores.
 
+	template <class SemaphoreState>
 	class LocalSemaphoreState : public SemaphoreState {
 	public:
 	    LocalSemaphoreState(unsigned id,       // HW semaphore
@@ -105,7 +127,7 @@ namespace MPS {
 		    if (notify == 0)
 			break;
 		    if (notify & 1) {
-			semaphore_base(i + 1)[_id] = 2;
+			semaphore_base(i + 1)[_id] = 0;
 		    }
 		    notify = notify >> 1;
 		}
@@ -135,42 +157,31 @@ namespace MPS {
 	    volatile int& _notify;
 	};
 
-	class LocalSpinSemaphoreState : public LocalSemaphoreState {
-	public:
-	    LocalSpinSemaphoreState(unsigned id,
-				    unsigned notify,
-				    bool init = false,
-				    long value = 0)
-		: LocalSemaphoreState(id, notify, init, value)
-	    {
-	    }
 
-	    void yield()
-	    {
-	    }
-	};
-	
 	// Local/Remote semaphores cooperate to avoid unneeded polling
 	// traffic in the bus.  A remote semaphore spins on a local
 	// lock when the semaphore is locked.
 
 	// _retries is meant to avoid potential race conditions that
 	// may arise as a consequence of non-atomic notifications
-	class RemoteSemaphoreState : public LocalSemaphoreState {
+
+	template <class SemaphoreState>
+	class RemoteSemaphoreState
+	    : public LocalSemaphoreState<SemaphoreState> {
 	public:
 	    RemoteSemaphoreState(unsigned core,
 				 unsigned id,
 				 unsigned notify)
-		: LocalSemaphoreState(core, id, notify),
+		: LocalSemaphoreState<SemaphoreState>(core, id, notify),
 		  _local(semaphore_base(get_proc_id())[id]),
 		  _retries(2), _waiting(false)
 	    {
-		addObserver(get_proc_id());
+		LocalSemaphoreState<SemaphoreState>::addObserver(get_proc_id());
 	    }
 
 	    ~RemoteSemaphoreState()
 	    {
-		removeObserver(get_proc_id());
+		LocalSemaphoreState<SemaphoreState>::removeObserver(get_proc_id());
 	    }
 	    
 	    bool dec()
@@ -184,13 +195,15 @@ namespace MPS {
 		    return false;
 		}
 
+		_local = 1;	// write a 0
+		while (_local);	// activate suspend_flag
+		
 		if (SemaphoreState::dec())
 		    return true;
 
-		if (0 == --_retries) {
-		    _local = 1;		// write a 0 (locked)
+		if (0 == --_retries)	// ok, enough external polling
 		    _waiting = true;
-		}
+
 		return false;
 	    }
 
@@ -200,20 +213,7 @@ namespace MPS {
 	    bool _waiting;
 	};
 
-	class RemoteSpinSemaphoreState : public RemoteSemaphoreState {
-	public:
-	    RemoteSpinSemaphoreState(unsigned core,
-				     unsigned id,
-				     unsigned notify)
-		: RemoteSemaphoreState(core, id, notify)
-	    {
-	    }
 
-	    void yield()
-	    {
-	    }
-	};
-	
 	//------------------------------------------------------------
 	// POSIX style semaphores for SCRATCH MEMORY
 
@@ -240,7 +240,7 @@ namespace MPS {
 	// Local semaphores notify remote cores when a semaphore is
 	// unlocked
 	
-	typedef MPS::BaseSemaphore<LocalSemaphoreState> BaseLocalSemaphore;
+	typedef MPS::BaseSemaphore<LocalSemaphoreState<SemaphoreState> > BaseLocalSemaphore;
 
 	class LocalSemaphore: public BaseLocalSemaphore
 	{
@@ -253,11 +253,29 @@ namespace MPS {
 	    }
 	    
 	private:
-	    LocalSemaphoreState _state;
+	    LocalSemaphoreState<SemaphoreState> _state;
 	};
 
+
+#ifdef __rtems__
+	typedef MPS::BaseSemaphore<LocalSemaphoreState<SSemaphoreState> > BaseLocalSSemaphore;
+
+	class LocalSSemaphore: public BaseLocalSSemaphore
+	{
+	public:
+	    LocalSSemaphore(unsigned id, unsigned notify,
+			   bool init = false, long value = 0)
+		: BaseLocalSSemaphore(_state),
+		  _state(id, notify, init, value)
+	    {
+	    }
+	    
+	private:
+	    LocalSemaphoreState<SSemaphoreState> _state;
+	};
+#endif
 	
-	typedef MPS::BaseSemaphore<LocalSpinSemaphoreState> BaseLocalSpinSemaphore;
+	typedef MPS::BaseSemaphore<LocalSemaphoreState<SpinSemaphoreState> > BaseLocalSpinSemaphore;
 
 	class LocalSpinSemaphore: public BaseLocalSpinSemaphore
 	{
@@ -270,7 +288,7 @@ namespace MPS {
 	    }
 	    
 	private:
-	    LocalSpinSemaphoreState _state;
+	    LocalSemaphoreState<SpinSemaphoreState> _state;
 	};
 
 
@@ -279,7 +297,7 @@ namespace MPS {
 	// They also notify remote cores when they unblock the
 	// semaphore.  Otherwise they behave as an standard Semaphore
 	
-	typedef MPS::BaseSemaphore<RemoteSemaphoreState> BaseRemoteSemaphore;
+	typedef MPS::BaseSemaphore<RemoteSemaphoreState<SemaphoreState> > BaseRemoteSemaphore;
 
 	class RemoteSemaphore: public BaseRemoteSemaphore
 	{
@@ -289,10 +307,27 @@ namespace MPS {
 	    {
 	    }
 	private:
-	    RemoteSemaphoreState _state;
+	    RemoteSemaphoreState<SemaphoreState> _state;
 	};
 
-	typedef MPS::BaseSemaphore<RemoteSpinSemaphoreState> BaseRemoteSpinSemaphore;
+
+#ifdef __rtems__
+	typedef MPS::BaseSemaphore<RemoteSemaphoreState<SSemaphoreState> > BaseRemoteSSemaphore;
+
+	class RemoteSSemaphore: public BaseRemoteSSemaphore
+	{
+	public:
+	    RemoteSSemaphore(unsigned core, unsigned id, unsigned notify)
+		: BaseRemoteSSemaphore(_state), _state(core, id, notify)
+	    {
+	    }
+	private:
+	    RemoteSemaphoreState<SSemaphoreState> _state;
+	};
+#endif
+	
+
+	typedef MPS::BaseSemaphore<RemoteSemaphoreState<SpinSemaphoreState> > BaseRemoteSpinSemaphore;
 
 	class RemoteSpinSemaphore: public BaseRemoteSpinSemaphore
 	{
@@ -302,9 +337,10 @@ namespace MPS {
 	    {
 	    }
 	private:
-	    RemoteSpinSemaphoreState _state;
+	    RemoteSemaphoreState<SpinSemaphoreState> _state;
 	};
 
+	
 	//----------------------------------------------
 	// Spin semaphores do not yield the CPU while waiting for a
 	// locked semaphore

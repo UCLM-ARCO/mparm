@@ -1,6 +1,8 @@
 #ifndef MPS_SCRMEM_MUTEX_H
 #define MPS_SCRMEM_MUTEX_H
 
+#include <MPS/ScrMem/Suspend.h>
+
 namespace MPS {
 
     namespace ScrMem {
@@ -61,6 +63,29 @@ namespace MPS {
 	};
 	
 
+#ifdef __rtems__
+	// Suspensive mutexes (platform specific)
+	class SMutexState: public MutexState, public Suspend {
+	public:
+	    SMutexState(unsigned core,
+			unsigned id,
+			bool init = false)
+		: MutexState(core, id, init)
+	    {
+	    }
+	    
+	    void yield()
+	    {
+		Suspend::yield();
+	    }
+	};
+#endif
+
+	// Local/Remote semaphores cooperate to avoid unneeded polling
+	// traffic in the bus.  An increment of a semaphore generates
+	// remote notifications to all subscribed cores.
+
+	template <class MutexState>
 	class LocalMutexState: public MutexState
 	{
 	public:
@@ -111,35 +136,22 @@ namespace MPS {
 	};
 
 	
-	class LocalSpinMutexState: public LocalMutexState
-	{
-	public:
-	    LocalSpinMutexState(unsigned id,       // HW semaphore
-			    unsigned notify,   // Addr of subscribers
-			    bool init = false) // Initialize?
-		: LocalMutexState(id, notify, init)
-	    {
-	    }
-
-	    void yield() { }
-	};
-
-
-	class RemoteMutexState : public LocalMutexState {
+	template <class MutexState>
+	class RemoteMutexState : public LocalMutexState<MutexState> {
 	public:
 	    RemoteMutexState(unsigned core,
 			     unsigned id,
 			     unsigned notify)
-		: LocalMutexState(core, id, notify),
+		: LocalMutexState<MutexState>(core, id, notify),
 		  _local(semaphore_base(get_proc_id())[id]),
 		  _retries(2), _waiting(false)
 	    {
-		addObserver(get_proc_id());
+		LocalMutexState<MutexState>::addObserver(get_proc_id());
 	    }
 
 	    ~RemoteMutexState()
 	    {
-		removeObserver(get_proc_id());
+		LocalMutexState<MutexState>::removeObserver(get_proc_id());
 	    }
 	    
 	    bool tryLock()
@@ -169,18 +181,6 @@ namespace MPS {
 	    bool _waiting;
 	};
 	
-	
-	class RemoteSpinMutexState : public RemoteMutexState {
-	public:
-	    RemoteSpinMutexState(unsigned core,
-				 unsigned id,
-				 unsigned notify)
-		: RemoteMutexState(core, id, notify)
-	    {
-	    }
-
-	    void yield() {}
-	};
 	
 	//-----------------------------------------------
 	// Non-recursive mutexes using SCRATCH MEMORY 
@@ -231,7 +231,7 @@ namespace MPS {
 	// traffic in the bus.  An unlock of a mutex generates remote
 	// notifications to all subscribed cores.
 
-	typedef MPS::BaseMutex<LocalMutexState> BaseLocalMutex;
+	typedef MPS::BaseMutex<LocalMutexState<MutexState> > BaseLocalMutex;
 	
 	class LocalMutex: public BaseLocalMutex {
 	public:
@@ -245,11 +245,31 @@ namespace MPS {
 	    LocalMutex(const LocalMutex&);	// disallow copy ctor
 	    void operator=(const LocalMutex&);	// disallow assignment operator
 
-	    LocalMutexState _state;
+	    LocalMutexState<MutexState> _state;
 	};
 
 	
-	typedef MPS::BaseMutex<LocalSpinMutexState> BaseLocalSpinMutex;
+#ifdef __rtems__
+	typedef MPS::BaseMutex<LocalMutexState<SMutexState> > BaseLocalSMutex;
+	
+	class LocalSMutex: public BaseLocalSMutex {
+	public:
+	    LocalSMutex(unsigned id, unsigned notify, bool init = false)
+		: BaseLocalSMutex(_state),
+		  _state(id, notify, init)
+	    {
+	    }
+
+	private:
+	    LocalSMutex(const LocalSMutex&);	// disallow copy ctor
+	    void operator=(const LocalSMutex&);	// disallow assignment operator
+
+	    LocalMutexState<SMutexState> _state;
+	};
+#endif
+	
+	
+	typedef MPS::BaseMutex<LocalMutexState<SpinMutexState> > BaseLocalSpinMutex;
 	
 	class LocalSpinMutex: public BaseLocalSpinMutex {
 	public:
@@ -263,7 +283,7 @@ namespace MPS {
 	    LocalSpinMutex(const LocalSpinMutex&);	// disallow copy ctor
 	    void operator=(const LocalSpinMutex&);	// disallow assignment operator
 
-	    LocalSpinMutexState _state;
+	    LocalMutexState<SpinMutexState> _state;
 	};
 	
 	//---------------------------------------------------------
@@ -271,7 +291,7 @@ namespace MPS {
 	// They also notify remote cores when they unlock the
 	// mutex.  Otherwise they behave as an standard Mutex
 	
-	typedef MPS::BaseMutex<RemoteMutexState> BaseRemoteMutex;
+	typedef MPS::BaseMutex<RemoteMutexState<MutexState> > BaseRemoteMutex;
 
 	class RemoteMutex: public BaseRemoteMutex
 	{
@@ -282,11 +302,28 @@ namespace MPS {
 	    }
 	    
 	private:
-	    RemoteMutexState _state;
+	    RemoteMutexState<MutexState> _state;
 	};
 
 	
-	typedef MPS::BaseMutex<RemoteSpinMutexState> BaseRemoteSpinMutex;
+#ifdef __rtems__
+	typedef MPS::BaseMutex<RemoteMutexState<SMutexState> > BaseRemoteSMutex;
+
+	class RemoteSMutex: public BaseRemoteSMutex
+	{
+	public:
+	    RemoteSMutex(unsigned core, unsigned id, unsigned notify)
+		: BaseRemoteSMutex(_state), _state(core, id, notify)
+	    {
+	    }
+	    
+	private:
+	    RemoteMutexState<SMutexState> _state;
+	};
+#endif
+	
+	
+	typedef MPS::BaseMutex<RemoteMutexState<SpinMutexState> > BaseRemoteSpinMutex;
 
 	class RemoteSpinMutex: public BaseRemoteSpinMutex
 	{
@@ -297,7 +334,7 @@ namespace MPS {
 	    }
 	    
 	private:
-	    RemoteSpinMutexState _state;
+	    RemoteMutexState<SpinMutexState> _state;
 	};
 
     }

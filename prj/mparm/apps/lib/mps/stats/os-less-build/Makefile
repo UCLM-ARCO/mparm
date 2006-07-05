@@ -27,7 +27,7 @@ all: ringbuf.scn
 include ../Make.rules
 
 
-old.elf:     old.o TestCase.o compat.o memcpy.o boot.o
+old.elf:     old.o TestCase.o compat.o memcpy.o appsupport.o boot.o
 sem.elf:     sem.o TestCase.o compat.o memcpy.o boot.o
 mutex.elf:   mutex.o TestCase.o compat.o memcpy.o boot.o
 raw.elf:     raw.o TestCase.o compat.o memcpy.o boot.o

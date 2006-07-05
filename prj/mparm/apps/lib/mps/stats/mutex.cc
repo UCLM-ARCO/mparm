@@ -74,6 +74,12 @@ typedef MutexLatency<MPS::ScrMem::Mutex> M1ScrMutex;
 typedef MutexLatency<MPS::ScrMem::SpinMutex> M1ScrSpinMutex;
 typedef MutexLatency<MPS::ScrMem::RemoteMutex> M1ScrRemoteMutex;
 typedef MutexLatency<MPS::ScrMem::LocalMutex> M1ScrLocalMutex;
+
+#ifdef __rtems__
+typedef MutexLatency<MPS::ScrMem::RemoteSMutex> M1ScrRemoteSMutex;
+typedef MutexLatency<MPS::ScrMem::LocalSMutex> M1ScrLocalSMutex;
+#endif
+
 typedef MutexLatency<MPS::ScrMem::RemoteSpinMutex> M1ScrRemoteSpinMutex;
 typedef MutexLatency<MPS::ScrMem::LocalSpinMutex> M1ScrLocalSpinMutex;
 
@@ -84,6 +90,12 @@ typedef MutexLatency<MPS::ScrMem::RecMutex> M1ScrRecMutex;
 typedef MutexLatency<MPS::ScrMem::SpinRecMutex> M1ScrSpinRecMutex;
 typedef MutexLatency<MPS::ScrMem::RemoteRecMutex> M1ScrRemoteRecMutex;
 typedef MutexLatency<MPS::ScrMem::LocalRecMutex> M1ScrLocalRecMutex;
+
+#ifdef __rtems__
+typedef MutexLatency<MPS::ScrMem::RemoteSRecMutex> M1ScrRemoteSRecMutex;
+typedef MutexLatency<MPS::ScrMem::LocalSRecMutex> M1ScrLocalSRecMutex;
+#endif
+
 typedef MutexLatency<MPS::ScrMem::RemoteSpinRecMutex> M1ScrRemoteSpinRecMutex;
 typedef MutexLatency<MPS::ScrMem::LocalSpinRecMutex> M1ScrLocalSpinRecMutex;
 
@@ -106,10 +118,18 @@ class CompositeMutexLatency: public CompositeTestCase
     // These  are not instantiated on every process
     MPS::ScrMem::LocalMutex* _scrLocalMutex;
     MPS::ScrMem::RemoteMutex* _scrRemoteMutex;
+#ifdef __rtems__
+    MPS::ScrMem::LocalSMutex* _scrLocalSMutex;
+    MPS::ScrMem::RemoteSMutex* _scrRemoteSMutex;
+#endif
     MPS::ScrMem::LocalSpinMutex* _scrLocalSpinMutex;
     MPS::ScrMem::RemoteSpinMutex* _scrRemoteSpinMutex;
     MPS::ScrMem::LocalRecMutex* _scrLocalRecMutex;
     MPS::ScrMem::RemoteRecMutex* _scrRemoteRecMutex;
+#ifdef __rtems__
+    MPS::ScrMem::LocalSRecMutex* _scrLocalSRecMutex;
+    MPS::ScrMem::RemoteSRecMutex* _scrRemoteSRecMutex;
+#endif
     MPS::ScrMem::LocalSpinRecMutex* _scrLocalSpinRecMutex;
     MPS::ScrMem::RemoteSpinRecMutex* _scrRemoteSpinRecMutex;
 
@@ -119,8 +139,10 @@ class CompositeMutexLatency: public CompositeTestCase
 	RecID,
 	SpinRecID,
 	RemoteID,
+	RemoteSID,
 	RemoteSpinID,
 	RemoteRecID,
+	RemoteSRecID,
 	RemoteSpinRecID,
     };
 
@@ -138,10 +160,18 @@ public:
 	  _scrSpinRecMutex(1, SpinRecID, 1 == _core),
 	  _scrLocalMutex(0),
 	  _scrRemoteMutex(0),
+#ifdef __rtems__
+	  _scrLocalSMutex(0),
+	  _scrRemoteSMutex(0),
+#endif
 	  _scrLocalSpinMutex(0),
 	  _scrRemoteSpinMutex(0),
 	  _scrLocalRecMutex(0),
 	  _scrRemoteRecMutex(0),
+#ifdef __rtems__
+	  _scrLocalSRecMutex(0),
+	  _scrRemoteSRecMutex(0),
+#endif
 	  _scrLocalSpinRecMutex(0),
 	  _scrRemoteSpinRecMutex(0)
     {
@@ -157,24 +187,48 @@ public:
 
 	if (1 == get_proc_id()) {
 	    _scrLocalMutex        = new MPS::ScrMem::LocalMutex(RemoteID, RemoteID, true);
+#ifdef __rtems__
+	    _scrLocalSMutex       = new MPS::ScrMem::LocalSMutex(RemoteSID, RemoteSID, true);
+#endif
 	    _scrLocalSpinMutex    = new MPS::ScrMem::LocalSpinMutex(RemoteSpinID, RemoteSpinID, true);
 	    _scrLocalRecMutex     = new MPS::ScrMem::LocalRecMutex(RemoteRecID, RemoteRecID, true);
+#ifdef __rtems__
+	    _scrLocalSRecMutex    = new MPS::ScrMem::LocalSRecMutex(RemoteSRecID, RemoteSRecID, true);
+#endif
 	    _scrLocalSpinRecMutex = new MPS::ScrMem::LocalSpinRecMutex(RemoteSpinRecID, RemoteSpinRecID, true);
 	    
 	    add(new M1ScrLocalMutex(*_scrLocalMutex, "ScrMem::LocalMutex"));
+#ifdef __rtems__
+	    add(new M1ScrLocalSMutex(*_scrLocalSMutex, "ScrMem::LocalSMutex"));
+#endif
 	    add(new M1ScrLocalSpinMutex(*_scrLocalSpinMutex, "ScrMem::LocalSpinMutex"));
 	    add(new M1ScrLocalRecMutex(*_scrLocalRecMutex, "ScrMem::LocalRecMutex"));
+#ifdef __rtems__
+	    add(new M1ScrLocalSRecMutex(*_scrLocalSRecMutex, "ScrMem::LocalSRecMutex"));
+#endif
 	    add(new M1ScrLocalSpinRecMutex(*_scrLocalSpinRecMutex, "ScrMem::LocalSpinRecMutex"));
 	}
 	else {
 	    _scrRemoteMutex        = new MPS::ScrMem::RemoteMutex(1, RemoteID, RemoteID);
+#ifdef __rtems__
+	    _scrRemoteSMutex       = new MPS::ScrMem::RemoteSMutex(1, RemoteSID, RemoteSID);
+#endif
 	    _scrRemoteSpinMutex    = new MPS::ScrMem::RemoteSpinMutex(1, RemoteSpinID, RemoteSpinID);
 	    _scrRemoteRecMutex     = new MPS::ScrMem::RemoteRecMutex(1, RemoteRecID, RemoteRecID);
+#ifdef __rtems__
+	    _scrRemoteSRecMutex    = new MPS::ScrMem::RemoteSRecMutex(1, RemoteSRecID, RemoteSRecID);
+#endif
 	    _scrRemoteSpinRecMutex = new MPS::ScrMem::RemoteSpinRecMutex(1, RemoteSpinRecID, RemoteSpinRecID);
 	    
 	    add(new M1ScrRemoteMutex(*_scrRemoteMutex, "ScrMem::RemoteMutex"));
+#ifdef __rtems__
+	    add(new M1ScrRemoteSMutex(*_scrRemoteSMutex, "ScrMem::RemoteSMutex"));
+#endif
 	    add(new M1ScrRemoteSpinMutex(*_scrRemoteSpinMutex, "ScrMem::RemoteSpinMutex"));
 	    add(new M1ScrRemoteRecMutex(*_scrRemoteRecMutex, "ScrMem::RemoteRecMutex"));
+#ifdef __rtems__
+	    add(new M1ScrRemoteSRecMutex(*_scrRemoteSRecMutex, "ScrMem::RemoteSRecMutex"));
+#endif
 	    add(new M1ScrRemoteSpinRecMutex(*_scrRemoteSpinRecMutex, "ScrMem::RemoteSpinRecMutex"));
 	}
     }

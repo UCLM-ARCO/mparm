@@ -54,7 +54,7 @@ namespace MPS {
 	// traffic in the bus.  An unlock of a mutex generates remote
 	// notifications to all subscribed cores.
 
-	typedef MPS::BaseRecMutex<LocalMutexState> BaseLocalRecMutex;
+	typedef MPS::BaseRecMutex<LocalMutexState<MutexState> > BaseLocalRecMutex;
 	
 	class LocalRecMutex: public BaseLocalRecMutex {
 	public:
@@ -67,11 +67,29 @@ namespace MPS {
 	    LocalRecMutex(const LocalRecMutex&);	// disallow copy ctor
 	    void operator=(const LocalRecMutex&);	// disallow assignment operator
 
-	    LocalMutexState _state;
+	    LocalMutexState<MutexState> _state;
 	};
 
 	
-	typedef MPS::BaseRecMutex<LocalSpinMutexState> BaseLocalSpinRecMutex;
+#ifdef __rtems__
+	typedef MPS::BaseRecMutex<LocalMutexState<SMutexState> > BaseLocalSRecMutex;
+	
+	class LocalSRecMutex: public BaseLocalSRecMutex {
+	public:
+	    LocalSRecMutex(unsigned id, unsigned notify, bool init = false)
+		: BaseLocalSRecMutex(_state), _state(id, notify, init)
+	    {
+	    }
+
+	private:
+	    LocalSRecMutex(const LocalSRecMutex&);	// disallow copy ctor
+	    void operator=(const LocalSRecMutex&);	// disallow assignment operator
+
+	    LocalMutexState<SMutexState> _state;
+	};
+#endif
+	
+	typedef MPS::BaseRecMutex<LocalMutexState<SpinMutexState> > BaseLocalSpinRecMutex;
 	
 	class LocalSpinRecMutex: public BaseLocalSpinRecMutex {
 	public:
@@ -84,7 +102,7 @@ namespace MPS {
 	    LocalSpinRecMutex(const LocalSpinRecMutex&);	// disallow copy ctor
 	    void operator=(const LocalSpinRecMutex&);	// disallow assignment operator
 
-	    LocalSpinMutexState _state;
+	    LocalMutexState<SpinMutexState> _state;
 	};
 	
 	//---------------------------------------------------------
@@ -92,7 +110,7 @@ namespace MPS {
 	// They also notify remote cores when they unlock the
 	// mutex.  Otherwise they behave as an standard RecMutex
 	
-	typedef MPS::BaseRecMutex<RemoteMutexState> BaseRemoteRecMutex;
+	typedef MPS::BaseRecMutex<RemoteMutexState<MutexState> > BaseRemoteRecMutex;
 
 	class RemoteRecMutex: public BaseRemoteRecMutex
 	{
@@ -103,11 +121,28 @@ namespace MPS {
 	    }
 	    
 	private:
-	    RemoteMutexState _state;
+	    RemoteMutexState<MutexState> _state;
 	};
 
 	
-	typedef MPS::BaseRecMutex<RemoteSpinMutexState> BaseRemoteSpinRecMutex;
+#ifdef __rtems__
+	typedef MPS::BaseRecMutex<RemoteMutexState<SMutexState> > BaseRemoteSRecMutex;
+
+	class RemoteSRecMutex: public BaseRemoteSRecMutex
+	{
+	public:
+	    RemoteSRecMutex(unsigned core, unsigned id, unsigned notify)
+		: BaseRemoteSRecMutex(_state), _state(core, id, notify)
+	    {
+	    }
+	    
+	private:
+	    RemoteMutexState<SMutexState> _state;
+	};
+#endif
+	
+	
+	typedef MPS::BaseRecMutex<RemoteMutexState<SpinMutexState> > BaseRemoteSpinRecMutex;
 
 	class RemoteSpinRecMutex: public BaseRemoteSpinRecMutex
 	{
@@ -118,7 +153,7 @@ namespace MPS {
 	    }
 	    
 	private:
-	    RemoteSpinMutexState _state;
+	    RemoteMutexState<SpinMutexState> _state;
 	};
 
     }

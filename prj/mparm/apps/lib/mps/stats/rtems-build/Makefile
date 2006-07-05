@@ -4,7 +4,7 @@ EXE= mutex.exe sem.exe old.exe ringbuf.exe raw.exe queue.exe
 
 vpath %.cpp ../../IceUtil
 vpath %.cpp ../legacy
-vpath %.cpp ../../MPS/ScrMem
+vpath %.cc ../../MPS/ScrMem
 vpath %.cc ..
 
 all: $(EXE:.exe=.scn)
@@ -29,8 +29,8 @@ CLEAN_ADDITIONS = *.txt *.mem *~ *.exe $(EXE:.exe=) *.scn */*~
 	ln -sf $< TargetMem_2.mem
 	mpsim -c2 -C 2>&1 | tee $@
 
-mutex.exe:   mutex.o TestCase.o compat.o
-sem.exe:     sem.o TestCase.o Semaphore.o compat.o
+mutex.exe:   mutex.o TestCase.o Suspend.o compat.o
+sem.exe:     sem.o TestCase.o Suspend.o compat.o
 old.exe:     old.o TestCase.o compat.o appsupport.o ss_semaphore.o
 ringbuf.exe: ringbuf.o TestCase.o compat.o
 raw.exe:     raw.o TestCase.o compat.o

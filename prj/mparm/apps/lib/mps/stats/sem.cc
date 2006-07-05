@@ -141,7 +141,9 @@ public:
 
 	if (1 == get_proc_id()) {
 	    _scrLocalSem = new MPS::ScrMem::LocalSemaphore(RemoteID, RemoteID, true, 1);
+#ifdef __rtems__
 	    _scrLocalSSem = new MPS::ScrMem::LocalSSemaphore(RemoteSID, RemoteSID, true, 1);
+#endif
 	    _scrLocalSpinSem = new MPS::ScrMem::LocalSpinSemaphore(RemoteSpinID, RemoteSpinID, true, 1);
 	    add(new M1ScrLocalSem(*_scrLocalSem, "ScrMem::LocalSem"));
 #ifdef __rtems__
@@ -151,7 +153,9 @@ public:
 	}
 	else {
 	    _scrRemoteSem = new MPS::ScrMem::RemoteSemaphore(1, RemoteID, RemoteID);
+#ifdef __rtems__
 	    _scrRemoteSSem = new MPS::ScrMem::RemoteSSemaphore(1, RemoteSID, RemoteSID);
+#endif
 	    _scrRemoteSpinSem = new MPS::ScrMem::RemoteSpinSemaphore(1, RemoteSpinID, RemoteSpinID);
 	    add(new M1ScrRemoteSem(*_scrRemoteSem, "ScrMem::RemoteSem"));
 #ifdef __rtems__
