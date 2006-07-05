@@ -9,6 +9,12 @@
 // 2. Semaphores are SpinSemaphores located at the apropriate end
 // 3. Size, even for data types, is always a power of two
 
+
+// Semaphores to wait for end condition
+MPS::ScrMem::Semaphore end1(1,61,get_proc_id() == 1,0);
+MPS::ScrMem::Semaphore end2(2,61,get_proc_id() == 1,0);
+
+
 const int BufferSize = 32;
 
 template <int DataSize = 4, int Iterations = 16384>
@@ -47,6 +53,9 @@ template <int DataSize, int Iterations>
 bool
 RingBuf<DataSize, Iterations>::run1()
 {
+
+    trace("Starting producer");
+    
     // Storage area (should be get with an allocator)
     volatile DataType* data = reinterpret_cast<volatile DataType*>(&MPS::ScrMem::memory_base(2)[64]);
 
@@ -62,18 +71,19 @@ RingBuf<DataSize, Iterations>::run1()
     // Semaphore counting consumed slots must be local
     MPS::ScrMem::SpinSemaphore semC(1,62);
     
-    // Semaphore to wait for end condition
-    MPS::ScrMem::Semaphore end1(1,61,true,0);
-    MPS::ScrMem::Semaphore end2(2,61);
 
-
+    trace("Building producer side");
     Producer prod(data, tail, mutex, semP, semC, true);
     prod.activate(); // Only on one side
 
-    stamp(11);
-    wait(12);
+    trace("Sync");
+
+    end1.wait();
+    end2.post();
 
     DataType item;
+
+    trace("Producing data");
 
     time_start(DataSize);
     for (int i = 0; i < Iterations; ++i) {
@@ -91,6 +101,8 @@ template <int DataSize, int Iterations>
 bool
 RingBuf<DataSize, Iterations>::run2()
 {
+    trace("Starting consumer");
+
     // Storage area (should be get with an allocator)
     volatile DataType* data = reinterpret_cast<volatile DataType*>(&MPS::ScrMem::memory_base(2)[64]);
 
@@ -106,16 +118,17 @@ RingBuf<DataSize, Iterations>::run2()
     // Semaphore counting consumed slots must be local
     MPS::ScrMem::SpinSemaphore semC(1,62);
     
-    // Semaphore to signal end condition
-    MPS::ScrMem::Semaphore end1(1,61);
-    MPS::ScrMem::Semaphore end2(2,61,true,0);
-
+    trace("Building consumer side");
     Consumer cons(data, head, mutex, semP, semC, true);
 
-    wait(11);
-    stamp(12);
+    trace("Sync");
+
+    end1.post();
+    end2.wait();
 
     DataType item;
+
+    trace("Getting data");
 
     for (int i = 0; i < Iterations; ++i) {
 	item = cons.get();
@@ -127,7 +140,7 @@ RingBuf<DataSize, Iterations>::run2()
     time_stop(DataSize);
 
     end1.post();
-    end2.post();
+    end2.wait();
     
     return true;
 }
@@ -139,16 +152,16 @@ public:
     CompositeRingBuf()
 	: CompositeTestCase("Throughput of MPS RingBuf")
     {
- 	add(new RingBuf<4, 16384>("RingBuffer"));
- 	add(new RingBuf<8,  8192>("RingBuffer"));
- 	add(new RingBuf<16, 4096>("RingBuffer"));
- 	add(new RingBuf<32, 2048>("RingBuffer"));
- 	add(new RingBuf<64, 1024>("RingBuffer"));
- 	add(new RingBuf<128, 512>("RingBuffer"));
- 	add(new RingBuf<256, 256>("RingBuffer"));
- 	add(new RingBuf<512, 128>("RingBuffer"));
- 	add(new RingBuf<1024, 64>("RingBuffer"));
- 	add(new RingBuf<2048, 32>("RingBuffer"));
+  	add(new RingBuf<4, 16384>("RingBuffer"));
+  	add(new RingBuf<8,  8192>("RingBuffer"));
+  	add(new RingBuf<16, 4096>("RingBuffer"));
+  	add(new RingBuf<32, 2048>("RingBuffer"));
+  	add(new RingBuf<64, 1024>("RingBuffer"));
+  	add(new RingBuf<128, 512>("RingBuffer"));
+  	add(new RingBuf<256, 256>("RingBuffer"));
+  	add(new RingBuf<512, 128>("RingBuffer"));
+  	add(new RingBuf<1024, 64>("RingBuffer"));
+  	add(new RingBuf<2048, 32>("RingBuffer"));
  	add(new RingBuf<4096, 16>("RingBuffer"));
     }
 };
@@ -159,6 +172,7 @@ main()
 {
     CompositeRingBuf test;
 
+    //test.debug(true);
     test.run();
     stop_simulation();
 }

@@ -1,6 +1,9 @@
 #include "simctrl.h"
 
 extern "C" {
+    unsigned loops_per_jiffy = 500000000;
+
+    void udelay(int);
     void free(void*);
     void sleep(int);
     char* strcat(char* dst, const char* src);
@@ -56,8 +59,9 @@ strcat(char* dst, const char* src)
 }
 
 void
-sleep(int)
+sleep(int i)
 {
+    udelay(1);
 }
 
 void

@@ -22,17 +22,17 @@ ASFLAGS = -I. -D__ASSEMBLY__ -msoft-float
 
 .PHONY : clean
 
-all: ringbuf.scn
+all: mutex.scn sem.scn raw.scn ringbuf.scn queue.scn
 
 include ../Make.rules
 
 
-old.elf:     old.o TestCase.o compat.o memcpy.o appsupport.o boot.o
-sem.elf:     sem.o TestCase.o compat.o memcpy.o boot.o
-mutex.elf:   mutex.o TestCase.o compat.o memcpy.o boot.o
-raw.elf:     raw.o TestCase.o compat.o memcpy.o boot.o
-ringbuf.elf: ringbuf.o TestCase.o compat.o memcpy.o boot.o
-queue.elf:   queue.o TestCase.o compat.o memcpy.o boot.o
+old.elf:     old.o TestCase.o compat.o delay.o memcpy.o appsupport.o boot.o
+sem.elf:     sem.o TestCase.o compat.o delay.o memcpy.o boot.o
+mutex.elf:   mutex.o TestCase.o compat.o delay.o memcpy.o boot.o
+raw.elf:     raw.o TestCase.o compat.o delay.o memcpy.o boot.o
+ringbuf.elf: ringbuf.o TestCase.o compat.o delay.o memcpy.o boot.o
+queue.elf:   queue.o TestCase.o compat.o delay.o memcpy.o boot.o
 
 %.scn: %.exe
 	ln -sf $< TargetMem_1.mem
