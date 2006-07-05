@@ -5,7 +5,7 @@
 
 // Meassurements of RingBuffer throughput
 
-// 1. Single reader and a single consumer locking is unnecesary
+// 1. Single producer and a single consumer locking is unnecesary
 // 2. Semaphores are SpinSemaphores located at the apropriate end
 // 3. Size, even for data types, is always a power of two
 
@@ -66,6 +66,7 @@ RingBuf<DataSize, Iterations>::run1()
     MPS::ScrMem::Semaphore end1(1,61,true,0);
     MPS::ScrMem::Semaphore end2(2,61);
 
+
     Producer prod(data, tail, mutex, semP, semC, true);
     prod.activate(); // Only on one side
 
@@ -76,10 +77,10 @@ RingBuf<DataSize, Iterations>::run1()
 
     time_start(DataSize);
     for (int i = 0; i < Iterations; ++i) {
-	item.data[DataSize/4 - 1] = i;
+	item.data[0] = i;
 	prod.put(item);
     }
-    
+
     end1.wait();
     end2.post();
 

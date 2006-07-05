@@ -3,6 +3,7 @@
 
 # include "simctrl.h"
 # include <stdio.h>
+# include <string.h>
 
 # define MAX_COMPOSITE_TEST_CASES 20
 
@@ -92,8 +93,10 @@ protected:
 private:
     void showResult(const char* str) const
     {
-	char msg[80];
-	sprintf(msg, "Test %s : %s", _id, str);
+	char msg[80] = "Test ";
+	strcat(msg, _id);
+	strcat(msg, " : ");
+	strcat(msg, str);
 	pr(msg, 0, PR_CPU_ID | PR_STRING | PR_NEWL);
     }
     
@@ -116,9 +119,11 @@ public:
 
     bool run() {
 	int failed = 0;
-	for (int i=0; i < _ntest; ++i)
-	    if (! _test[i]->run())
+	for (int i=0; i < _ntest; ++i) {
+	    if (! _test[i]->run()) {
 		++failed;
+	    }
+	}
 	return failed == 0;
     }
     

@@ -76,6 +76,12 @@ typedef Semaphore1<MPS::ScrMem::Semaphore> M1ScrSem;
 typedef Semaphore1<MPS::ScrMem::SpinSemaphore> M1ScrSpinSem;
 typedef Semaphore1<MPS::ScrMem::RemoteSemaphore> M1ScrRemoteSem;
 typedef Semaphore1<MPS::ScrMem::LocalSemaphore> M1ScrLocalSem;
+
+#ifdef __rtems__
+typedef Semaphore1<MPS::ScrMem::RemoteSSemaphore> M1ScrRemoteSSem;
+typedef Semaphore1<MPS::ScrMem::LocalSSemaphore> M1ScrLocalSSem;
+#endif
+
 typedef Semaphore1<MPS::ScrMem::RemoteSpinSemaphore> M1ScrRemoteSpinSem;
 typedef Semaphore1<MPS::ScrMem::LocalSpinSemaphore> M1ScrLocalSpinSem;
 
@@ -92,6 +98,12 @@ class CompositeSemaphore1: public CompositeTestCase
     // These  are not instantiated on every process
     MPS::ScrMem::LocalSemaphore* _scrLocalSem;
     MPS::ScrMem::RemoteSemaphore* _scrRemoteSem;
+
+#ifdef __rtems__
+    MPS::ScrMem::LocalSSemaphore* _scrLocalSSem;
+    MPS::ScrMem::RemoteSSemaphore* _scrRemoteSSem;
+#endif
+    
     MPS::ScrMem::LocalSpinSemaphore* _scrLocalSpinSem;
     MPS::ScrMem::RemoteSpinSemaphore* _scrRemoteSpinSem;
 
@@ -100,6 +112,7 @@ class CompositeSemaphore1: public CompositeTestCase
 	SpinID,
 	RecID,
 	RemoteID,
+	RemoteSID,
 	RemoteSpinID
     };
 
@@ -113,6 +126,10 @@ public:
 	  _scrSpinSem(1, SpinID, 1 == _core, 1),
 	  _scrLocalSem(0),
 	  _scrRemoteSem(0),
+#ifdef __rtems__
+	  _scrLocalSSem(0),
+	  _scrRemoteSSem(0),
+#endif
 	  _scrLocalSpinSem(0),
 	  _scrRemoteSpinSem(0)
     {
@@ -124,14 +141,22 @@ public:
 
 	if (1 == get_proc_id()) {
 	    _scrLocalSem = new MPS::ScrMem::LocalSemaphore(RemoteID, RemoteID, true, 1);
+	    _scrLocalSSem = new MPS::ScrMem::LocalSSemaphore(RemoteSID, RemoteSID, true, 1);
 	    _scrLocalSpinSem = new MPS::ScrMem::LocalSpinSemaphore(RemoteSpinID, RemoteSpinID, true, 1);
 	    add(new M1ScrLocalSem(*_scrLocalSem, "ScrMem::LocalSem"));
+#ifdef __rtems__
+	    add(new M1ScrLocalSSem(*_scrLocalSSem, "ScrMem::LocalSSem"));
+#endif
 	    add(new M1ScrLocalSpinSem(*_scrLocalSpinSem, "ScrMem::LocalSpinSem"));
 	}
 	else {
 	    _scrRemoteSem = new MPS::ScrMem::RemoteSemaphore(1, RemoteID, RemoteID);
+	    _scrRemoteSSem = new MPS::ScrMem::RemoteSSemaphore(1, RemoteSID, RemoteSID);
 	    _scrRemoteSpinSem = new MPS::ScrMem::RemoteSpinSemaphore(1, RemoteSpinID, RemoteSpinID);
 	    add(new M1ScrRemoteSem(*_scrRemoteSem, "ScrMem::RemoteSem"));
+#ifdef __rtems__
+	    add(new M1ScrRemoteSSem(*_scrRemoteSSem, "ScrMem::RemoteSSem"));
+#endif
 	    add(new M1ScrRemoteSpinSem(*_scrRemoteSpinSem, "ScrMem::RemoteSpinSem"));
 	}
     }

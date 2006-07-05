@@ -4,7 +4,7 @@
 
 // Meassurements of Queue throughput
 
-// 1. Single reader and a single consumer locking is unnecesary
+// 1. Single producer and a single consumer locking is unnecesary
 // 2. Semaphores are SpinSemaphores
 // 3. Size, even for data types, is always a power of two
 

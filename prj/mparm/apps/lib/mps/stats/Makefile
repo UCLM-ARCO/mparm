@@ -1,4 +1,4 @@
-SUBDIRS=rtems-build uclinux-build
+SUBDIRS=os-less-build rtems-build uclinux-build
 
 all:
 	for i in $(SUBDIRS) ; do $(MAKE) -C $$i all ; done
