@@ -79,8 +79,8 @@ MQueue<DataSize, Iterations>::run1()
     Producer prod(data, tail, mutex, semP, semC, memMutex, true);
     prod.activate(); // Only on one side
 
-    end1.wait();
     end2.post();
+    end1.wait();
 
     trace("Producing data");
 
@@ -100,8 +100,8 @@ MQueue<DataSize, Iterations>::run1()
     
     trace("Waiting end1");
 
-    end1.wait();
     end2.post();
+    end1.wait();
 
     return true;
 }
@@ -130,10 +130,11 @@ MQueue<DataSize, Iterations>::run2()
     // Mutex for memory allocator
     MPS::ScrMem::SpinMutex memMutex(1,60);
 
+    end2.wait();
+
     Consumer cons(data, head, mutex, semP, semC, memMutex, true);
 
     end1.post();
-    end2.wait();
 
     trace("Consuming data");
 
@@ -145,8 +146,8 @@ MQueue<DataSize, Iterations>::run2()
 
     trace("Posting end1");
 
-    end1.post();
     end2.wait();
+    end1.post();
 
     return true;
 }

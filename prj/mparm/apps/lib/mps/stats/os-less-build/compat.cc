@@ -1,7 +1,8 @@
 #include "simctrl.h"
+#include <MPS/Config.h>
 
 extern "C" {
-    unsigned loops_per_jiffy = 500000000;
+    unsigned loops_per_jiffy = 50000000;
 
     void udelay(int);
     void free(void*);
@@ -41,7 +42,7 @@ int
 strlen(const char* dst)
 {
     int i=0;
-    while (dst[i++] != '\0');
+    while (dst[i] != '\0') ++i;
     return i;
 }
 
@@ -54,14 +55,26 @@ strcat(char* dst, const char* src)
     while(*q != '\0') ++q;
     while (*p != '\0')
 	*q++ = *p++;
-    *q='\0';
+    while (((unsigned)q) & 3)
+	*q++ = ' ';
+    *q = '\0';
     return dst;
+}
+
+void
+udelay(int d)
+{
+    for (int i = 0; i<d ; ++i) {
+	for (int j = 0; j<1000; ++j) {
+	    volatile int& p = MPS::ScrMem::memory_base(get_proc_id())[1];
+	    p = i;
+	}
+    }
 }
 
 void
 sleep(int i)
 {
-    udelay(1);
 }
 
 void
@@ -87,7 +100,7 @@ void*
 malloc (unsigned long sz)
 {
     void* ret = heap;
-    heap += sz;
+    heap += (sz + 3) & ~3;
     return ret;
 }
 

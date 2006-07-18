@@ -21,7 +21,7 @@ include ../Make.rules
 	$(MAKE) -C ../../../../../runtime TargetMem_1.mem
 	ln -sf ../../../../../runtime/TargetMem_1.mem TargetMem_1.mem
 	ln -sf ../../../../../runtime/TargetMem_1.mem TargetMem_2.mem
-	mpsim -c2 -C 2>&1 | tee $@
+	mpsim -c2 -C --intc=a 2>&1 | tee $@
 
 mutex.scn:   mutex
 sem.scn:     sem     

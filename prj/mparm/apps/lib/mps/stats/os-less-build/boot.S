@@ -2,7 +2,7 @@
 	.type	stext, #function
 	.align  2
 
-__start:	/* set stack pointer and bss limits */
+__start:	@ set stack pointer and bss limits
 		adr	r3, __switch_data
 		ldmia	r3, {r4, r5, sp}@       @ sp = stack pointer
 

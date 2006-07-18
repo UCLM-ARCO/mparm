@@ -45,4 +45,4 @@ BEGIN {
       p1e[i] = $6
   }
 }
-' | sed -e 's/://g' -e 's/Latency//g' -e 's/^Sh/ShMem::/g' -e 's/^Scr/ScrMem::/g'
+'

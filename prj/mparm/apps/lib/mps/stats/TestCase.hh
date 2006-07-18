@@ -2,77 +2,18 @@
 #define TEST_CASE_HH
 
 # include "simctrl.h"
-# include <stdio.h>
 # include <string.h>
 
-# define MAX_COMPOSITE_TEST_CASES 20
-
-class TestCase {
+class TestCaseDelegate {
 public:
-    static volatile int* const _stamp;
-    void stamp(int value, int id = 0) { _stamp[id] = value; }
-    void wait(int value, int id = 0) { while(_stamp[id] != value); }
-    bool expect(int value, int id = 0)
-    {
-	if (_stamp[id] != value) {
-	    failure(value, _stamp[id]);
-	    return false;
-	}
-	return true;
-    }
-    
-public:
-    TestCase(const char* id): _id(id), _debug(false) {}
-    virtual ~TestCase() {}
-    const char* id() const { return _id; }
-    
-    bool run()
-    {
-	bool ret;
-	
-	switch (get_proc_id()) {
-	case 1:
-	    ret = run1();
-	    break;
-	case 2:
-	    ret = run2();
-	    break;
-	case 3:
-	    ret = run3();
-	    break;
-	case 4:
-	    ret = run4();
-	    break;
-	case 5:
-	    ret = run5();
-	    break;
-	case 6:
-	    ret = run6();
-	    break;
-	case 7:
-	    ret = run7();
-	    break;
-	case 8:
-	    ret = run8();
-	    break;
-	default:
-	    stop_simulation();
-	}
-	if (ret)
-	    passed();
-	else
-	    failed();
-	return ret;
-    }
-
-    virtual bool run1() { stop_simulation(); }
-    virtual bool run2() { stop_simulation(); }
-    virtual bool run3() { stop_simulation(); }
-    virtual bool run4() { stop_simulation(); }
-    virtual bool run5() { stop_simulation(); }
-    virtual bool run6() { stop_simulation(); }
-    virtual bool run7() { stop_simulation(); }
-    virtual bool run8() { stop_simulation(); }
+    bool run1() { stop_simulation(); }
+    bool run2() { stop_simulation(); }
+    bool run3() { stop_simulation(); }
+    bool run4() { stop_simulation(); }
+    bool run5() { stop_simulation(); }
+    bool run6() { stop_simulation(); }
+    bool run7() { stop_simulation(); }
+    bool run8() { stop_simulation(); }
 
     void debug(bool debug) { _debug = debug; }
     
@@ -80,14 +21,14 @@ protected:
     void failed() const { showResult("FAILED"); }
     void passed() const { showResult("PASSED"); }
     void trace(const char* str) const { if (_debug) showResult(str); }
-    void failure(const char* str) const { showResult(str); }
     void report(const char* str) const { showResult(str); }
 
     void failure(int expected, int got) const
     {
-	char msg[80];
-	sprintf(msg, "Test %s : Expected %d, Got %d", _id, expected, got);
-	pr(msg, 0, PR_CPU_ID | PR_STRING | PR_NEWL);
+	char msg[80] = "Failure ";
+	strcat(msg, _id);
+	pr(msg, expected, PR_CPU_ID | PR_STRING | PR_NEWL | PR_DEC);
+	pr(msg, got, PR_CPU_ID | PR_STRING | PR_NEWL | PR_DEC);
     }
 
 private:
@@ -106,36 +47,37 @@ private:
 };
 
 
-
-class CompositeTestCase: public TestCase {
+template <class Delegate>
+class TestCase {
 public:
-    CompositeTestCase(const char* id): TestCase(id), _ntest(0){}
+    TestCase(const char* id): _tc(id) {}
+    const char* id() const { return _tc.id(); }
     
-    CompositeTestCase& add(TestCase* t)
-    {
-	_test[_ntest++] = t;
-	return *this;
-    }
+    void debug(bool debug) { _tc.debug(debug); }
 
-    bool run() {
-	int failed = 0;
-	for (int i=0; i < _ntest; ++i) {
-	    if (! _test[i]->run()) {
-		++failed;
-	    }
+    bool run()
+    {
+	bool ret;
+	
+	switch (get_proc_id()) {
+	case 1: ret = _tc.run1(); break;
+	case 2: ret = _tc.run2(); break;
+	case 3: ret = _tc.run3(); break;
+	case 4: ret = _tc.run4(); break;
+	case 5: ret = _tc.run5(); break;
+	case 6: ret = _tc.run6(); break;
+	case 7: ret = _tc.run7(); break;
+	case 8: ret = _tc.run8(); break;
+	default: stop_simulation();
 	}
-	return failed == 0;
-    }
-    
-    void debug(bool debug)
-    {
-	for (int i=0; i < _ntest; ++i)
-	    _test[i]->debug(debug);
+	
+	if (ret)
+	    passed();
+	else
+	    failed();
+	return ret;
     }
 
-protected:
-    int _ntest;
-    TestCase* _test[MAX_COMPOSITE_TEST_CASES];
 };
 
 #endif

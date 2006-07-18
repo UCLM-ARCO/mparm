@@ -165,13 +165,15 @@ namespace MPS {
 		    return false;
 		}
 
+		_local = 1;	// write a 0
+		while (_local);	// activate suspend_flag
+
 		if (MutexState::tryLock())
 		    return true;
 
-		if (0 == --_retries) {
-		    _local = 1;		// write a 0, initially locked
+		if (0 == --_retries)
 		    _waiting = true;
-		}
+
 		return false;
 	    }
 

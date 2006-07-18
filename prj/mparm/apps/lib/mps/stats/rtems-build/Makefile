@@ -27,7 +27,7 @@ CLEAN_ADDITIONS = *.txt *.mem *~ *.exe $(EXE:.exe=) *.scn */*~
 %.scn: %.exe
 	ln -sf $< TargetMem_1.mem
 	ln -sf $< TargetMem_2.mem
-	mpsim -c2 -C 2>&1 | tee $@
+	mpsim -c2 -C --intc=a 2>&1 | tee $@
 
 mutex.exe:   mutex.o TestCase.o Suspend.o compat.o
 sem.exe:     sem.o TestCase.o Suspend.o compat.o

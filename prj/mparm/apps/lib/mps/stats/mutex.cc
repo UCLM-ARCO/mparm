@@ -8,7 +8,7 @@
 #define N 20
 
 // Semaphore to signal end condition
-MPS::ScrMem::Semaphore end1(1,61);
+MPS::ScrMem::Semaphore end1(1,61,get_proc_id() == 1,0);
 MPS::ScrMem::Semaphore end2(2,61,get_proc_id() == 1,0);
 
 template<class Mutex>
@@ -25,23 +25,39 @@ private:
     Mutex& _mutex;
 };
 
+extern "C" void udelay(int);
+
+void
+delay()
+{
+#if defined __linux__ || defined __rtems__
+    sleep(0);
+#else
+    udelay(1);
+#endif
+}
+
 template <class Mutex>
 bool
 MutexLatency<Mutex>::run1()
 {
+    stamp(11);
     for (int i = 0; i<N; ++i)  {
-	end1.wait();
+	time_start(i);
 	{
-	    time_start(i);
 	    typename Mutex::Lock lock(_mutex);
 	    trace("lock");
+
 	    end2.post();
 	    end1.wait();
-	    sleep(0);
+
+	    delay();
+	    
 	    time_stop(i);
 	}
 	trace("unlock");
 	end2.post();
+	end1.wait();
     }
     return true;
 }
@@ -50,17 +66,19 @@ template <class Mutex>
 bool
 MutexLatency<Mutex>::run2()
 {
+    wait(11);
+    stamp(0);
     for (int i = 0; i<N; ++i)  {
 	end1.post();
 	end2.wait();
 	{
-	    end1.post();
 	    time_start(i);
 	    typename Mutex::Lock lock(_mutex);
 	    time_stop(i);
 	    trace("lock");
 	}
 	trace("unlock");
+	end1.post();
 	end2.wait();
     }
     return true;

@@ -11,8 +11,8 @@
 
 
 // Semaphores to wait for end condition
-MPS::ScrMem::Semaphore end1(1,61,get_proc_id() == 1,0);
-MPS::ScrMem::Semaphore end2(2,61,get_proc_id() == 1,0);
+MPS::ScrMem::Semaphore end1(1,60,get_proc_id() == 1,0);
+MPS::ScrMem::Semaphore end2(2,60,get_proc_id() == 1,0);
 
 
 const int BufferSize = 32;
@@ -53,7 +53,6 @@ template <int DataSize, int Iterations>
 bool
 RingBuf<DataSize, Iterations>::run1()
 {
-
     trace("Starting producer");
     
     // Storage area (should be get with an allocator)
@@ -65,34 +64,40 @@ RingBuf<DataSize, Iterations>::run1()
     // Single writer, we do not need a mutex
     MPS::DummyMutex mutex;
 
-    // Semaphore counting produced slots must be on dest
-    MPS::ScrMem::SpinSemaphore semP(2,62);
+    // Semaphore counting the # of produced slots must be on dest
+    MPS::ScrMem::SpinSemaphore semP(2,62,true,0);
     
-    // Semaphore counting consumed slots must be local
-    MPS::ScrMem::SpinSemaphore semC(1,62);
+    // Semaphore counting the # of consumed slots must be local
+    MPS::ScrMem::SpinSemaphore semC(1,62,true,0);
     
 
     trace("Building producer side");
     Producer prod(data, tail, mutex, semP, semC, true);
     prod.activate(); // Only on one side
 
+    stamp(11);
+
     trace("Sync");
 
-    end1.wait();
     end2.post();
+    end1.wait();
 
-    DataType item;
+    DataType* item = reinterpret_cast<DataType*>(const_cast<int*>(&MPS::ScrMem::memory_base(1)[64]));
 
     trace("Producing data");
 
     time_start(DataSize);
+    start_metric();
     for (int i = 0; i < Iterations; ++i) {
-	item.data[0] = i;
-	prod.put(item);
+#if 1
+	for (int j=0; j< DataSize/4; ++j)
+	    item[i].data[j] = i;
+#endif
+	prod.put(item[i]);
     }
-
-    end1.wait();
+    stop_metric();
     end2.post();
+    end1.wait();
 
     return true;
 }
@@ -118,13 +123,17 @@ RingBuf<DataSize, Iterations>::run2()
     // Semaphore counting consumed slots must be local
     MPS::ScrMem::SpinSemaphore semC(1,62);
     
+    wait(11);
+    stamp(0);
+    
+    end2.wait();
+
     trace("Building consumer side");
     Consumer cons(data, head, mutex, semP, semC, true);
 
     trace("Sync");
 
     end1.post();
-    end2.wait();
 
     DataType item;
 
@@ -132,15 +141,22 @@ RingBuf<DataSize, Iterations>::run2()
 
     for (int i = 0; i < Iterations; ++i) {
 	item = cons.get();
-#if 0
-	if (item.data[DataSize/4 - 1] != i)
-	    failure("Did not send data");
+#if 1
+	for (int j=0; j< DataSize/4; ++j) {
+	    if (item.data[j] != i) {
+		pr("Send failed i =", i, PR_CPU_ID | PR_STRING | PR_NEWL | PR_DEC);
+		pr("Send failed j =", j, PR_CPU_ID | PR_STRING | PR_NEWL | PR_DEC);
+		goto done;
+	    }
+	}
 #endif
     }
+ done:
+    
     time_stop(DataSize);
 
-    end1.post();
     end2.wait();
+    end1.post();
     
     return true;
 }
@@ -152,17 +168,17 @@ public:
     CompositeRingBuf()
 	: CompositeTestCase("Throughput of MPS RingBuf")
     {
-  	add(new RingBuf<4, 16384>("RingBuffer"));
-  	add(new RingBuf<8,  8192>("RingBuffer"));
-  	add(new RingBuf<16, 4096>("RingBuffer"));
-  	add(new RingBuf<32, 2048>("RingBuffer"));
-  	add(new RingBuf<64, 1024>("RingBuffer"));
-  	add(new RingBuf<128, 512>("RingBuffer"));
-  	add(new RingBuf<256, 256>("RingBuffer"));
-  	add(new RingBuf<512, 128>("RingBuffer"));
-  	add(new RingBuf<1024, 64>("RingBuffer"));
-  	add(new RingBuf<2048, 32>("RingBuffer"));
- 	add(new RingBuf<4096, 16>("RingBuffer"));
+//  	add(new RingBuf<4, 16384>("RingBuffer"));
+//  	add(new RingBuf<8,  8192>("RingBuffer"));
+//   	add(new RingBuf<16, 4096>("RingBuffer"));
+//   	add(new RingBuf<32, 2048>("RingBuffer"));
+//   	add(new RingBuf<64, 1024>("RingBuffer"));
+   	add(new RingBuf<128, 512>("RingBuffer"));
+   	add(new RingBuf<256, 256>("RingBuffer"));
+//   	add(new RingBuf<512, 128>("RingBuffer"));
+//   	add(new RingBuf<1024, 64>("RingBuffer"));
+//   	add(new RingBuf<2048, 32>("RingBuffer"));
+//   	add(new RingBuf<4096, 16>("RingBuffer"));
     }
 };
 
