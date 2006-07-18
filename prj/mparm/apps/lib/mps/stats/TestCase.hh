@@ -6,6 +6,8 @@
 
 class TestCaseDelegate {
 public:
+    TestCaseDelegate() : _debug(false) {}
+
     bool run1() { stop_simulation(); }
     bool run2() { stop_simulation(); }
     bool run3() { stop_simulation(); }
@@ -17,7 +19,6 @@ public:
 
     void debug(bool debug) { _debug = debug; }
     
-protected:
     void failed() const { showResult("FAILED"); }
     void passed() const { showResult("PASSED"); }
     void trace(const char* str) const { if (_debug) showResult(str); }
@@ -25,24 +26,17 @@ protected:
 
     void failure(int expected, int got) const
     {
-	char msg[80] = "Failure ";
-	strcat(msg, _id);
-	pr(msg, expected, PR_CPU_ID | PR_STRING | PR_NEWL | PR_DEC);
-	pr(msg, got, PR_CPU_ID | PR_STRING | PR_NEWL | PR_DEC);
+	pr("Failure ", expected, PR_CPU_ID | PR_STRING | PR_NEWL | PR_DEC);
+	pr("Failure ", got, PR_CPU_ID | PR_STRING | PR_NEWL | PR_DEC);
     }
 
 private:
     void showResult(const char* str) const
     {
-	char msg[80] = "Test ";
-	strcat(msg, _id);
-	strcat(msg, " : ");
-	strcat(msg, str);
-	pr(msg, 0, PR_CPU_ID | PR_STRING | PR_NEWL);
+	pr((char*)str, 0, PR_CPU_ID | PR_STRING | PR_NEWL);
     }
     
 private:
-    const char* _id;
     bool _debug;
 };
 
@@ -50,15 +44,16 @@ private:
 template <class Delegate>
 class TestCase {
 public:
-    TestCase(const char* id): _tc(id) {}
-    const char* id() const { return _tc.id(); }
+    TestCase() {}
     
     void debug(bool debug) { _tc.debug(debug); }
+    void report(const char* str) { _tc.report(str); }
 
     bool run()
     {
 	bool ret;
-	
+
+	report("Starting...");
 	switch (get_proc_id()) {
 	case 1: ret = _tc.run1(); break;
 	case 2: ret = _tc.run2(); break;
@@ -72,12 +67,14 @@ public:
 	}
 	
 	if (ret)
-	    passed();
+	    _tc.passed();
 	else
-	    failed();
+	    _tc.failed();
 	return ret;
     }
-
+    
+private:
+    Delegate _tc;
 };
 
 #endif

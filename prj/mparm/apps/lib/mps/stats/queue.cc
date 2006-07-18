@@ -12,14 +12,14 @@
 // consumers.  Each end can copy data in parallel with just minimal
 // locking.
 
-const int BufferSize = 32;
-
-// Semaphore to signal end condition
+// Semaphore to signal initial condition
 MPS::ScrMem::Semaphore end1(1,61,get_proc_id() == 1,0);
 MPS::ScrMem::Semaphore end2(2,61,get_proc_id() == 1,0);
 
-template <int DataSize = 4, int Iterations = 16384>
-class MQueue : public TestCase {
+const int BufferSize = 32;
+
+template <int DataSize, int Iterations>
+class MQueue : public TestCaseDelegate {
 
     struct DataType {
 	int data[DataSize/sizeof(int)];
@@ -42,9 +42,7 @@ class MQueue : public TestCase {
 	BufferSize> Consumer;
 
 public:
-    MQueue(const char* id) : TestCase(id)
-    {
-    }
+    MQueue() : TestCaseDelegate() { }
     
     bool run1();
     bool run2();
@@ -85,24 +83,15 @@ MQueue<DataSize, Iterations>::run1()
     trace("Producing data");
 
     time_start(DataSize);
+    start_metric();
     for (int i = 0; i < Iterations; ++i) {
 	volatile DataType* item = prod.alloc();
-#if 0
 	char buf[DataSize];
 	memcpy(const_cast<DataType*>(item), buf, DataSize);
-#else
-	memcpy(const_cast<DataType*>(item),
-	       const_cast<int*>(&MPS::ScrMem::memory_base(1)[64]),
-	       DataSize);
-#endif
 	prod.put(item);
     }
+    stop_metric();
     
-    trace("Waiting end1");
-
-    end2.post();
-    end1.wait();
-
     return true;
 }
 
@@ -144,42 +133,15 @@ MQueue<DataSize, Iterations>::run2()
     }
     time_stop(DataSize);
 
-    trace("Posting end1");
-
-    end2.wait();
-    end1.post();
-
     return true;
 }
 
 
-class CompositeMQueue: public CompositeTestCase
-{
-public:
-    CompositeMQueue()
-	: CompositeTestCase("Throughput of MPS Queues")
-    {
-   	add(new MQueue<4, 16384>("Queue"));
-   	add(new MQueue<8,  8192>("Queue"));
-   	add(new MQueue<16, 4096>("Queue"));
-   	add(new MQueue<32, 2048>("Queue"));
-   	add(new MQueue<64, 1024>("Queue"));
-   	add(new MQueue<128, 512>("Queue"));
-   	add(new MQueue<256, 256>("Queue"));
-  	add(new MQueue<512, 128>("Queue"));
-  	add(new MQueue<1024, 64>("Queue"));
-  	add(new MQueue<2048, 32>("Queue"));
-  	add(new MQueue<4096, 16>("Queue"));
-    }
-};
-
-#ifndef COMBINED_TEST_CASES
 int
 main()
 {
-    CompositeMQueue test;
+    TestCase<MQueue<Size, 65536/Size> > test;
 
     test.run();
-    stop_simulation();
+    return 0;
 }
-#endif

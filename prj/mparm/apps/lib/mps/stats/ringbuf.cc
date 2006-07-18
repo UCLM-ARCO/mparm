@@ -9,16 +9,14 @@
 // 2. Semaphores are SpinSemaphores located at the apropriate end
 // 3. Size, even for data types, is always a power of two
 
-
-// Semaphores to wait for end condition
-MPS::ScrMem::Semaphore end1(1,60,get_proc_id() == 1,0);
-MPS::ScrMem::Semaphore end2(2,60,get_proc_id() == 1,0);
-
+// Semaphores to wait for initial condition
+MPS::ScrMem::Semaphore end1(1,0,get_proc_id() == 1,0);
+MPS::ScrMem::Semaphore end2(2,0,get_proc_id() == 1,0);
 
 const int BufferSize = 32;
 
-template <int DataSize = 4, int Iterations = 16384>
-class RingBuf : public TestCase {
+template <int DataSize, int Iterations>
+class RingBuf : public TestCaseDelegate {
 
     struct DataType {
 	int data[DataSize/sizeof(int)];
@@ -39,15 +37,12 @@ class RingBuf : public TestCase {
 	BufferSize> Consumer;
 
 public:
-    RingBuf(const char* id) : TestCase(id)
-    {
-    }
+    RingBuf() : TestCaseDelegate() {}
     
     bool run1();
     bool run2();
-
-private:
 };
+
 
 template <int DataSize, int Iterations>
 bool
@@ -75,10 +70,6 @@ RingBuf<DataSize, Iterations>::run1()
     Producer prod(data, tail, mutex, semP, semC, true);
     prod.activate(); // Only on one side
 
-    stamp(11);
-
-    trace("Sync");
-
     end2.post();
     end1.wait();
 
@@ -89,15 +80,13 @@ RingBuf<DataSize, Iterations>::run1()
     time_start(DataSize);
     start_metric();
     for (int i = 0; i < Iterations; ++i) {
-#if 1
+#if 0
 	for (int j=0; j< DataSize/4; ++j)
 	    item[i].data[j] = i;
 #endif
 	prod.put(item[i]);
     }
     stop_metric();
-    end2.post();
-    end1.wait();
 
     return true;
 }
@@ -123,9 +112,6 @@ RingBuf<DataSize, Iterations>::run2()
     // Semaphore counting consumed slots must be local
     MPS::ScrMem::SpinSemaphore semC(1,62);
     
-    wait(11);
-    stamp(0);
-    
     end2.wait();
 
     trace("Building consumer side");
@@ -141,7 +127,7 @@ RingBuf<DataSize, Iterations>::run2()
 
     for (int i = 0; i < Iterations; ++i) {
 	item = cons.get();
-#if 1
+#if 0
 	for (int j=0; j< DataSize/4; ++j) {
 	    if (item.data[j] != i) {
 		pr("Send failed i =", i, PR_CPU_ID | PR_STRING | PR_NEWL | PR_DEC);
@@ -155,41 +141,15 @@ RingBuf<DataSize, Iterations>::run2()
     
     time_stop(DataSize);
 
-    end2.wait();
-    end1.post();
-    
     return true;
 }
 
 
-class CompositeRingBuf: public CompositeTestCase
-{
-public:
-    CompositeRingBuf()
-	: CompositeTestCase("Throughput of MPS RingBuf")
-    {
-//  	add(new RingBuf<4, 16384>("RingBuffer"));
-//  	add(new RingBuf<8,  8192>("RingBuffer"));
-//   	add(new RingBuf<16, 4096>("RingBuffer"));
-//   	add(new RingBuf<32, 2048>("RingBuffer"));
-//   	add(new RingBuf<64, 1024>("RingBuffer"));
-   	add(new RingBuf<128, 512>("RingBuffer"));
-   	add(new RingBuf<256, 256>("RingBuffer"));
-//   	add(new RingBuf<512, 128>("RingBuffer"));
-//   	add(new RingBuf<1024, 64>("RingBuffer"));
-//   	add(new RingBuf<2048, 32>("RingBuffer"));
-//   	add(new RingBuf<4096, 16>("RingBuffer"));
-    }
-};
-
-#ifndef COMBINED_TEST_CASES
 int
 main()
 {
-    CompositeRingBuf test;
+    TestCase<RingBuf<Size, 65536/Size> > test;
 
-    test.debug(true);
     test.run();
-    stop_simulation();
+    return 0;
 }
-#endif
