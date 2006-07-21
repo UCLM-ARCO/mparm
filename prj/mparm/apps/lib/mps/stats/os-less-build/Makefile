@@ -42,30 +42,6 @@ ASFLAGS = -I. -D__ASSEMBLY__ -msoft-float
 
 all: mutex.scn sem.scn raw.scn ringbuf.scn queue.scn
 
-include ../Make.rules
-
-simple.elf: simple.o compat.o memcpy.o boot.o
-
-old.elf:     old.o TestCase.o compat.o appsupport.o memcpy.o boot.o
-sem.elf:     sem.o TestCase.o compat.o memcpy.o boot.o
-mutex.elf:   mutex.o TestCase.o compat.o memcpy.o boot.o
-raw.elf:     raw.o TestCase.o compat.o memcpy.o boot.o
-ringbuf.elf: ringbuf.o TestCase.o compat.o memcpy.o boot.o
-queue.elf:   queue.o TestCase.o compat.o memcpy.o boot.o
-
-%.scn: %.exe
-	ln -sf $< TargetMem_1.mem
-	ln -sf $< TargetMem_2.mem
-	mpsim -c2 -C --intc=a 2>&1 | tee $@
-
-%.exe: %.elf
-	$(OBJCOPY) -O binary $< $@
-
-%.elf: %.o
-	$(LD) $(LDFLAGS) -T ldscript -Map $(@:.elf=.map) -o $@ $^
-
-
-
 simple.out: OBJS=simple.o compat.o memcpy.o boot.o
 simple.out: simple.o compat.o memcpy.o boot.o
 
@@ -75,11 +51,26 @@ define throughput
  $(1)$(3)$(2).out: $(1).o compat.o memcpy.o boot.o
 endef
 
-CHUNK_SIZES=4 8 16 32 64 128 256 512 1024 2048 4096
-$(foreach size,$(CHUNK_SIZES),$(eval $(call throughput,raw,$(size),Priv)))
-$(foreach size,$(CHUNK_SIZES),$(eval $(call throughput,raw,$(size),Scratch)))
-$(foreach size,$(CHUNK_SIZES),$(eval $(call throughput,ringbuf,$(size),)))
-$(foreach size,$(CHUNK_SIZES),$(eval $(call throughput,queue,$(size),)))
+include ../Make.rules
+
+# old.elf:     old.o TestCase.o compat.o appsupport.o memcpy.o boot.o
+# sem.elf:     sem.o TestCase.o compat.o memcpy.o boot.o
+# mutex.elf:   mutex.o TestCase.o compat.o memcpy.o boot.o
+# raw.elf:     raw.o TestCase.o compat.o memcpy.o boot.o
+# ringbuf.elf: ringbuf.o TestCase.o compat.o memcpy.o boot.o
+# queue.elf:   queue.o TestCase.o compat.o memcpy.o boot.o
+
+# %.scn: %.exe
+# 	ln -sf $< TargetMem_1.mem
+# 	ln -sf $< TargetMem_2.mem
+# 	mpsim -c2 -C --intc=a 2>&1 | tee $@
+
+# %.exe: %.elf
+# 	$(OBJCOPY) -O binary $< $@
+
+# %.elf: %.o
+# 	$(LD) $(LDFLAGS) -T ldscript -Map $(@:.elf=.map) -o $@ $^
+
 
 
 # The following target locates the stack at the end of the local scratch memory

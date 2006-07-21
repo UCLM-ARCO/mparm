@@ -1,3 +1,9 @@
+CHUNK_SIZES=4 8 16 32 64 128 256 512 1024 2048 4096
+$(foreach size,$(CHUNK_SIZES),$(eval $(call throughput,raw,$(size),Priv)))
+$(foreach size,$(CHUNK_SIZES),$(eval $(call throughput,raw,$(size),Scratch)))
+$(foreach size,$(CHUNK_SIZES),$(eval $(call throughput,ringbuf,$(size),)))
+$(foreach size,$(CHUNK_SIZES),$(eval $(call throughput,queue,$(size),)))
+
 dat: throughput.dat sem.dat mutex.dat
 
 mutex.dat: mutex.scn old.scn
