@@ -138,7 +138,23 @@
       gain may be achieved by the compiler on specific values.  For
       example, buffer sizes which are powers of two may lead to much
       better optimized code for modulo operations.
-   
+
+  \section staticcompo Static composition techniques
+
+  Common behaviour of MPS classes is frequently implemented by means
+  of a template \c Base* class and specific technology-dependent
+  behaviour is delegated in a \c *State template parameter.  For
+  example, common behaviour for all mutexes is implemented in the \ref
+  MPS::BaseMutex template class and specific technology-dependent
+  behaviour is delegated in a \c MutexState template parameter.
+  Specialized Mutex versions are provided for scratch semaphores
+  (MPS::ScrMem::Mutex) and shared memory semaphores
+  (MPS::ShMem::Mutex).
+
+  \c *State classes constitute an inheritance hierarchy to maximize
+  reuse.  This is a very limited hierarchy with at most three
+  inheritance levels, no virtual member functions and no virtual
+  inheritance.
 */
 
 # include <MPS/Semaphore.h>

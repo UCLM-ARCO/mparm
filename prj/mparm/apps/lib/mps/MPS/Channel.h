@@ -2,7 +2,7 @@
 #ifndef MPS_CHANNEL_H
 #define MPS_CHANNEL_H
 
-/*! \file Channel.h
+/*! \file MPS/Channel.h
 
   \brief Simple abstractions for connection-oriented data transport.
 
