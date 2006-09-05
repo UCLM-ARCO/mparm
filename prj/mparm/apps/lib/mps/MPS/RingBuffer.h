@@ -3,7 +3,7 @@
 
 /*! \file MPS/RingBuffer.h
 
-  \brief Generic RingBuffer implementation.
+  \brief Generic ring buffer implementation.
 
   RingBuffers may be used for fixed-size type-safe message-oriented
   communication between a set of producers and a set of consumers.  It
@@ -23,10 +23,10 @@
 
   Both \c head and \c tail may also be configured on private memories
   if there is a single reader or a single writer respectively, but
-  this would perform well because tail and head pointers cannot be
-  mapped to local registers (they are declared volatile). Usually they
-  will be configured on the scratch memory of the most frequent reader
-  and writer respectively.
+  this would not perform as well as you would expect because tail and
+  head pointers cannot be mapped to local registers (they are declared
+  volatile). Usually they will be configured on the scratch memory of
+  the most frequent reader and writer respectively.
 
   Each end (consumer and producer) may be configured independently
   (e.g. one end may use a LocalSemaphore and another a
@@ -62,7 +62,7 @@ namespace MPS {
 	 * \param N Size of the RingBuffer (in messages).  This is a
 	 * template parameter because modulo operations may be highly
 	 * optimized by the compiler if N is a power of two.  The
-	 * minimum size of a buffer for this implementation is two.
+	 * minimum size of a buffer for this implementation is one.
 	 */
 	template <class T, class Mutex, class PSemaphore, class CSemaphore, int N>
 	class Producer {
@@ -215,7 +215,7 @@ namespace MPS {
 	 * \param N Size of the RingBuffer (in messages).  This is a
 	 * template parameter because modulo operations may be highly
 	 * optimized by the compiler if N is a power of two.  The
-	 * minimum size of a buffer for this implementation is two.
+	 * minimum size of a buffer for this implementation is one.
 	 */
 	template <class T, class Mutex, class PSemaphore, class CSemaphore, int N>
 	class Consumer {

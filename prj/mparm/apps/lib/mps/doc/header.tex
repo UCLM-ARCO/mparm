@@ -1,0 +1,58 @@
+\documentclass[a4paper]{book}
+\usepackage{a4wide}
+\usepackage{makeidx}
+\usepackage{fancyhdr}
+\usepackage{graphicx}
+\usepackage{multicol}
+\usepackage{float}
+\usepackage{textcomp}
+\usepackage{alltt}
+\usepackage{times}
+\usepackage{ifpdf}
+\ifpdf
+\usepackage[pdftex,
+            pagebackref=true,
+            colorlinks=true,
+            linkcolor=blue
+           ]{hyperref}
+\else
+\usepackage[ps2pdf,
+            pagebackref=true,
+            colorlinks=true,
+            linkcolor=blue
+           ]{hyperref}
+\usepackage{pspicture}
+\fi
+\usepackage{doxygen}
+\makeindex
+\setcounter{tocdepth}{1}
+\renewcommand{\footrulewidth}{0.4pt}
+\begin{document}
+\begin{titlepage}
+\vspace*{2cm}
+\begin{flushright}
+\rule{\textwidth}{0cm}\\
+\rule{.9\textwidth}{0.5mm}\\
+\textsf{\Huge MPS Library Reference Guide\\
+First Edition\\
+for MPS version 0.1.0\\
+\rule{0cm}{0cm}}\\
+\vspace*{2cm}
+\textsf{\LARGE Francisco Moya\\
+and the MPARM developers\\
+\rule{0cm}{0cm}}\\
+\vspace*{3cm}
+\textsf{\Large $date}\\% $
+\vspace*{2cm}
+{\large \textsf{\url{http://www.mparm.org/mps}}\\
+[1ex] \textsf{Email:} \emph{francisco.moya@uclm.es} }\\
+\vspace*{.5cm}
+{\includegraphics[height=1.5cm]{../../UCLM.pdf}
+\hspace*{.5cm}\includegraphics[height=1.5cm]{../../unibo.png}}\\
+\end{flushright}
+\end{titlepage}
+\clearemptydoublepage
+\pagenumbering{roman}
+\tableofcontents
+\clearemptydoublepage
+\pagenumbering{arabic}
