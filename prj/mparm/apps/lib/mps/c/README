@@ -1,0 +1,4 @@
+This directory contains a C version of some MPS abstractions.  Please,
+note that unless we come up with a proper way to deal with every
+features in MPS without extensive replication of code we will not
+maintain this code.

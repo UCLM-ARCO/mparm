@@ -41,6 +41,92 @@ namespace MPS {
 
     namespace RingBuffer {
 
+	/*! \brief Synchronization abstraction for producers.
+	 *
+	 * This intermediate class wraps all synchronization
+	 * primitives needed at the producer side.  Everything is
+	 * private since it is an implementation class to be used in
+	 * Producers.
+	 *
+	 * We use a template class in order to be able to partially
+	 * specialize it for further optimization on specific
+	 * technologies.  E.g. sometimes it is possible to reduce
+	 * locking or bus transactions.
+	 */
+	template <class Mutex, class PSemaphore, class CSemaphore>
+	class PLock {
+	    template <class T, int N>
+	    friend class Producer<T,Mutex,PSemaphore,CSemaphore,N>;
+	    
+	    PLock(Mutex& mutex, PSemaphore& semP, CSemaphore& semC)
+		: _mutex(mutex), _semP(semP), _semC(semC)
+	    {
+		_semC.wait();
+		_mutex.lock();
+	    }
+	    
+	    ~PLock()
+	    {
+		_mutex.unlock();
+		_semP.post();
+	    }
+
+	    Mutex& _semP;
+	    PSemaphore& _semP;
+	    CSemaphore& _semC;
+	};
+
+	/*! \brief Synchronization abstraction for consumers.
+	 *
+	 * This intermediate class wraps all synchronization
+	 * primitives needed at the consumer side.  Everything is
+	 * private since it is an implementation class to be used in
+	 * Consumers.
+	 *
+	 * We use a template class in order to be able to partially
+	 * specialize it for further optimization on specific
+	 * technologies.  E.g. sometimes it is possible to reduce
+	 * locking or bus transactions.
+	 */
+	template <class Mutex, class PSemaphore, class CSemaphore>
+	class CLock {
+	    template <class T, int N>
+	    friend class Consumer<T,Mutex,PSemaphore,CSemaphore,N>;
+	    
+	    CLock(Mutex& mutex, PSemaphore& semP, CSemaphore& semC)
+		: _mutex(mutex), _semP(semP), _semC(semC)
+	    {
+		_semP.wait();
+		_mutex.lock();
+	    }
+	    
+	    ~CLock()
+	    {
+		_mutex.unlock();
+		_semC.post();
+	    }
+
+	    Mutex& _semP;
+	    PSemaphore& _semP;
+	    CSemaphore& _semC;
+	};
+	    
+	
+#ifndef MPS_NO_PARTIAL_TEMPLATES
+	/*! \todo Semaphores in shared memory are inefficient. Each
+	    operation requires four bus accesses (lock, read counter,
+	    write counter, unlock).  It would be nice to optimize this
+	    case by using a common mutex for both semP and semC.  This
+	    is easily achieved by means of partial template
+	    specialization.
+
+	    If the data area is also in shared memory we may also
+	    share the tail and head mutex.  But the latter is hard to
+	    do because for single reader/writer we do not need
+	    head/tail mutex. */
+#endif
+	
+
 	/*! \brief Producer side of the RingBuffer.
 	 *
 	 * A RingBuffer is implemented with two different classes: a
@@ -138,13 +224,10 @@ namespace MPS {
 	     */
 	    void put(const T& t)
 	    {
-		_semC.wait();
-		typename Mutex::Lock lock(_tailMutex);
-
+		PLock<Mutex,PSemaphore,CSemaphore> lock(_tailMutex, _semP, _semC);
 		int tail = _tail;
 		_tail = (tail + 1) % N;
 		const_cast<T&>(_data[tail]) = t;
-		_semP.post();
 	    }
     
 	private:
@@ -292,24 +375,6 @@ namespace MPS {
 		_head = 0;
 	    }
 
-	private:
-
-	    /*! \brief Post a semaphore when destructor is invoked.
-	     *
-	     * This intermediate class wraps a semaphore post in order
-	     * to allow post-return invocation of the \c post
-	     * semaphore method.  This is needed in the \c get method
-	     * implementation.
-	     */
-	    class PostOnDestructor {
-		CSemaphore& _sem;
-	    public:
-		PostOnDestructor(CSemaphore& sem): _sem(sem) {}
-		~PostOnDestructor() { _sem.post(); }
-	    };
-	    
-	public:
-	    
 	    /*! \brief Get first available message in the buffer.
 	     *
 	     * It reads a new message from the head position of the
@@ -317,12 +382,9 @@ namespace MPS {
 	     */
 	    T get()
 	    {
-		_semP.wait();
-		typename Mutex::Lock lock(_headMutex);
-
+		CLock<Mutex,PSemaphore,CSemaphore> lock(_headMutex, _semP, _semC);
 		int head = _head;
 		_head = (head + 1) % N;
-		PostOnDestructor consume(_semC);
 		return const_cast<const T&>(_data[head]);
 	    }
         
